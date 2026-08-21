@@ -3,7 +3,7 @@ services:
     name: chay-review
     runtime: python
     plan: free
-    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate && (python manage.py createsuperuser --noinput || true)"
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate && (python manage.py createsuperuser --noinput || true) && (if [ \"$SEED_OSM_DATA\" = \"1\" ]; then python manage.py import_osm_restaurants; fi || true)"
     startCommand: "gunicorn core.wsgi"
     envVars:
       - key: SECRET_KEY
@@ -24,3 +24,5 @@ services:
         sync: false
       - key: DJANGO_SUPERUSER_PASSWORD
         sync: false
+      - key: SEED_OSM_DATA
+        value: "0"

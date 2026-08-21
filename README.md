@@ -37,6 +37,8 @@ Mở http://127.0.0.1:8000 để xem trang chủ, http://127.0.0.1:8000/admin/ �
    ```
    `--bbox` là "south,west,north,east" (lấy tọa độ trên [bboxfinder.com](http://bboxfinder.com)), mặc định là khu trung tâm TP.HCM. Quán import về ở trạng thái **chờ duyệt** — dữ liệu OSM có thể thiếu/lỗi thời nên cần kiểm tra lại trước khi công khai. Chạy lần đầu tại đây đã lấy được ~125 quán trung tâm TP.HCM, chất lượng không đều (có quán chỉ có món chay chứ không phải quán chay 100%) nên hãy lọc kỹ khi duyệt.
 
+   **Đưa dữ liệu OSM lên thẳng production** (vì máy local có thể không kết nối được tới DB production): trong Render, đặt biến môi trường `SEED_OSM_DATA=1` rồi deploy lại — bước import này đã được gắn sẵn vào `buildCommand` trong `render.yaml`, sẽ tự chạy trong lúc build (nơi mạng kết nối tới Neon bình thường), không cần Shell. Sau khi seed xong, đổi lại `SEED_OSM_DATA=0` để các lần deploy sau không gọi lại Overpass API nữa. **Nhớ vào `/admin/` duyệt/lọc lại các quán vừa import trước khi để chúng hiển thị công khai.**
+
 ## Deploy miễn phí (gợi ý) — không cần tự có server Linux
 
 Toàn bộ dịch vụ bên dưới đều chạy trên hạ tầng của họ (Linux trên cloud) — bạn chỉ cần tài khoản free, không cần tự thuê/quản lý server.

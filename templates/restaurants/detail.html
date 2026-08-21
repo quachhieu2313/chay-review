@@ -12,36 +12,38 @@
         {% if restaurant.cover_image %}
             <img src="{{ restaurant.cover_image.url }}" class="img-fluid rounded mb-3" alt="{{ restaurant.name }}">
         {% endif %}
-        <h1>{{ restaurant.name }}</h1>
-        <p class="text-muted">{{ restaurant.get_province_display }} · {{ restaurant.address }}</p>
-        <p>
+        <h1 class="mb-1">{{ restaurant.name }}</h1>
+        <p class="text-muted mb-2">{{ restaurant.get_province_display }} · {{ restaurant.address }}</p>
+        <p class="mb-3">
             <span class="rating-star fs-5">★ {{ restaurant.average_rating|floatformat:1 }}</span>
             <span class="text-muted">({{ restaurant.review_count }} đánh giá)</span>
             {% if restaurant.price_range %}<span class="badge bg-success ms-2">{{ restaurant.get_price_range_display }}</span>{% endif %}
         </p>
         <p>{{ restaurant.description|linebreaks }}</p>
-        {% if restaurant.opening_hours %}<p><strong>Giờ mở cửa:</strong> {{ restaurant.opening_hours }}</p>{% endif %}
-        {% if restaurant.phone %}<p><strong>Điện thoại:</strong> {{ restaurant.phone }}</p>{% endif %}
+        <div class="d-flex flex-wrap gap-4 text-muted small mb-3">
+            {% if restaurant.opening_hours %}<span>🕒 {{ restaurant.opening_hours }}</span>{% endif %}
+            {% if restaurant.phone %}<span>📞 {{ restaurant.phone }}</span>{% endif %}
+        </div>
 
         <iframe
-            class="w-100 rounded mb-4"
-            style="height:300px;border:0;"
+            class="w-100 rounded mb-4 border"
+            style="height:300px;"
             loading="lazy"
             src="https://www.google.com/maps?q={{ restaurant.address|urlencode }}&output=embed">
         </iframe>
 
         {% if menu_items %}
-        <h3 class="mt-4">Menu</h3>
+        <h3 class="mt-4 mb-3 h4">Menu</h3>
         <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
             {% for item in menu_items %}
             <div class="col">
-                <div class="card h-100">
-                    <div class="card-body d-flex justify-content-between">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body d-flex justify-content-between align-items-start">
                         <div>
                             <h6 class="mb-1">{{ item.name }}</h6>
                             <small class="text-muted">{{ item.description }}</small>
                         </div>
-                        {% if item.price %}<span class="fw-bold text-success">{{ item.price|floatformat:0 }}đ</span>{% endif %}
+                        {% if item.price %}<span class="fw-bold text-success text-nowrap ms-2">{{ item.price|floatformat:0 }}đ</span>{% endif %}
                     </div>
                 </div>
             </div>
@@ -49,14 +51,14 @@
         </div>
         {% endif %}
 
-        <h3>Đánh giá từ thực khách ({{ restaurant.review_count }})</h3>
+        <h3 class="h4 mb-3">Đánh giá từ thực khách ({{ restaurant.review_count }})</h3>
 
         {% if user.is_authenticated %}
             {% if not user_has_reviewed %}
-            <form method="post" action="{% url 'restaurants:add_review' restaurant.slug %}" enctype="multipart/form-data" class="card p-3 mb-4">
+            <form method="post" action="{% url 'restaurants:add_review' restaurant.slug %}" enctype="multipart/form-data" class="card p-3 p-md-4 shadow-sm mb-4">
                 {% csrf_token %}
                 <label class="form-label fw-bold">Chấm điểm</label>
-                <div class="mb-2">
+                <div class="mb-3">
                     {% for value, label in review_form.rating.field.choices %}
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="rating" id="rating{{ value }}" value="{{ value }}" {% if value == 5 %}checked{% endif %}>
@@ -65,7 +67,7 @@
                     {% endfor %}
                 </div>
                 {{ review_form.comment }}
-                <div class="mb-2 mt-2">
+                <div class="mb-2 mt-3">
                     <label class="form-label">Ảnh món ăn thực tế (tối đa 5 ảnh)</label>
                     <input type="file" name="images" class="form-control" accept="image/*" multiple>
                 </div>
@@ -79,15 +81,20 @@
         {% endif %}
 
         {% for review in reviews %}
-        <div class="border-bottom pb-3 mb-3">
-            <p class="mb-1"><strong>{{ review.user.username }}</strong> <span class="rating-star">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span></p>
-            <p class="mb-2">{{ review.comment }}</p>
-            <div class="d-flex gap-2 flex-wrap">
-                {% for img in review.images.all %}
-                <img src="{{ img.image.url }}" style="width:100px;height:100px;object-fit:cover;" class="rounded">
-                {% endfor %}
+        <div class="d-flex gap-3 border-bottom pb-3 mb-3">
+            <div class="rounded-circle bg-success bg-opacity-10 text-success fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;">
+                {{ review.user.username|slice:":1"|upper }}
             </div>
-            <small class="text-muted">{{ review.created_at|date:"d/m/Y H:i" }}</small>
+            <div class="flex-grow-1">
+                <p class="mb-1"><strong>{{ review.user.username }}</strong> <span class="rating-star">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span></p>
+                <p class="mb-2">{{ review.comment }}</p>
+                <div class="d-flex gap-2 flex-wrap mb-2">
+                    {% for img in review.images.all %}
+                    <img src="{{ img.image.url }}" style="width:100px;height:100px;object-fit:cover;" class="rounded">
+                    {% endfor %}
+                </div>
+                <small class="text-muted">{{ review.created_at|date:"d/m/Y H:i" }}</small>
+            </div>
         </div>
         {% empty %}
         <p class="text-muted">Chưa có đánh giá nào, hãy là người đầu tiên!</p>
@@ -95,11 +102,16 @@
     </div>
 
     <div class="col-md-4">
-        <div class="card p-3">
-            <h6>Danh mục</h6>
-            {% for cat in restaurant.categories.all %}
-                <span class="badge bg-secondary me-1">{{ cat.name }}</span>
-            {% endfor %}
+        <div class="card p-3 shadow-sm" style="position:sticky; top:1rem;">
+            <h6 class="fw-bold">Danh mục</h6>
+            <div class="mb-3">
+                {% for cat in restaurant.categories.all %}
+                    <span class="badge bg-success bg-opacity-10 text-success me-1 mb-1">{{ cat.name }}</span>
+                {% empty %}
+                    <span class="text-muted small">Chưa phân loại</span>
+                {% endfor %}
+            </div>
+            <a href="{% url 'restaurants:submit' %}" class="btn btn-outline-success btn-sm w-100">+ Đề xuất quán khác</a>
         </div>
     </div>
 </div>

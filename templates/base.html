@@ -11,6 +11,8 @@
     <meta property="og:description" content="{% block og_description %}Review quán chay thật từ thực khách tại TP.HCM và các tỉnh thành.{% endblock %}">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     {% block og_image %}{% endblock %}
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     {% if GA_MEASUREMENT_ID %}
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ GA_MEASUREMENT_ID }}"></script>
@@ -22,21 +24,78 @@
     </script>
     {% endif %}
     <style>
-        body { background-color: #faf8f3; }
-        .navbar-brand { font-weight: 700; color: #2e7d32 !important; }
-        .rating-star { color: #f5a623; }
+        :root {
+            --bg: #FAF7EF;
+            --surface: #FFFFFF;
+            --text: #20281F;
+            --text-muted: #66705F;
+            --border: #E6E2D4;
+            --accent: #2F6E51;
+            --accent-dark: #1F4D39;
+            --accent-tint: #E7F0E7;
+            --star: #D89B2A;
+
+            --bs-success: #2F6E51;
+            --bs-success-rgb: 47, 110, 81;
+            --bs-body-font-family: 'Be Vietnam Pro', -apple-system, "Segoe UI", Roboto, sans-serif;
+            --bs-link-color: var(--accent);
+            --bs-link-color-rgb: 47, 110, 81;
+            --bs-link-hover-color: var(--accent-dark);
+        }
+
+        body { background-color: var(--bg); color: var(--text); }
+
+        h1, h2, h3, h4, h5, .navbar-brand, .fw-bold { font-weight: 800; letter-spacing: -0.01em; }
+
+        .navbar { background-color: var(--surface) !important; border-bottom: 1px solid var(--border); }
+        .navbar-brand { font-weight: 800; color: var(--accent-dark) !important; font-size: 1.25rem; }
+
+        .rating-star { color: var(--star); font-weight: 700; }
+
+        .hero {
+            background: linear-gradient(135deg, var(--accent-tint) 0%, var(--bg) 75%);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+        }
+        .hero h1 { color: var(--accent-dark); }
+
+        .card-restaurant {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .card-restaurant:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(32,40,31,0.1); }
         .card-restaurant img { height: 200px; object-fit: cover; }
-        footer { background-color: #1b3a1e; color: #eee; }
-        footer a { color: #cde; }
+        .card-restaurant .placeholder-cover {
+            height: 200px; display: flex; align-items: center; justify-content: center;
+            background: var(--accent-tint); font-size: 2.2rem;
+        }
+        .card-restaurant .card-title a { color: var(--text); text-decoration: none; }
+        .card-restaurant .card-title a:hover { color: var(--accent); }
+
+        .btn-success { --bs-btn-bg: var(--accent); --bs-btn-border-color: var(--accent);
+            --bs-btn-hover-bg: var(--accent-dark); --bs-btn-hover-border-color: var(--accent-dark); }
+        .btn-outline-success { --bs-btn-color: var(--accent); --bs-btn-border-color: var(--accent);
+            --bs-btn-hover-bg: var(--accent); --bs-btn-hover-border-color: var(--accent); }
+
+        .badge.bg-success { background-color: var(--accent) !important; }
+
+        footer { background-color: var(--accent-dark); color: #E7EFE8; margin-top: 3rem; }
+        footer a { color: #CFE3D3; }
+        footer a:hover { color: #fff; }
+
         form input[type="text"], form input[type="password"], form input[type="email"] {
             display: block; width: 100%; padding: .375rem .75rem; margin-bottom: .5rem;
-            border: 1px solid #ced4da; border-radius: .375rem;
+            border: 1px solid var(--border); border-radius: .5rem;
         }
+
+        .card, .alert { border-radius: 14px; }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
+    <nav class="navbar navbar-expand-lg navbar-light shadow-sm mb-4">
         <div class="container">
             <a class="navbar-brand" href="{% url 'restaurants:home' %}">🌱 Ăn Chay Ở Đâu</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">

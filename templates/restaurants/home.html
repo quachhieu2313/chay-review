@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="p-4 mb-4 bg-success bg-opacity-10 rounded-3">
-    <h1 class="fw-bold text-success">Tìm quán chay ngon gần bạn</h1>
-    <p class="text-muted mb-0">Review thật từ thực khách, kèm hình ảnh món ăn trực tiếp tại quán.</p>
+<div class="hero p-4 p-md-5 mb-4">
+    <h1 class="mb-2">Tìm quán chay ngon gần bạn</h1>
+    <p class="text-muted mb-0 fs-5">Review thật từ thực khách, kèm hình ảnh món ăn trực tiếp tại quán — không phải ảnh quảng cáo.</p>
 </div>
 
 <div class="row">
     <div class="col-md-3 mb-4">
-        <form method="get" class="card p-3">
+        <form method="get" class="card p-3 shadow-sm">
             <input type="hidden" name="q" value="{{ query }}">
             <label class="form-label fw-bold">Tỉnh/thành</label>
             <select name="tinh" class="form-select mb-3" onchange="this.form.submit()">
@@ -36,15 +36,15 @@
         <div class="row row-cols-1 row-cols-md-3 g-4">
             {% for restaurant in page_obj %}
             <div class="col">
-                <div class="card h-100 card-restaurant shadow-sm">
+                <div class="card h-100 card-restaurant">
                     {% if restaurant.cover_image %}
                         <img src="{{ restaurant.cover_image.url }}" class="card-img-top" alt="{{ restaurant.name }}">
                     {% else %}
-                        <div class="card-img-top bg-secondary bg-opacity-25 d-flex align-items-center justify-content-center" style="height:200px;">🥗</div>
+                        <div class="placeholder-cover">🥗</div>
                     {% endif %}
                     <div class="card-body">
-                        <h5 class="card-title"><a class="text-decoration-none" href="{{ restaurant.get_absolute_url }}">{{ restaurant.name }}</a></h5>
-                        <p class="card-text text-muted small mb-1">{{ restaurant.get_province_display }} · {{ restaurant.address }}</p>
+                        <h5 class="card-title mb-1"><a href="{{ restaurant.get_absolute_url }}">{{ restaurant.name }}</a></h5>
+                        <p class="card-text text-muted small mb-2">{{ restaurant.get_province_display }} · {{ restaurant.address }}</p>
                         <p class="mb-0">
                             <span class="rating-star">★ {{ restaurant.avg_rating|default_if_none:0|floatformat:1 }}</span>
                             <span class="text-muted small">({{ restaurant.num_reviews }} đánh giá)</span>
