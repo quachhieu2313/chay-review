@@ -6,6 +6,11 @@ import sys
 
 def main():
     """Run administrative tasks."""
+    if sys.platform == "win32":
+        # Console Windows (cp1252/cp850...) không encode được tiếng Việt có dấu,
+        # làm crash các management command in ra thông báo tiếng Việt.
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
     try:
         from django.core.management import execute_from_command_line

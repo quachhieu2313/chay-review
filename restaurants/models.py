@@ -3,6 +3,8 @@ from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 
+from core.validators import validate_image_size
+
 
 PROVINCE_CHOICES = [
     ("hcm", "TP. Hồ Chí Minh"),
@@ -48,7 +50,9 @@ class Restaurant(models.Model):
     price_range = models.CharField(max_length=20, choices=PRICE_RANGE_CHOICES, blank=True)
     latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
     longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
-    cover_image = models.ImageField(upload_to="restaurants/covers/", blank=True, null=True)
+    cover_image = models.ImageField(
+        upload_to="restaurants/covers/", blank=True, null=True, validators=[validate_image_size]
+    )
     categories = models.ManyToManyField(Category, blank=True, related_name="restaurants")
     is_published = models.BooleanField(default=True)
     created_by = models.ForeignKey(
@@ -92,7 +96,9 @@ class MenuItem(models.Model):
     name = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=10, decimal_places=0, null=True, blank=True, help_text="VNĐ")
     description = models.CharField(max_length=300, blank=True)
-    image = models.ImageField(upload_to="restaurants/menu_items/", blank=True, null=True)
+    image = models.ImageField(
+        upload_to="restaurants/menu_items/", blank=True, null=True, validators=[validate_image_size]
+    )
 
     class Meta:
         ordering = ["name"]

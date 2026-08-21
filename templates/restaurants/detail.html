@@ -2,6 +2,9 @@
 
 {% block title %}{{ restaurant.name }} - Ăn Chay Ở Đâu{% endblock %}
 {% block description %}{{ restaurant.description|truncatewords:30 }}{% endblock %}
+{% block og_title %}{{ restaurant.name }} - Ăn Chay Ở Đâu{% endblock %}
+{% block og_description %}{{ restaurant.description|truncatewords:30 }}{% endblock %}
+{% block og_image %}{% if restaurant.cover_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ restaurant.cover_image.url }}">{% endif %}{% endblock %}
 
 {% block content %}
 <div class="row">

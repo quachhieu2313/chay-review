@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Đề xuất quán chay mới - Ăn Chay Ở Đâu{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <h2 class="mb-1">Đề xuất quán chay mới</h2>
+        <p class="text-muted">Biết quán chay ngon nào chưa có trên web? Gửi thông tin cho tụi mình, quán sẽ hiển thị sau khi được duyệt (thường trong 1-2 ngày).</p>
+        <form method="post" enctype="multipart/form-data" class="card p-4">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-3">
+                <label class="form-label fw-bold">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+            <button class="btn btn-success" type="submit">Gửi đề xuất</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

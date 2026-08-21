@@ -1,8 +1,10 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 
+from core.validators import validate_image_size
 from restaurants.models import Restaurant
 
 from .forms import ReviewForm
@@ -25,9 +27,17 @@ def add_review(request, slug):
         review.user = request.user
         review.save()
 
+        skipped = 0
         for image in request.FILES.getlist("images")[:5]:
+            try:
+                validate_image_size(image)
+            except ValidationError:
+                skipped += 1
+                continue
             ReviewImage.objects.create(review=review, image=image)
 
+        if skipped:
+            messages.warning(request, f"{skipped} ảnh quá dung lượng (>5MB) đã bị bỏ qua.")
         messages.success(request, "Cảm ơn bạn đã đánh giá!")
     else:
         messages.error(request, "Đánh giá chưa hợp lệ, vui lòng kiểm tra lại.")

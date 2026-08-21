@@ -65,6 +65,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.site_settings',
             ],
         },
     },
@@ -126,6 +127,9 @@ if env.bool("USE_CLOUDINARY", default=False):
     }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Google Analytics (free) - để trống nếu chưa có tài khoản, site vẫn chạy bình thường.
+GA_MEASUREMENT_ID = env("GA_MEASUREMENT_ID", default="")
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'restaurants:home'

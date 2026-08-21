@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from core.validators import validate_image_size
 from restaurants.models import Restaurant
 
 
@@ -24,7 +25,7 @@ class Review(models.Model):
 
 class ReviewImage(models.Model):
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="images")
-    image = models.ImageField(upload_to="reviews/photos/")
+    image = models.ImageField(upload_to="reviews/photos/", validators=[validate_image_size])
 
     def __str__(self):
         return f"Ảnh của review #{self.review_id}"
