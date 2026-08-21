@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-4 mb-4 bg-success bg-opacity-10 rounded-3">
+    <h1 class="fw-bold text-success">Tìm quán chay ngon gần bạn</h1>
+    <p class="text-muted mb-0">Review thật từ thực khách, kèm hình ảnh món ăn trực tiếp tại quán.</p>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <form method="get" class="card p-3">
+            <input type="hidden" name="q" value="{{ query }}">
+            <label class="form-label fw-bold">Tỉnh/thành</label>
+            <select name="tinh" class="form-select mb-3" onchange="this.form.submit()">
+                <option value="">-- Tất cả --</option>
+                {% for code, label in provinces %}
+                    <option value="{{ code }}" {% if code == selected_province %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <label class="form-label fw-bold">Loại hình</label>
+            <select name="loai" class="form-select mb-3" onchange="this.form.submit()">
+                <option value="">-- Tất cả --</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.slug }}" {% if cat.slug == selected_category %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <button class="btn btn-success" type="submit">Lọc</button>
+        </form>
+    </div>
+
+    <div class="col-md-9">
+        {% if not page_obj %}
+            <p class="text-muted">Chưa có quán nào phù hợp. Hãy thử bộ lọc khác hoặc quay lại sau.</p>
+        {% endif %}
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for restaurant in page_obj %}
+            <div class="col">
+                <div class="card h-100 card-restaurant shadow-sm">
+                    {% if restaurant.cover_image %}
+                        <img src="{{ restaurant.cover_image.url }}" class="card-img-top" alt="{{ restaurant.name }}">
+                    {% else %}
+                        <div class="card-img-top bg-secondary bg-opacity-25 d-flex align-items-center justify-content-center" style="height:200px;">🥗</div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title"><a class="text-decoration-none" href="{{ restaurant.get_absolute_url }}">{{ restaurant.name }}</a></h5>
+                        <p class="card-text text-muted small mb-1">{{ restaurant.get_province_display }} · {{ restaurant.address }}</p>
+                        <p class="mb-0">
+                            <span class="rating-star">★ {{ restaurant.avg_rating|default_if_none:0|floatformat:1 }}</span>
+                            <span class="text-muted small">({{ restaurant.num_reviews }} đánh giá)</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&tinh={{ selected_province }}&loai={{ selected_category }}&q={{ query }}">«</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">Trang {{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&tinh={{ selected_province }}&loai={{ selected_category }}&q={{ query }}">»</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
