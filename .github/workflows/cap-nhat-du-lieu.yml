@@ -4,7 +4,7 @@ name: Cập nhật dữ liệu thị trường
 
 on:
   schedule:
-    - cron: "30 9 * * 1-5"   # 16:30 giờ Việt Nam, thứ Hai đến thứ Sáu
+    - cron: "37 9 * * 1-5"   # 16:37 giờ Việt Nam, thứ Hai đến thứ Sáu
   workflow_dispatch:
 
 permissions:

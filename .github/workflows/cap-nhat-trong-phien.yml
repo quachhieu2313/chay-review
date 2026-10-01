@@ -1,13 +1,13 @@
 # Cập nhật nhanh trong giờ giao dịch: chỉ lấy bảng giá hiện tại (~30 giây/lần).
-# Lịch theo giờ UTC (giờ Việt Nam trừ 7): 9:00-14:50 mỗi 10 phút, thêm 15:00 và 15:10.
+# Lịch theo giờ UTC (giờ Việt Nam trừ 7): 9:07, 9:17 ... 14:57 và 15:07 (tránh phút tròn, GitHub hay bỏ lịch lúc đông).
 # GitHub có thể chạy trễ vài phút so với lịch khi hệ thống đông.
 # Không chạy dày hơn: GitHub Pages chỉ build lại web khoảng 10 lần mỗi giờ.
 name: Cập nhật giá trong phiên
 
 on:
   schedule:
-    - cron: "*/10 2-7 * * 1-5"
-    - cron: "0,10 8 * * 1-5"
+    - cron: "7-59/10 2-7 * * 1-5"
+    - cron: "7 8 * * 1-5"
   workflow_dispatch:
 
 permissions:
