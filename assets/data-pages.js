@@ -15,7 +15,20 @@
     if(n === null || n === undefined || isNaN(n)) return '–';
     return (n > 0 ? '+' : n < 0 ? '−' : '') + fmt(Math.abs(n), d === undefined ? 2 : d) + '%';
   }
-  function moc(ngay, luc){ return ngayVN(ngay) + (luc ? ' lúc ' + luc : ''); }
+  // giờ Việt Nam hiện tại (không phụ thuộc múi giờ máy người xem)
+  function bayGioVN(){ return new Date(Date.now() + (new Date().getTimezoneOffset() + 420) * 60000); }
+  // trong giờ giao dịch mà dữ liệu cũ hơn 25 phút thì coi là chậm
+  function cham(ngay, luc){
+    var n = bayGioVN(), thu = n.getDay(), phut = n.getHours() * 60 + n.getMinutes();
+    if(thu === 0 || thu === 6 || phut < 9 * 60 + 25 || phut > 15 * 60 + 30) return false;
+    var hom = n.getFullYear() + '-' + ('0' + (n.getMonth() + 1)).slice(-2) + '-' + ('0' + n.getDate()).slice(-2);
+    if(ngay !== hom || !luc) return true;
+    var p = luc.split(':');
+    return phut - (Number(p[0]) * 60 + Number(p[1])) > 25;
+  }
+  function moc(ngay, luc){
+    return ngayVN(ngay) + (luc ? ' lúc ' + luc : '') + (cham(ngay, luc) ? ' (dữ liệu đang chậm hơn dự kiến)' : '');
+  }
   function cls(n){ return n > 0 ? 'up' : n < 0 ? 'down' : ''; }
   function ngayVN(s){ if(!s) return '–'; var p = s.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
   function tien(dong){
