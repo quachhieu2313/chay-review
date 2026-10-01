@@ -875,3 +875,11 @@ body.modal-open{overflow:hidden;}
 .sm-chip-ind span{color:var(--muted); font-size:13px; line-height:1;}
 .sm-chip-ind:hover{border-color:#FF6B61;}
 .sm-chip-ind:hover span{color:#FF6B61;}
+
+/* trạng thái đang tải trong popup */
+.sm-loading{height:100%; min-height:260px; display:flex; align-items:center; justify-content:center; gap:10px; color:var(--muted); font-size:13px;}
+.sm-spin{width:18px; height:18px; border-radius:50%; border:2px solid #2B3F86; border-top-color:var(--lime); animation:smSpin .8s linear infinite;}
+@keyframes smSpin{to{transform:rotate(360deg);}}
+.sm-skel{height:12px; border-radius:6px; background:linear-gradient(90deg,#111F4D,#1A2B66,#111F4D); background-size:200% 100%; animation:smSkel 1.2s ease-in-out infinite; margin:6px 0;}
+@keyframes smSkel{0%{background-position:100% 0;} 100%{background-position:-100% 0;}}
+@media (prefers-reduced-motion:reduce){ .sm-spin, .sm-skel{animation:none;} }

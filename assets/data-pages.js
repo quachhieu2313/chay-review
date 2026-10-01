@@ -34,7 +34,7 @@
       cache[path] = fetch(BASE + '/assets/data/' + path, {cache:'no-cache'}).then(function(r){
         if(!r.ok) throw new Error(path + ' ' + r.status);
         return r.json();
-      });
+      }).catch(function(e){ delete cache[path]; throw e; });
     }
     return cache[path];
   }
@@ -423,6 +423,7 @@
     function rebuild(){
       var keep = chart ? chart.timeScale().getVisibleLogicalRange() : null;
       if(chart){ chart.remove(); chart = null; }
+      chartBox.innerHTML = '';
       var osc = active.filter(function(id){ return CB[id].nhom === 'khung'; });
       chartBox.style.height = (window.innerWidth < 900 ? 330 : 430) + osc.length * 130 + 'px';
       chart = L.createChart(chartBox, {
@@ -598,7 +599,20 @@
       $('#smCode').textContent = maCk;
       $('#smName').textContent = row ? row.ten : '';
       $('#smSector').textContent = row ? row.nganh : '';
-      legend.textContent = 'Đang tải dữ liệu…';
+      // xoá ngay nội dung của mã trước, không để biểu đồ/giá cũ nằm lại trong lúc chờ tải
+      if(chart){ chart.remove(); chart = null; }
+      data = null;
+      chartBox.innerHTML = '<div class="sm-loading"><span class="sm-spin"></span>Đang tải biểu đồ ' + esc(maCk) + '…</div>';
+      legend.textContent = '';
+      $('#smPrice').textContent = row ? fmt(row.gia) : '–';
+      var chg0 = $('#smChg');
+      chg0.className = 'sm-chg ' + (row ? cls(row.thay_doi) : '');
+      chg0.textContent = row ? pct(row.thay_doi) : '';
+      $('#smTime').textContent = '';
+      ['#smSession', '#smFund'].forEach(function(id){ $(id).innerHTML = '<div class="sm-skel"></div><div class="sm-skel"></div><div class="sm-skel"></div>'; });
+      $('#smWeek52').innerHTML = '<div class="sm-skel"></div>';
+      $('#smPerf').innerHTML = '';
+      $('#smKy').textContent = '';
       try{ history.replaceState(null, '', '#ma=' + maCk + '&cb=' + active.join(',')); }catch(e){}
       dialog.focus();
       Promise.all([loadLwc(), load('cp/' + maCk + '.json')]).then(function(res){
@@ -608,10 +622,11 @@
         $('#smSector').textContent = data.nganh;
         compute();
         side();
-        if(chart){ chart.remove(); chart = null; }
         rebuild();
+        prefetchNeighbors();
       }).catch(function(){
-        legend.textContent = 'Chưa tải được dữ liệu của mã này. Vui lòng thử lại sau.';
+        if(current !== maCk) return;
+        chartBox.innerHTML = '<div class="sm-loading">Chưa tải được dữ liệu của ' + esc(maCk) + '. Bấm lại vào mã để thử lại.</div>';
       });
     }
 
@@ -622,6 +637,16 @@
       current = null;
       try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
       if(lastFocus) lastFocus.focus();
+    }
+
+    function prefetchNeighbors(){
+      var list = getList(), i = -1;
+      list.forEach(function(x, j){ if(x.ma === current) i = j; });
+      if(i < 0) return;
+      [-1, 1].forEach(function(k){
+        var nb = list[(i + k + list.length) % list.length];
+        if(nb) load('cp/' + nb.ma + '.json').catch(function(){});
+      });
     }
 
     function step(k){
@@ -663,7 +688,12 @@
       if(data && L) rebuild();
     }
 
-    return {open: open, setActive: setActive};
+    function prefetch(maCk){
+      loadLwc().catch(function(){});
+      load('cp/' + maCk + '.json').catch(function(){});
+    }
+
+    return {open: open, setActive: setActive, prefetch: prefetch};
   }
 
   // =====================================================================
@@ -757,6 +787,15 @@
         modal.open(m, rows.filter(function(x){ return x.ma === m; })[0]);
       }
       body.addEventListener('click', function(e){ var r = e.target.closest('.wl-click'); if(r) openRow(r); });
+      // tải trước dữ liệu khi người dùng sắp bấm (rê chuột / chạm / focus vào dòng)
+      ['mouseover', 'focusin', 'touchstart'].forEach(function(ev){
+        body.addEventListener(ev, function(e){
+          var r = e.target.closest('.wl-click');
+          if(r) modal.prefetch(r.getAttribute('data-ma'));
+        }, {passive:true});
+      });
+      // tải sẵn thư viện biểu đồ khi trình duyệt rảnh
+      (window.requestIdleCallback || function(f){ setTimeout(f, 1500); })(function(){ loadLwc().catch(function(){}); });
       body.addEventListener('keydown', function(e){
         var r = e.target.closest('.wl-click');
         if(r && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); openRow(r); }
