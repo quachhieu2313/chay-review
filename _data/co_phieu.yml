@@ -1,0 +1,12 @@
+# Bảng theo dõi cổ phiếu ở trang Thị trường (hiện là số minh hoạ).
+# gia: đồng · thay_doi: % (âm là giảm) · khoi_luong: triệu cổ phiếu
+- {ma: FPT, ten: FPT Corp,          gia: 128400, thay_doi: 1.82,  khoi_luong: 4.1}
+- {ma: VCB, ten: Vietcombank,       gia: 92800,  thay_doi: 0.43,  khoi_luong: 2.3}
+- {ma: HPG, ten: Hòa Phát,          gia: 27650,  thay_doi: -0.72, khoi_luong: 28.6}
+- {ma: MWG, ten: Thế Giới Di Động,  gia: 61300,  thay_doi: 2.15,  khoi_luong: 6.8}
+- {ma: VNM, ten: Vinamilk,          gia: 63200,  thay_doi: -0.31, khoi_luong: 3.2}
+- {ma: TCB, ten: Techcombank,       gia: 23450,  thay_doi: 1.30,  khoi_luong: 12.4}
+- {ma: MBB, ten: MB Bank,           gia: 22150,  thay_doi: 0.23,  khoi_luong: 15.9}
+- {ma: VHM, ten: Vinhomes,          gia: 41950,  thay_doi: -1.29, khoi_luong: 5.5}
+- {ma: GAS, ten: PV Gas,            gia: 68900,  thay_doi: 0.58,  khoi_luong: 1.1}
+- {ma: SSI, ten: Chứng khoán SSI,   gia: 26800,  thay_doi: -0.93, khoi_luong: 18.2}

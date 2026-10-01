@@ -284,12 +284,20 @@
       }
     })();
 
-    var INDICES = {
-      VNINDEX: {label:'VN-INDEX', data:series(11, 1286.45, 0.022, 0.0006)},
-      HNXINDEX: {label:'HNX-INDEX', data:series(29, 231.78, 0.026, 0.0002)},
-      UPCOM: {label:'UPCOM-INDEX', data:series(47, 98.56, 0.016, 0.0003)}
-    };
-    var current = 'VNINDEX', range = 66;
+    // đọc chỉ số từ các thẻ (dữ liệu lấy từ _data/chi_so.yml)
+    var INDICES = {}, current = null, range = 66;
+    $$('.index-card').forEach(function(card, i){
+      var last = Number(card.getAttribute('data-last'));
+      var key = card.getAttribute('data-index');
+      INDICES[key] = {label:card.getAttribute('data-label'), data:series(11 + i * 18, last, 0.02 + (i % 2) * 0.006, 0.0004)};
+      if(!current) current = key;
+      // định dạng số kiểu Việt Nam: 1.286,45
+      var val = $('.val', card);
+      val.textContent = fmt(Number(val.getAttribute('data-num')), 2);
+      var chgEl = $('.chg', card);
+      var ch = Number(chgEl.getAttribute('data-chg')), pc = Number(chgEl.getAttribute('data-pct'));
+      chgEl.textContent = (ch >= 0 ? '▲ +' : '▼ −') + fmt(Math.abs(ch), 2) + ' (' + fmt(Math.abs(pc), 2) + '%)';
+    });
 
     var path = $('#linePath'), area = $('#lineArea');
     var tip = $('#chartTip'), dot = $('#chartDot'), hline = $('#chartHline');
@@ -356,18 +364,10 @@
     draw();
 
     // ---------- bảng theo dõi cổ phiếu ----------
-    var STOCKS = [
-      {t:'FPT', n:'FPT Corp', p:128400, c:1.82, v:4.1},
-      {t:'VCB', n:'Vietcombank', p:92800, c:0.43, v:2.3},
-      {t:'HPG', n:'Hòa Phát', p:27650, c:-0.72, v:28.6},
-      {t:'MWG', n:'Thế Giới Di Động', p:61300, c:2.15, v:6.8},
-      {t:'VNM', n:'Vinamilk', p:63200, c:-0.31, v:3.2},
-      {t:'TCB', n:'Techcombank', p:23450, c:1.30, v:12.4},
-      {t:'MBB', n:'MB Bank', p:22150, c:0.23, v:15.9},
-      {t:'VHM', n:'Vinhomes', p:41950, c:-1.29, v:5.5},
-      {t:'GAS', n:'PV Gas', p:68900, c:0.58, v:1.1},
-      {t:'SSI', n:'Chứng khoán SSI', p:26800, c:-0.93, v:18.2}
-    ];
+    // danh sách lấy từ _data/co_phieu.yml
+    var STOCKS = (window.KCN_STOCKS || []).map(function(s){
+      return {t:String(s.ma), n:String(s.ten), p:Number(s.gia), c:Number(s.thay_doi), v:Number(s.khoi_luong)};
+    });
     STOCKS.forEach(function(s, i){
       var r = rng(100 + i), v = [0];
       for(var k = 1; k < 12; k++) v.push(v[k - 1] + (r() - 0.5) * 2);
@@ -427,14 +427,49 @@
 
     var search = $('#siteSearch');
     if(search){
+      var q = new URLSearchParams(location.search).get('q');
+      if(q){ search.value = q; filter = q.trim().toUpperCase(); }
       search.addEventListener('input', function(){
         filter = search.value.trim().toUpperCase();
         renderTable();
       });
-      search.addEventListener('keydown', function(e){
-        if(e.key === 'Enter'){ document.getElementById('thi-truong').scrollIntoView(); }
-      });
     }
     renderTable();
+  }else{
+    // ở các trang khác: nhấn Enter trong ô tìm kiếm sẽ chuyển sang trang Thị trường
+    var searchOther = $('#siteSearch');
+    if(searchOther){
+      searchOther.addEventListener('keydown', function(e){
+        var v = searchOther.value.trim();
+        if(e.key === 'Enter' && v){
+          location.href = searchOther.getAttribute('data-market-url') + '?q=' + encodeURIComponent(v);
+        }
+      });
+    }
+  }
+
+  // =====================================================================
+  // THẺ "HÔM NAY CỦA BẠN" Ở TRANG CHỦ
+  // =====================================================================
+  var homeToday = $('#homeToday');
+  if(homeToday){
+    var saved = store.get('kcn-goals', null);
+    var goals = saved && Array.isArray(saved.goals) ? saved.goals : [];
+    var isToday = saved && saved.day === dateKey(new Date());
+    var doneN = isToday ? goals.filter(function(g){ return g.done; }).length : 0;
+    var totalN = goals.length;
+    var pctN = totalN ? Math.round(doneN / totalN * 100) : 0;
+
+    $('#homeRing').setAttribute('stroke-dashoffset', (314.16 * (1 - pctN / 100)).toFixed(2));
+    $('#homePct').textContent = pctN + '%';
+    if(totalN){
+      $('#homeTodayTitle').textContent = doneN === totalN ? 'Tuyệt vời, bạn đã xong hết!' :
+        'Còn ' + (totalN - doneN) + ' việc cho hôm nay';
+      $('#homeSub').textContent = doneN + '/' + totalN + ' mục tiêu đã hoàn thành';
+      $('#homeList').innerHTML = goals.slice(0, 4).map(function(g){
+        var d = isToday && g.done;
+        return '<li class="' + (d ? 'done' : '') + '"><i></i>' + escapeHtml(g.text) + '</li>';
+      }).join('');
+    }
   }
 })();

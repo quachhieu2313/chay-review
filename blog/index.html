@@ -1,0 +1,19 @@
+---
+layout: default
+title: Blog
+description: Bài viết ngắn, thực tế về kỷ luật, mục tiêu cá nhân và đầu tư chứng khoán Việt Nam.
+nav: blog
+---
+<section class="page-head wrap">
+  <p class="eyebrow">Blog</p>
+  <h1>Góc nhìn về kỷ luật, mục tiêu và đầu tư</h1>
+  <p>Bài viết ngắn, thực tế, đọc trong một lần uống cà phê.</p>
+</section>
+
+<section class="wrap">
+  <div class="blog-grid">
+    {%- for post in site.posts %}
+    {% include post-card.html post=post %}
+    {%- endfor %}
+  </div>
+</section>

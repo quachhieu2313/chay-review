@@ -1,0 +1,23 @@
+# ==========================================================
+# CẤU HÌNH CHUNG CỦA WEBSITE KIM CHỈ NAM
+# Sửa xong file này, GitHub tự build lại web sau 1-2 phút.
+# ==========================================================
+
+title: Kim Chỉ Nam
+tagline: Nhật ký mục tiêu & công cụ đầu tư cho người Việt
+description: Đặt mục tiêu mỗi ngày, theo dõi chuỗi kỷ luật, tính lãi kép và đọc bài viết thực tế về đầu tư chứng khoán Việt Nam. Miễn phí, không cần đăng ký.
+slogan: "Kiến thức và kỷ luật hôm nay, tự do tài chính ngày mai."
+lang: vi
+
+# Địa chỉ web. Nếu đổi tên repo trên GitHub thì sửa dòng baseurl cho khớp tên mới.
+url: "https://quachhieu2313.github.io"
+baseurl: "/chay-review"
+
+# Bài blog nằm trong thư mục _posts, địa chỉ dạng /blog/ten-bai.html
+permalink: /blog/:title.html
+timezone: Asia/Ho_Chi_Minh
+markdown: kramdown
+
+exclude:
+  - HUONG_DAN.md
+  - README.md

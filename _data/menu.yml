@@ -1,0 +1,17 @@
+# Menu trên đầu trang. Thứ tự ở đây = thứ tự hiển thị.
+# id phải trùng với dòng "nav:" ở đầu file trang tương ứng.
+- id: muc-tieu
+  ten: Mục tiêu
+  link: /muc-tieu/
+- id: lai-kep
+  ten: Lãi kép
+  link: /lai-kep/
+- id: thi-truong
+  ten: Thị trường
+  link: /thi-truong/
+- id: blog
+  ten: Blog
+  link: /blog/
+- id: hoi-dap
+  ten: Hỏi đáp
+  link: /hoi-dap/

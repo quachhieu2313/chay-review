@@ -1,0 +1,23 @@
+---
+layout: default
+title: Hỏi đáp
+description: Câu hỏi thường gặp về Kim Chỉ Nam - chi phí, nơi lưu dữ liệu, cách tính chuỗi ngày và nguồn số liệu.
+nav: hoi-dap
+permalink: /hoi-dap/
+---
+<section class="page-head wrap center-head">
+  <p class="eyebrow">Hỏi đáp</p>
+  <h1>Câu hỏi thường gặp</h1>
+  <p>Không thấy câu trả lời bạn cần? Hãy xem các bài viết trên <a href="{{ '/blog/' | relative_url }}" style="color:var(--accent-strong);text-decoration:underline;">Blog</a>.</p>
+</section>
+
+<section class="wrap">
+  <div class="faq">
+    {%- for item in site.data.hoi_dap %}
+    <details{% if forloop.first %} open{% endif %}>
+      <summary>{{ item.hoi }}</summary>
+      <p>{{ item.dap }}</p>
+    </details>
+    {%- endfor %}
+  </div>
+</section>

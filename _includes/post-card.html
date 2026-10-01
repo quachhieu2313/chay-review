@@ -1,0 +1,14 @@
+<a class="post reveal" href="{{ include.post.url | relative_url }}">
+  <div class="post-thumb">
+    {%- case include.post.hinh %}
+    {%- when "vuong" %}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>
+    {%- when "tam-giac" %}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12,2 22,20 2,20"/></svg>
+    {%- when "sao" %}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg>
+    {%- else %}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10"/></svg>
+    {%- endcase %}
+  </div>
+  <p class="cat">{{ include.post.chu_de }}</p>
+  <h3>{{ include.post.title }}</h3>
+  <p>{{ include.post.description }}</p>
+  <p class="meta">{{ include.post.date | date: "%d/%m/%Y" }}{% if include.post.phut_doc %} · {{ include.post.phut_doc }} phút đọc{% endif %}</p>
+</a>

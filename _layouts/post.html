@@ -1,0 +1,30 @@
+---
+layout: default
+nav: blog
+---
+<div class="wrap">
+  <article class="article">
+    <p class="crumbs"><a href="{{ '/' | relative_url }}">Trang chủ</a> / <a href="{{ '/blog/' | relative_url }}">Blog</a> / {{ page.chu_de }}</p>
+    <p class="eyebrow">{{ page.chu_de }}</p>
+    <h1>{{ page.title }}</h1>
+    {%- if page.description %}
+    <p class="lede">{{ page.description }}</p>
+    {%- endif %}
+    <p class="meta">{{ page.tac_gia | default: "Ban biên tập Kim Chỉ Nam" }} · {{ page.date | date: "%d/%m/%Y" }}{% if page.phut_doc %} · {{ page.phut_doc }} phút đọc{% endif %}</p>
+    <div class="prose">
+{{ content }}
+    </div>
+    <div class="article-foot">
+      <h2>Đọc tiếp</h2>
+      <div class="related">
+        {%- assign count = 0 %}
+        {%- for post in site.posts %}
+          {%- if post.url != page.url and count < 2 %}
+          <a href="{{ post.url | relative_url }}"><span>{{ post.chu_de }}</span><b>{{ post.title }}</b></a>
+          {%- assign count = count | plus: 1 %}
+          {%- endif %}
+        {%- endfor %}
+      </div>
+    </div>
+  </article>
+</div>
