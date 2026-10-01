@@ -364,7 +364,7 @@
       var von = d.co_phieu_niem_yet ? c * d.co_phieu_niem_yet : null;
       function num(v, dg, suf){ return v === null || v === undefined ? '–' : fmt(v, dg) + (suf || ''); }
       $('#smFund').innerHTML = [
-        ['Vốn hoá', von ? tien(von) : '–'],
+        ['Vốn hoá', von ? fmt(von / 1e9, 0) + ' tỷ' : '–'],
         ['EPS 4 quý', num(cb.eps, 0, ' đ')],
         ['P/E', cb.eps > 0 ? fmt(c / cb.eps, 1) : '–'],
         ['BVPS', num(cb.bvps, 0, ' đ')],
