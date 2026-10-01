@@ -1,10 +1,13 @@
-# Chạy đầy đủ mỗi chiều ngày giao dịch: tải lại toàn bộ lịch sử, tính lại chỉ số rủi ro, chốt giá đóng cửa.
-# Chạy tay: vào tab Actions trên GitHub -> "Cập nhật dữ liệu thị trường" -> Run workflow.
-name: Cập nhật dữ liệu thị trường
+# Cập nhật nhanh trong giờ giao dịch: chỉ lấy bảng giá hiện tại (~30 giây/lần).
+# Lịch theo giờ UTC (giờ Việt Nam trừ 7): 9:00-14:50 mỗi 10 phút, thêm 15:00 và 15:10.
+# GitHub có thể chạy trễ vài phút so với lịch khi hệ thống đông.
+# Không chạy dày hơn: GitHub Pages chỉ build lại web khoảng 10 lần mỗi giờ.
+name: Cập nhật giá trong phiên
 
 on:
   schedule:
-    - cron: "30 9 * * 1-5"   # 16:30 giờ Việt Nam, thứ Hai đến thứ Sáu
+    - cron: "*/10 2-7 * * 1-5"
+    - cron: "0,10 8 * * 1-5"
   workflow_dispatch:
 
 permissions:
@@ -17,7 +20,7 @@ concurrency:
 jobs:
   cap-nhat:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
 
@@ -30,8 +33,8 @@ jobs:
       - name: Cài thư viện
         run: pip install -r scripts/requirements.txt
 
-      - name: Lấy dữ liệu
-        run: python scripts/cap_nhat_du_lieu.py
+      - name: Lấy bảng giá
+        run: python scripts/cap_nhat_du_lieu.py --trong-phien
 
       - name: Lưu thay đổi
         run: |
@@ -39,9 +42,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/data
           if git diff --cached --quiet; then
-            echo "Không có dữ liệu mới."
+            echo "Giá không đổi, không cần cập nhật."
           else
-            git commit -m "Cập nhật dữ liệu thị trường $(TZ=Asia/Ho_Chi_Minh date +%d/%m/%Y)"
+            git commit -m "Cập nhật giá trong phiên $(TZ=Asia/Ho_Chi_Minh date +%H:%M\ %d/%m/%Y)"
             git pull --rebase
             git push
           fi

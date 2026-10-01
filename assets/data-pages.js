@@ -15,6 +15,7 @@
     if(n === null || n === undefined || isNaN(n)) return '–';
     return (n > 0 ? '+' : n < 0 ? '−' : '') + fmt(Math.abs(n), d === undefined ? 2 : d) + '%';
   }
+  function moc(ngay, luc){ return ngayVN(ngay) + (luc ? ' lúc ' + luc : ''); }
   function cls(n){ return n > 0 ? 'up' : n < 0 ? 'down' : ''; }
   function ngayVN(s){ if(!s) return '–'; var p = s.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
   function tien(dong){
@@ -220,7 +221,7 @@
       var cs = res[0], cp = res[1];
       var keys = ['VNINDEX', 'VN30', 'HNXINDEX', 'UPCOMINDEX'].filter(function(k){ return cs[k]; });
       var current = keys[0], months = 3;
-      $('#mktDate').textContent = ngayVN(cs[current].d[cs[current].d.length - 1]);
+      $('#mktDate').textContent = moc(cp.cap_nhat, cp.cap_nhat_luc);
 
       $('#mktCards').innerHTML = keys.map(function(k, i){
         var s = cs[k], n = s.c.length, ch = s.c[n - 1] - s.c[n - 2], p = (s.c[n - 1] / s.c[n - 2] - 1) * 100;
@@ -306,7 +307,7 @@
   if(etfTable){
     Promise.all([load('etf.json'), load('chi_so.json')]).then(function(res){
       var data = res[0], cs = res[1], quy = data.quy;
-      $('#etfDate').textContent = ngayVN(data.cap_nhat);
+      $('#etfDate').textContent = moc(data.cap_nhat, data.cap_nhat_luc);
 
       // thẻ tổng quan
       var tongGt = quy.reduce(function(s, q){ return s + (q.gtgd_20 || 0); }, 0);
@@ -429,6 +430,7 @@
         return;
       }
       document.title = q.ma + ' — ' + q.ten + ' | Kim Chỉ Nam';
+      var lucCapNhat = res[0].cap_nhat_luc;
       return load('etf/' + ma + '.json').then(function(h){
         var tc = q.tham_chieu && cs[q.tham_chieu] ? cs[q.tham_chieu] : null;
         var L = q.loi_nhuan;
@@ -437,7 +439,7 @@
         $('#dCrumb').textContent = q.ma;
         $('#dPrice').textContent = fmt(q.gia) + ' đ';
         var ch = $('#dChg'); ch.className = 'fund-chg ' + cls(L['1d']); ch.textContent = pct(L['1d']) + ' hôm nay';
-        $('#dDate').textContent = 'Giá đóng cửa ngày ' + ngayVN(q.ngay);
+        $('#dDate').textContent = 'Giá cập nhật ' + moc(q.ngay, lucCapNhat);
         $('#dCompare').href = BASE + '/etf/?ss=' + q.ma + (q.ma !== 'E1VFVN30' ? ',E1VFVN30' : ',FUEVFVND') + '#so-sanh';
 
         $('#dFacts').innerHTML = [
@@ -519,7 +521,7 @@
       var n = f.nav.length, L = f.loi_nhuan;
       $('#fNav').textContent = fmt(f.nav[n - 1], 2);
       var ch = $('#fChg'); ch.className = 'fund-chg ' + cls(L['1d']); ch.textContent = pct(L['1d']) + ' hôm nay';
-      $('#fDate').textContent = 'NAV mô phỏng ngày ' + ngayVN(f.cap_nhat);
+      $('#fDate').textContent = 'NAV mô phỏng ' + moc(f.cap_nhat, f.cap_nhat_luc);
       $('#fSince').innerHTML = '<b class="' + cls(f.tu_dau) + '">' + pct(f.tu_dau) + '</b> từ ngày khởi đầu ' + ngayVN(f.ngay_khoi_dau) +
         ' · bình quân <b class="' + cls(f.tu_dau_nam) + '">' + pct(f.tu_dau_nam) + '</b>/năm';
 
@@ -619,7 +621,7 @@
       $('#hfStats').innerHTML = [['1 năm', f.loi_nhuan['1y']], ['3 năm', f.loi_nhuan['3y']], ['Từ đầu', f.tu_dau]].map(function(x){
         return '<div><span>' + x[0] + '</span><b class="' + cls(x[1]) + '">' + pct(x[1], 1) + '</b></div>';
       }).join('');
-      $('#hfDate').textContent = 'NAV mô phỏng ngày ' + ngayVN(f.cap_nhat);
+      $('#hfDate').textContent = 'NAV mô phỏng ' + moc(f.cap_nhat, f.cap_nhat_luc);
       $('#hfSpark').innerHTML = sparkSvg(f.nav.slice(-252), 300, 70, css('--s1'));
     }).catch(function(){});
   }
@@ -635,7 +637,7 @@
           sparkSvg(q.spark, 220, 48, up ? css('--good') : css('--critical')) +
           '<div class="etf-mini-bot"><span>' + fmt(q.gia) + ' đ</span><span>1 năm <b class="' + cls(q.loi_nhuan['1y']) + '">' + pct(q.loi_nhuan['1y'], 1) + '</b></span></div></a>';
       }).join('');
-      $('#homeEtfDate').textContent = ngayVN(data.cap_nhat);
+      $('#homeEtfDate').textContent = moc(data.cap_nhat, data.cap_nhat_luc);
     }).catch(function(){ fail(homeEtf); });
   }
 })();

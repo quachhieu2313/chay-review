@@ -72,7 +72,12 @@ Sửa file `_data/menu.yml`: đổi `ten` để đổi chữ hiển thị, đổ
 
 ### Số liệu thị trường, ETF, quỹ mô phỏng
 
-Không cần sửa tay. Script `scripts/cap_nhat_du_lieu.py` lấy dữ liệu qua vnstock và ghi vào thư mục `assets/data/`. GitHub Actions tự chạy script này lúc **16:30 thứ Hai đến thứ Sáu**.
+Không cần sửa tay. Script `scripts/cap_nhat_du_lieu.py` lấy dữ liệu qua vnstock và ghi vào thư mục `assets/data/`. GitHub Actions tự chạy script này theo hai lịch, thứ Hai đến thứ Sáu:
+
+- **Trong phiên (9:00–15:10), khoảng 10 phút một lần:** chỉ lấy bảng giá hiện tại, khoảng 30 giây mỗi lần (`--trong-phien`).
+- **16:30:** chạy đầy đủ, tải lại toàn bộ lịch sử và chốt giá đóng cửa.
+
+Không nên chạy dày hơn 10 phút: GitHub Pages chỉ build lại web khoảng 10 lần mỗi giờ.
 
 - Chạy ngay không cần chờ: vào tab **Actions** trên GitHub, chọn **Cập nhật dữ liệu thị trường**, bấm **Run workflow**.
 - Chạy trên máy: `python scripts/cap_nhat_du_lieu.py` (cần `pip install vnstock pandas`), sau đó commit và push thư mục `assets/data`.

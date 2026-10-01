@@ -9,8 +9,10 @@ Lấy dữ liệu bằng vnstock (nguồn VCI) rồi ghi ra các file JSON trong
   etf/<MÃ>.json      lịch sử giá từng ETF (trang chi tiết ETF)
   quy_mo_phong.json  quỹ mô phỏng KCN VN30 (trang Quỹ mô phỏng)
 
-Chạy tay:  python scripts/cap_nhat_du_lieu.py
-GitHub Actions chạy tự động mỗi tối ngày giao dịch (.github/workflows/cap-nhat-du-lieu.yml).
+Hai chế độ:
+  python scripts/cap_nhat_du_lieu.py               đầy đủ: tải lại toàn bộ lịch sử (~4 phút), chạy sau giờ đóng cửa
+  python scripts/cap_nhat_du_lieu.py --trong-phien nhanh: chỉ lấy bảng giá hiện tại (~20 giây), chạy mỗi 10 phút trong phiên
+GitHub Actions tự chạy cả hai (.github/workflows/cap-nhat-du-lieu.yml và cap-nhat-trong-phien.yml).
 Mã nào lấy lỗi thì giữ dữ liệu cũ của mã đó, không làm hỏng cả web.
 """
 import json
@@ -18,7 +20,7 @@ import math
 import sys
 import time
 import warnings
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -29,7 +31,7 @@ try:
 except Exception:
     pass
 
-from vnstock import Listing, Quote  # noqa: E402
+from vnstock import Listing, Quote, Trading  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets" / "data"
@@ -105,6 +107,10 @@ def doc_json(path, mac_dinh):
 
 def ghi_json(path, data):
     path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+
+def gio_vn():
+    return datetime.now(timezone(timedelta(hours=7))).strftime("%H:%M")
 
 
 def r(x, n=2):
@@ -191,7 +197,7 @@ def cap_nhat_etf():
             "sut_giam_1y": sg,
             "spark": c[-60:],
         })
-    ghi_json(OUT / "etf.json", {"cap_nhat": max((x["ngay"] for x in ds), default=None), "quy": ds})
+    ghi_json(OUT / "etf.json", {"cap_nhat": max((x["ngay"] for x in ds), default=None), "cap_nhat_luc": gio_vn(), "quy": ds})
     return ds
 
 
@@ -229,7 +235,7 @@ def cap_nhat_vn30_va_quy(chi_so):
             "spark": [r(x, 0) for x in s.tail(20)],
         })
     ngay_cuoi = max(s.index[-1] for s in gia.values()).strftime("%Y-%m-%d") if gia else None
-    ghi_json(OUT / "co_phieu.json", {"cap_nhat": ngay_cuoi, "ro": "VN30", "co_phieu": co_phieu})
+    ghi_json(OUT / "co_phieu.json", {"cap_nhat": ngay_cuoi, "cap_nhat_luc": gio_vn(), "ro": "VN30", "co_phieu": co_phieu})
 
     # ----- quỹ mô phỏng: chia đều tỷ trọng các mã VN30 hiện tại, tái cân bằng đầu mỗi quý
     bang = pd.DataFrame(gia).sort_index()
@@ -315,15 +321,178 @@ def cap_nhat_vn30_va_quy(chi_so):
         "sut_giam_tu_dau": rui_ro(nav, n=len(nav))[1],
         "beta_1y": r(beta),
         "sai_lech_1y": r(sai_lech),
+        "cap_nhat_luc": gio_vn(),
+        # mốc để chế độ trong phiên tính NAV tạm tính: tỷ trọng và giá tại phiên gần nhất
+        "nen": {
+            "ngay": d[-1],
+            "nav": nav[-1],
+            "ty_trong": {ma: round(float(gt[ma] / tong), 6) for ma in bang.columns if gt[ma] > 0},
+            "gia": {ma: float(hang_cuoi[ma]) for ma in bang.columns if gt[ma] > 0},
+        },
         "danh_muc": danh_muc,
         "nganh": nganh_list,
     })
 
 
+# ---------------------------------------------------------------- chế độ trong phiên
+def dat_diem(d, c, ngay, gia_tri):
+    """Ghi giá của ngày `ngay`: thay điểm cuối nếu đã có ngày đó, ngược lại thêm điểm mới."""
+    if d and d[-1] == ngay:
+        c[-1] = gia_tri
+    elif not d or d[-1] < ngay:
+        d.append(ngay)
+        c.append(gia_tri)
+
+
+def trong_phien():
+    etf = doc_json(OUT / "etf.json", None)
+    cp = doc_json(OUT / "co_phieu.json", None)
+    cs = doc_json(OUT / "chi_so.json", None)
+    quy = doc_json(OUT / "quy_mo_phong.json", None)
+    if not (etf and cp and cs and quy):
+        log("Chưa có dữ liệu nền, hãy chạy chế độ đầy đủ trước.")
+        return
+
+    ds_ma = [x["ma"] for x in cp["co_phieu"]] + [x["ma"] for x in etf["quy"]]
+    bang = Trading(source="VCI").price_board(ds_ma)
+    bang.columns = ["_".join(c) if isinstance(c, tuple) else c for c in bang.columns]
+    gia, ngay = {}, None
+    for row in bang.to_dict("records"):
+        p = row.get("match_match_price")
+        if p is None or pd.isna(p) or float(p) <= 0:
+            continue
+        ref = row.get("match_reference_price")
+        gia[row["listing_symbol"]] = (
+            float(p),
+            float(ref) if ref is not None and not pd.isna(ref) and float(ref) > 0 else None,
+            int(row.get("match_accumulated_volume") or 0),
+        )
+        ngay = ngay or str(row.get("listing_trading_date"))[:10]
+    if not gia or not ngay:
+        log("Bảng giá chưa có giá khớp, bỏ qua.")
+        return
+    log(f"Bảng giá ngày {ngay}: {len(gia)} mã")
+    luc = gio_vn()
+
+    def luu(path, cu, moi):
+        """Chỉ ghi file khi số liệu đổi, để không tạo commit thừa (ví dụ giờ nghỉ trưa)."""
+        a = dict(cu); b = dict(moi)
+        a.pop("cap_nhat_luc", None); b.pop("cap_nhat_luc", None)
+        if json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True):
+            return False
+        moi["cap_nhat_luc"] = luc
+        ghi_json(path, moi)
+        return True
+
+    # ----- cổ phiếu VN30
+    cu = json.loads(json.dumps(cp))
+    hom_nay_da_co = cp.get("cap_nhat") == ngay
+    for x in cp["co_phieu"]:
+        g = gia.get(x["ma"])
+        if not g:
+            continue
+        p, ref, vol = g
+        x["gia"] = r(p, 0)
+        if ref:
+            x["thay_doi"] = r((p / ref - 1) * 100)
+        x["khoi_luong"] = vol
+        if hom_nay_da_co:
+            x["spark"][-1] = r(p, 0)
+        else:
+            x["spark"] = (x["spark"] + [r(p, 0)])[-20:]
+    cp["cap_nhat"] = ngay
+    log("co_phieu.json", "đổi" if luu(OUT / "co_phieu.json", cu, cp) else "không đổi")
+
+    # ----- ETF
+    cu = json.loads(json.dumps(etf))
+    for q in etf["quy"]:
+        g = gia.get(q["ma"])
+        if not g:
+            continue
+        path = OUT / "etf" / f"{q['ma']}.json"
+        h = doc_json(path, None)
+        if not h:
+            continue
+        h_cu = json.dumps(h)
+        dat_diem(h["d"], h["c"], ngay, r(g[0], 0))
+        if json.dumps(h) != h_cu:
+            ghi_json(path, h)
+        q["gia"] = r(g[0], 0)
+        q["ngay"] = ngay
+        q["loi_nhuan"] = loi_nhuan(h["d"], h["c"])
+        q["spark"] = h["c"][-60:]
+    etf["cap_nhat"] = ngay
+    log("etf.json", "đổi" if luu(OUT / "etf.json", cu, etf) else "không đổi")
+
+    # ----- chỉ số chính (bảng giá không có chỉ số nên lấy riêng 4 chỉ số)
+    cu = json.loads(json.dumps(cs))
+    bat_dau = (date.fromisoformat(ngay) - timedelta(days=10)).isoformat()
+    for ma in ["VNINDEX", "VN30", "HNXINDEX", "UPCOMINDEX"]:
+        if ma not in cs:
+            continue
+        try:
+            df = Quote(symbol=ma, source="VCI").history(start=bat_dau, end=ngay, interval="1D")
+            time.sleep(PAUSE)
+        except Exception as e:
+            log(f"  ! {ma}: {str(e)[:120]}")
+            continue
+        if df is None or df.empty:
+            continue
+        cuoi = df.iloc[-1]
+        if pd.to_datetime(cuoi["time"]).strftime("%Y-%m-%d") == ngay:
+            dat_diem(cs[ma]["d"], cs[ma]["c"], ngay, r(float(cuoi["close"]), 2))
+    if json.dumps(cs, sort_keys=True) != json.dumps(cu, sort_keys=True):
+        ghi_json(OUT / "chi_so.json", cs)
+        log("chi_so.json đổi")
+
+    # ----- quỹ mô phỏng: NAV tạm tính từ tỷ trọng và giá ở phiên trước
+    nen = quy.get("nen")
+    if nen and nen["ngay"] < ngay:
+        cu = json.loads(json.dumps(quy))
+        tong_w, tong = 0.0, 0.0
+        moi_w = {}
+        for ma, w in nen["ty_trong"].items():
+            g = gia.get(ma)
+            p0 = nen["gia"].get(ma)
+            if not g or not p0:
+                continue
+            tong_w += w
+            tong += w * g[0] / p0
+            moi_w[ma] = w * g[0] / p0
+        if tong_w > 0:
+            nav_moi = nen["nav"] * (tong / tong_w) * (1 - PHI_MO_PHONG / 252)
+            dat_diem(quy["d"], quy["nav"], ngay, r(nav_moi, 2))
+            tong_moi = sum(moi_w.values())
+            for x in quy["danh_muc"]:
+                g = gia.get(x["ma"])
+                if not g:
+                    continue
+                x["gia"] = r(g[0], 0)
+                if g[1]:
+                    x["thay_doi"] = r((g[0] / g[1] - 1) * 100)
+                if x["ma"] in moi_w:
+                    x["ty_trong"] = r(moi_w[x["ma"]] / tong_moi * 100, 2)
+            quy["danh_muc"].sort(key=lambda x: -x["ty_trong"])
+            theo_nganh = {}
+            for x in quy["danh_muc"]:
+                theo_nganh[x["nganh"]] = theo_nganh.get(x["nganh"], 0) + x["ty_trong"]
+            quy["nganh"] = sorted(({"nganh": k, "ty_trong": r(v, 2)} for k, v in theo_nganh.items()), key=lambda x: -x["ty_trong"])
+            n = quy["nav"]
+            quy["cap_nhat"] = ngay
+            quy["loi_nhuan"] = loi_nhuan(quy["d"], n)
+            quy["tu_dau"] = r((n[-1] / n[0] - 1) * 100)
+            nam = (len(n) - 1) / 252
+            quy["tu_dau_nam"] = r(((n[-1] / n[0]) ** (1 / nam) - 1) * 100) if nam > 0 else None
+            log("quy_mo_phong.json", "đổi" if luu(OUT / "quy_mo_phong.json", cu, quy) else "không đổi")
+
+
 def main():
-    chi_so = cap_nhat_chi_so()
-    cap_nhat_etf()
-    cap_nhat_vn30_va_quy(chi_so)
+    if "--trong-phien" in sys.argv:
+        trong_phien()
+    else:
+        chi_so = cap_nhat_chi_so()
+        cap_nhat_etf()
+        cap_nhat_vn30_va_quy(chi_so)
     log("Xong.")
 
 
