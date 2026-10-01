@@ -104,6 +104,7 @@
       lines.forEach(function(l){ l.v.forEach(function(v){ if(v !== null) all.push(v); }); });
       var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
       var pad = (mx - mn) * 0.08 || 1; mn -= pad; mx += pad;
+      if(opts.minZero && mn < 0) mn = 0;
       function X(i){ return dates.length < 2 ? 0 : i / (dates.length - 1) * PW; }
       function Y(v){ return H - (v - mn) / (mx - mn) * H; }
 
@@ -134,7 +135,7 @@
       var yl = '';
       for(var t = 4; t >= 0; t--){
         var val = mn + (mx - mn) * t / 4;
-        yl += '<span>' + (normalize ? pct(val - 100, 0) : fmt(val, opts.yDigits || 0)) + '</span>';
+        yl += '<span>' + (normalize ? pct(val - 100, 0) : opts.yFmt ? opts.yFmt(val) : fmt(val, opts.yDigits || 0)) + '</span>';
       }
       yBox.innerHTML = yl;
       var xl = '';
@@ -145,6 +146,7 @@
         var first = null, last = null;
         l.v.forEach(function(v){ if(v !== null){ if(first === null) first = v; last = v; } });
         var ch = first ? (last / first - 1) * 100 : null;
+        if(opts.noChange) return '<span><i style="background:' + l.color + '"></i>' + esc(l.name) + '</span>';
         return '<span><i style="background:' + l.color + '"></i>' + esc(l.name) + ' <b class="' + cls(ch) + '">' + pct(ch) + '</b></span>';
       }).join('');
 
@@ -164,7 +166,7 @@
         var v = l.v[i];
         if(v === null) return;
         dh += '<i style="left:' + px + 'px;top:' + (state.Y(v) / H * rect.height) + 'px;background:' + l.color + '"></i>';
-        var shown = state.normalize ? pct(v - 100) : fmt(v, opts.yDigits || 0);
+        var shown = state.normalize ? pct(v - 100) : opts.yFmt ? opts.yFmt(v) : fmt(v, opts.yDigits || 0);
         th += '<span><em style="background:' + l.color + '"></em>' + esc(l.name) + ': ' + shown + '</span>';
       });
       dots.innerHTML = dh;
@@ -230,9 +232,19 @@
       var chart = LineChart(mkt, {label:'Diễn biến chỉ số', area:true, yDigits:0});
       function draw(){
         var s = cs[current];
-        var up = s.c[s.c.length - 1] >= s.c[0];
         chart.render([{name:s.ten, color:'#3DD15C', d:s.d, c:s.c}], months, false);
-        var ret = returns(s.d, s.c);
+        // đổi màu đường theo kết quả trong kỳ đang xem
+        var path = mkt.querySelectorAll('svg path');
+        var ret = null;
+        if(path.length){
+          var leg = mkt.querySelector('.lc-legend b');
+          var down = leg && leg.classList.contains('down');
+          path.forEach(function(p){
+            if(p.getAttribute('stroke')) p.setAttribute('stroke', down ? '#FF6B61' : '#3DD15C');
+            else p.setAttribute('fill', down ? '#FF6B61' : '#3DD15C');
+          });
+        }
+        ret = returns(s.d, s.c);
         $('#mktRet').innerHTML = KY.map(function(k){
           return '<span>' + k[1] + ' <b class="' + cls(ret[k[0]]) + '">' + pct(ret[k[0]]) + '</b></span>';
         }).join('');
@@ -470,7 +482,7 @@
     var ys = Object.keys(years).sort();
     var def = ys[Math.max(0, ys.length - 4)];
     from.innerHTML = ys.map(function(y){ return '<option' + (y === def ? ' selected' : '') + '>' + y + '</option>'; }).join('');
-    var chart = LineChart($('#dcaChart'), {label:'Giá trị danh mục khi đầu tư định kỳ'});
+    var chart = LineChart($('#dcaChart'), {label:'Giá trị danh mục khi đầu tư định kỳ', yFmt:tien, minZero:true, noChange:true});
     function run(){
       var amt = Number(amount.value) * 1e6, y0 = from.value;
       $('#dcaAmountOut').textContent = fmt(Number(amount.value), 1) + ' triệu/tháng';
