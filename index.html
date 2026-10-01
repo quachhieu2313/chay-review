@@ -3,641 +3,395 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Kim Chỉ Nam — nhật ký mục tiêu cá nhân kết hợp dữ liệu thị trường chứng khoán Việt Nam.">
-<title>Kim Chỉ Nam</title>
+<title>Kim Chỉ Nam — Nhật ký mục tiêu & công cụ đầu tư cho người Việt</title>
+<meta name="description" content="Đặt mục tiêu mỗi ngày, theo dõi chuỗi kỷ luật, tính lãi kép và đọc bài viết thực tế về đầu tư chứng khoán Việt Nam. Miễn phí, không cần đăng ký.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kim Chỉ Nam — Kỷ luật hôm nay, tự do tài chính ngày mai">
+<meta property="og:description" content="Nhật ký mục tiêu, máy tính lãi kép và góc nhìn thị trường chứng khoán Việt Nam. Miễn phí, không cần đăng ký.">
+<meta property="og:url" content="https://quachhieu2313.github.io/chay-review/">
+<meta property="og:locale" content="vi_VN">
+<meta name="theme-color" content="#0E1420">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>document.documentElement.classList.add('js');try{var t=localStorage.getItem('kcn-theme');if(t)document.documentElement.setAttribute('data-theme',JSON.parse(t));}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    color-scheme: light;
-    --bg:#F5F6F8;
-    --surface:#FFFFFF;
-    --surface-sunk:#EEF0F4;
-    --ink:#12161F;
-    --ink-soft:#4A5165;
-    --muted:#8A8FA0;
-    --border:#E2E5EC;
-    --accent:#A8761F;
-    --accent-strong:#8A5E14;
-    --accent-tint:#F3E7CC;
-    --accent-ink:#2A1F0B;
-    --market-bg:#0E1420;
-    --market-surface:#161E2F;
-    --market-surface-2:#1C2538;
-    --market-border:#2A3448;
-    --market-ink:#EEF1F6;
-    --market-ink-soft:#A8AFC2;
-    --good:#0ca30c;
-    --critical:#d03b3b;
-    --focus:#2A78D6;
-    --shadow: 0 1px 2px rgba(18,22,31,0.04), 0 8px 24px -8px rgba(18,22,31,0.10);
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      color-scheme: dark;
-      --bg:#0B0E14;
-      --surface:#141922;
-      --surface-sunk:#0F1319;
-      --ink:#EDEFF3;
-      --ink-soft:#B7BCCB;
-      --muted:#767C8C;
-      --border:#262C3A;
-      --accent:#E3B257;
-      --accent-strong:#F0C777;
-      --accent-tint:#2B2316;
-      --accent-ink:#F7E8C6;
-      --market-bg:#07090E;
-      --market-surface:#11151F;
-      --market-surface-2:#161C29;
-      --market-border:#242C3D;
-      --market-ink:#EEF1F6;
-      --market-ink-soft:#8E96AC;
-      --good:#2FBF4F;
-      --critical:#E8605E;
-      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -12px rgba(0,0,0,0.5);
-    }
-  }
-  :root[data-theme="dark"]{
-    color-scheme: dark;
-    --bg:#0B0E14;
-    --surface:#141922;
-    --surface-sunk:#0F1319;
-    --ink:#EDEFF3;
-    --ink-soft:#B7BCCB;
-    --muted:#767C8C;
-    --border:#262C3A;
-    --accent:#E3B257;
-    --accent-strong:#F0C777;
-    --accent-tint:#2B2316;
-    --accent-ink:#F7E8C6;
-    --market-bg:#07090E;
-    --market-surface:#11151F;
-    --market-surface-2:#161C29;
-    --market-border:#242C3D;
-    --market-ink:#EEF1F6;
-    --market-ink-soft:#8E96AC;
-    --good:#2FBF4F;
-    --critical:#E8605E;
-    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -12px rgba(0,0,0,0.5);
-  }
-
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:var(--bg);
-    color:var(--ink);
-    font-family:"Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-    -webkit-font-smoothing:antialiased;
-    padding-inline:20px;
-  }
-  .wrap{max-width:1160px;margin:0 auto;}
-  .wrap-wide{max-width:1280px;margin:0 auto;}
-  h1,h2,h3{text-wrap:balance; font-family:"Fraunces", Georgia, "Times New Roman", serif; margin:0; letter-spacing:-0.01em;}
-  p{margin:0;}
-  a{color:inherit; text-decoration:none;}
-  button{font-family:inherit;}
-  ::selection{background:var(--accent-tint); color:var(--accent-ink);}
-  a:focus-visible, button:focus-visible, input:focus-visible{
-    outline:2px solid var(--focus); outline-offset:2px; border-radius:4px;
-  }
-  .eyebrow{
-    font-family:"JetBrains Mono", ui-monospace, monospace;
-    font-size:11.5px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase;
-    color:var(--accent-strong);
-  }
-  .tabular{font-variant-numeric:tabular-nums;}
-  .mono{font-family:"JetBrains Mono", ui-monospace, monospace;}
-
-  /* ---------- header ---------- */
-  header.site{
-    position:sticky; top:env(safe-area-inset-top,0px);
-    z-index:40;
-    background:color-mix(in srgb, var(--bg) 86%, transparent);
-    backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--border);
-  }
-  .nav-row{
-    display:flex; align-items:center; gap:28px;
-    padding-block:14px;
-  }
-  .brand{display:flex; align-items:center; gap:9px; font-family:"Fraunces", serif; font-weight:600; font-size:19px; flex:0 0 auto;}
-  .brand-mark{
-    width:26px; height:26px; border-radius:7px;
-    background:linear-gradient(155deg, var(--accent-strong), var(--accent));
-    display:grid; place-items:center; flex:none;
-  }
-  .brand-mark svg{width:14px; height:14px;}
-  nav.primary{display:flex; gap:22px; flex:1 1 auto; min-width:0;}
-  nav.primary a{
-    font-size:14px; font-weight:500; color:var(--ink-soft); white-space:nowrap;
-    padding-block:6px; border-bottom:2px solid transparent;
-  }
-  nav.primary a:hover{color:var(--ink); border-color:var(--border);}
-  .nav-actions{display:flex; align-items:center; gap:10px; flex:0 0 auto;}
-  .search{
-    display:flex; align-items:center; gap:7px;
-    background:var(--surface-sunk); border:1px solid var(--border);
-    border-radius:20px; padding:7px 13px; min-width:0;
-  }
-  .search input{
-    border:none; background:none; color:var(--ink); font-size:13px; width:132px; outline:none;
-  }
-  .search svg{width:14px; height:14px; color:var(--muted); flex:none;}
-  .btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:6px;
-    padding:9px 18px; border-radius:22px; font-size:14px; font-weight:600;
-    border:1px solid transparent; cursor:pointer; white-space:nowrap;
-  }
-  .btn-accent{background:var(--accent); color:#1C1304;}
-  .btn-accent:hover{background:var(--accent-strong);}
-  .btn-ghost{background:none; border-color:var(--border); color:var(--ink);}
-  .btn-ghost:hover{background:var(--surface-sunk);}
-  .nav-toggle{display:none; background:none; border:1px solid var(--border); border-radius:10px; padding:7px; color:var(--ink);}
-  .nav-toggle svg{width:18px; height:18px; display:block;}
-
-  /* ---------- hero ---------- */
-  .hero{padding-block:64px 56px;}
-  .hero-grid{display:grid; grid-template-columns:1.05fr 0.95fr; gap:48px; align-items:center;}
-  .hero h1{font-size:clamp(34px, 5vw, 54px); line-height:1.07; font-weight:600;}
-  .hero h1 em{font-style:italic; color:var(--accent-strong); font-weight:500;}
-  .hero-sub{margin-top:18px; font-size:16.5px; line-height:1.6; color:var(--ink-soft); max-width:480px;}
-  .hero-cta{display:flex; align-items:center; gap:16px; margin-top:28px; flex-wrap:wrap;}
-  .btn-lg{padding:13px 26px; font-size:15px; border-radius:26px;}
-  .hero-note{font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:6px;}
-  .hero-stats{display:flex; gap:26px; margin-top:38px; padding-top:22px; border-top:1px solid var(--border);}
-  .hero-stat b{display:block; font-family:"Fraunces",serif; font-size:23px; font-weight:600;}
-  .hero-stat span{font-size:12px; color:var(--muted);}
-
-  /* hero mock dashboard card */
-  .mock{
-    background:var(--surface); border:1px solid var(--border); border-radius:20px;
-    box-shadow:var(--shadow); padding:20px; position:relative;
-  }
-  .mock-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;}
-  .mock-top .dots{display:flex; gap:5px;}
-  .mock-top .dots span{width:7px; height:7px; border-radius:50%; background:var(--border);}
-  .mock-title{font-size:12.5px; font-weight:600; color:var(--ink-soft);}
-  .goal-row{display:flex; align-items:center; gap:12px; padding-block:10px; border-top:1px solid var(--border);}
-  .goal-row:first-of-type{border-top:none;}
-  .goal-check{
-    width:19px; height:19px; border-radius:50%; border:2px solid var(--border); flex:none;
-    display:grid; place-items:center;
-  }
-  .goal-check.on{background:var(--good); border-color:var(--good);}
-  .goal-check.on svg{width:10px; height:10px; color:#fff;}
-  .goal-label{font-size:13.5px; flex:1 1 auto;}
-  .goal-label .done{color:var(--muted); text-decoration:line-through;}
-  .goal-pct{font-size:12px; color:var(--muted); font-family:"JetBrains Mono",monospace;}
-  .mini-divider{height:1px; background:var(--border); margin-block:14px;}
-  .mock-ticker{display:flex; align-items:center; justify-content:space-between; font-family:"JetBrains Mono",monospace; font-size:13px;}
-  .mock-ticker .chg-up{color:var(--good);}
-  .mock-ticker .chg-down{color:var(--critical);}
-  .badge-float{
-    position:absolute; right:-14px; top:28px; background:var(--surface); border:1px solid var(--border);
-    border-radius:14px; padding:10px 14px; box-shadow:var(--shadow); display:flex; align-items:center; gap:8px;
-  }
-  .badge-float b{font-size:16px; font-family:"Fraunces",serif;}
-  .badge-float span{font-size:11px; color:var(--muted); display:block;}
-
-  /* ---------- pillars ---------- */
-  .section{padding-block:60px;}
-  .section-head{display:flex; flex-direction:column; gap:10px; margin-bottom:34px; max-width:560px;}
-  .section-head h2{font-size:clamp(24px,3vw,32px); font-weight:600;}
-  .section-head p{color:var(--ink-soft); font-size:15px; line-height:1.55;}
-  .pillars{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
-  .pillar{
-    background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:22px;
-    display:flex; flex-direction:column; gap:12px;
-  }
-  .pillar-icon{width:38px; height:38px; border-radius:10px; background:var(--accent-tint); color:var(--accent-ink); display:grid; place-items:center;}
-  .pillar-icon svg{width:19px; height:19px;}
-  .pillar h3{font-size:16.5px; font-weight:600; font-family:"Public Sans",sans-serif;}
-  .pillar p{font-size:13.5px; color:var(--ink-soft); line-height:1.55;}
-
-  /* ---------- market band ---------- */
-  .market{background:var(--market-bg); color:var(--market-ink); padding-block:58px;}
-  .market .section-head p{color:var(--market-ink-soft);}
-  .market .eyebrow{color:var(--accent-strong);}
-  .market-head{display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap:wrap; margin-bottom:28px;}
-  .demo-pill{
-    font-family:"JetBrains Mono",monospace; font-size:11px; letter-spacing:0.04em;
-    color:var(--market-ink-soft); background:var(--market-surface); border:1px solid var(--market-border);
-    border-radius:20px; padding:6px 13px; display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
-  }
-  .demo-pill .dot{width:6px; height:6px; border-radius:50%; background:var(--good);}
-  .indices{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px;}
-  .index-card{
-    background:var(--market-surface); border:1px solid var(--market-border); border-radius:14px; padding:18px 20px;
-  }
-  .index-card .name{font-size:13px; color:var(--market-ink-soft); margin-bottom:8px;}
-  .index-card .val{font-family:"JetBrains Mono",monospace; font-size:25px; font-weight:600;}
-  .chg{display:inline-flex; align-items:center; gap:4px; font-family:"JetBrains Mono",monospace; font-size:12.5px; font-weight:600; margin-top:6px;}
-  .chg svg{width:10px; height:10px;}
-  .chg.up{color:var(--good);}
-  .chg.down{color:var(--critical);}
-
-  .watchlist{background:var(--market-surface); border:1px solid var(--market-border); border-radius:14px; overflow:hidden;}
-  .wl-head, .wl-row{
-    display:grid; grid-template-columns:72px 1.6fr 76px 96px 96px; gap:10px; align-items:center;
-    padding:13px 20px;
-  }
-  .wl-head{font-size:11px; color:var(--market-ink-soft); text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid var(--market-border);}
-  .wl-row{border-bottom:1px solid var(--market-border); font-size:13.5px;}
-  .wl-row:last-child{border-bottom:none;}
-  .wl-row:hover{background:var(--market-surface-2);}
-  .wl-ticker{font-family:"JetBrains Mono",monospace; font-weight:700; letter-spacing:0.02em;}
-  .wl-name{color:var(--market-ink-soft); font-size:12.5px;}
-  .wl-price{font-family:"JetBrains Mono",monospace; text-align:right;}
-  .wl-chg{text-align:right;}
-  .wl-spark{justify-self:center;}
-  .right{text-align:right;}
-  .center{text-align:center;}
-
-  /* ---------- blog ---------- */
-  .blog-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
-  .post{display:flex; flex-direction:column; gap:12px;}
-  .post-thumb{
-    height:148px; border-radius:14px; background:linear-gradient(135deg, var(--accent-tint), var(--surface-sunk));
-    position:relative; overflow:hidden; border:1px solid var(--border);
-  }
-  .post-thumb svg{position:absolute; right:14px; bottom:-10px; width:88px; height:88px; color:var(--accent); opacity:0.5;}
-  .post .cat{font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--accent-strong);}
-  .post h3{font-size:16.5px; font-weight:600; font-family:"Public Sans",sans-serif; line-height:1.4;}
-  .post p{font-size:13.5px; color:var(--ink-soft); line-height:1.55;}
-  .post .meta{font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center;}
-
-  /* ---------- community ---------- */
-  .community{background:var(--surface-sunk); border-top:1px solid var(--border); border-bottom:1px solid var(--border);}
-  .quote{max-width:680px; margin:0 auto 36px; text-align:center;}
-  .quote p{font-family:"Fraunces",serif; font-size:clamp(21px,2.6vw,28px); font-style:italic; line-height:1.4; color:var(--ink);}
-  .quote cite{display:block; margin-top:14px; font-size:13px; color:var(--muted); font-style:normal;}
-  .testimonials{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
-  .tcard{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px;}
-  .tcard p{font-size:13.5px; color:var(--ink-soft); line-height:1.55; margin-bottom:14px;}
-  .tcard .who{display:flex; align-items:center; gap:10px;}
-  .avatar{
-    width:34px; height:34px; border-radius:50%; display:grid; place-items:center;
-    font-family:"Fraunces",serif; font-weight:600; font-size:13px; color:var(--accent-ink); background:var(--accent-tint); flex:none;
-  }
-  .who b{font-size:13px; display:block;}
-  .who span{font-size:11.5px; color:var(--muted);}
-  .sample-note{text-align:center; font-size:11.5px; color:var(--muted); margin-top:22px;}
-
-  /* ---------- footer ---------- */
-  footer{padding-block:48px calc(36px + env(safe-area-inset-bottom,0px));}
-  .footer-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:32px; padding-bottom:32px; border-bottom:1px solid var(--border); margin-bottom:22px;}
-  .footer-brand p{font-size:13px; color:var(--ink-soft); line-height:1.6; margin-top:10px; max-width:260px;}
-  .footer-col h4{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:14px;}
-  .footer-col a{display:block; font-size:13.5px; color:var(--ink-soft); padding-block:5px;}
-  .footer-col a:hover{color:var(--ink);}
-  .footer-bottom{display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:var(--muted); flex-wrap:wrap; gap:10px;}
-  .socials{display:flex; gap:10px;}
-  .socials a{width:32px; height:32px; border-radius:9px; border:1px solid var(--border); display:grid; place-items:center;}
-  .socials svg{width:14px; height:14px;}
-
-  @media (max-width:980px){
-    .hero-grid{grid-template-columns:1fr;}
-    .pillars{grid-template-columns:repeat(2,1fr);}
-    .indices{grid-template-columns:1fr;}
-    .blog-grid{grid-template-columns:1fr;}
-    .testimonials{grid-template-columns:1fr;}
-    .footer-grid{grid-template-columns:1fr 1fr;}
-    nav.primary{display:none;}
-    .search{display:none;}
-    .nav-toggle{display:inline-flex;}
-  }
-  @media (max-width:640px){
-    .wl-head, .wl-row{grid-template-columns:52px 1fr 70px 82px; }
-    .wl-spark{display:none;}
-    .footer-grid{grid-template-columns:1fr 1fr;}
-    .hero-stats{flex-wrap:wrap; gap:18px 26px;}
-    .badge-float{right:4px;}
-  }
-  @media (prefers-reduced-motion:no-preference){
-    .fade-up{animation:fadeUp 0.7s ease both;}
-    @keyframes fadeUp{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
-  }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+<a class="skip" href="#main">Bỏ qua, tới nội dung chính</a>
 
 <header class="site">
   <div class="wrap nav-row">
-    <a class="brand" href="#top" aria-label="Kim Chỉ Nam — trang chủ">
-      <span class="brand-mark">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="#1C1304"/></svg>
-      </span>
+    <a class="brand" href="./" aria-label="Kim Chỉ Nam — trang chủ">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="#1C1304"/></svg></span>
       Kim Chỉ Nam
     </a>
     <nav class="primary" aria-label="Điều hướng chính">
-      <a href="#blog">Blog</a>
+      <a href="#muc-tieu">Mục tiêu</a>
+      <a href="#cong-cu">Lãi kép</a>
       <a href="#thi-truong">Thị trường</a>
-      <a href="#thi-truong">Thống kê</a>
-      <a href="#thi-truong">Bộ lọc cổ phiếu</a>
-      <a href="#pillars">Định lượng</a>
-      <a href="#thi-truong">Biểu đồ</a>
+      <a href="#blog">Blog</a>
+      <a href="#hoi-dap">Hỏi đáp</a>
     </nav>
     <div class="nav-actions">
       <label class="search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input type="text" placeholder="Tìm mã cổ phiếu…" aria-label="Tìm mã cổ phiếu hoặc công ty">
+        <input id="siteSearch" type="search" placeholder="Tìm mã: FPT, VCB…" aria-label="Tìm mã cổ phiếu trong bảng theo dõi">
       </label>
-      <a class="btn btn-accent" href="#top">Bắt đầu miễn phí</a>
-      <button class="nav-toggle" id="navToggle" aria-label="Mở menu" aria-expanded="false">
+      <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Đổi giao diện sáng/tối">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <a class="btn btn-accent" href="#muc-tieu">Dùng thử</a>
+      <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="Mở menu" aria-expanded="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
       </button>
     </div>
   </div>
 </header>
 
-<main id="top">
+<main id="main">
+  <!-- ===== HERO + BẢNG MỤC TIÊU ===== -->
   <section class="hero wrap">
     <div class="hero-grid">
-      <div class="fade-up">
-        <p class="eyebrow">Mục tiêu cá nhân · Thị trường Việt Nam</p>
-        <h1 style="margin-top:14px;">Biến mục tiêu<br>thành <em>thành quả</em></h1>
-        <p class="hero-sub">Kim Chỉ Nam gộp chung nhật ký mục tiêu cá nhân với dữ liệu thị trường chứng khoán Việt Nam — để kỷ luật mỗi ngày dẫn bạn đến tự do tài chính.</p>
+      <div class="reveal">
+        <p class="eyebrow">Mục tiêu cá nhân · Đầu tư dài hạn</p>
+        <h1>Biến mục tiêu<br>thành <em>thành quả</em></h1>
+        <p class="hero-sub">Kim Chỉ Nam là cuốn sổ nhỏ cho người muốn sống kỷ luật và đầu tư có hiểu biết: ghi việc cần làm mỗi ngày, giữ chuỗi thói quen, và nhìn rõ tiền của mình lớn lên theo thời gian.</p>
         <div class="hero-cta">
-          <a class="btn btn-accent btn-lg" href="#top">Bắt đầu miễn phí</a>
-          <a class="btn btn-ghost btn-lg" href="#community">Khám phá cộng đồng</a>
+          <a class="btn btn-accent btn-lg" href="#muc-tieu">Đặt mục tiêu hôm nay</a>
+          <a class="btn btn-ghost btn-lg" href="#cong-cu">Tính lãi kép</a>
         </div>
-        <p class="hero-note">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-          Không cần thẻ tín dụng · Huỷ bất cứ lúc nào
-        </p>
-        <div class="hero-stats">
-          <div class="hero-stat"><b class="tabular">32.000+</b><span>người đang theo đuổi mục tiêu</span></div>
-          <div class="hero-stat"><b class="tabular">1.700+</b><span>mã chứng khoán được theo dõi</span></div>
-          <div class="hero-stat"><b class="tabular">4,8/5</b><span>điểm hài lòng trung bình</span></div>
-        </div>
+        <ul class="clean hero-points">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Miễn phí, không cần đăng ký tài khoản</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Dữ liệu của bạn lưu ngay trên trình duyệt, không gửi đi đâu</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Viết cho nhà đầu tư cá nhân Việt Nam, bằng tiếng Việt</li>
+        </ul>
       </div>
 
-      <div class="fade-up" style="position:relative;">
-        <div class="mock">
-          <div class="mock-top">
-            <span class="mock-title">Mục tiêu hôm nay · Thứ Tư</span>
-            <span class="dots"><span></span><span></span><span></span></span>
+      <div class="card tracker reveal" id="muc-tieu">
+        <div id="tracker">
+          <div class="tracker-head">
+            <div>
+              <h2>Mục tiêu hôm nay</h2>
+              <p class="tracker-date" id="trackerDate"></p>
+            </div>
+            <span class="streak" title="Số ngày liên tiếp có ít nhất một mục tiêu hoàn thành">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 11a5 5 0 0 1-10 0c0-2.5 1.2-4 2.5-5 .2 1.8 1 3 2.5 3.5C11 9 11 5 12 2z"/></svg>
+              <span><span id="streakDays">0</span> ngày liên tiếp</span>
+            </span>
           </div>
-          <div class="goal-row">
-            <span class="goal-check on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
-            <span class="goal-label"><span class="done">Chạy bộ 5km trước 7 giờ</span></span>
-            <span class="goal-pct tabular">100%</span>
+          <div class="progress">
+            <div class="progress-label"><span id="goalCount">0/0 mục tiêu</span><span id="goalPct" class="tabular">0%</span></div>
+            <div class="progress-bar"><span id="goalBar"></span></div>
           </div>
-          <div class="goal-row">
-            <span class="goal-check on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
-            <span class="goal-label"><span class="done">Đọc báo cáo quý VIC</span></span>
-            <span class="goal-pct tabular">100%</span>
-          </div>
-          <div class="goal-row">
-            <span class="goal-check"></span>
-            <span class="goal-label">Hoàn thành bản kế hoạch quý 4</span>
-            <span class="goal-pct tabular">60%</span>
-          </div>
-          <div class="mini-divider"></div>
-          <div class="mock-ticker">
-            <span class="mono">VN-Index</span>
-            <span class="chg-up mono">1.286,45 ▲ 0,65%</span>
-          </div>
-        </div>
-        <div class="badge-float">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="#0ca30c" stroke-width="2"/><path d="M7 12.5l3 3 7-7" stroke="#0ca30c" stroke-width="2" fill="none"/></svg>
-          <span><b>18 ngày</b><span style="display:block;">liên tục giữ kỷ luật</span></span>
+          <ul class="clean goal-list" id="goalList" aria-live="polite"></ul>
+          <form class="goal-form" id="goalForm">
+            <label class="sr-only" for="goalInput">Mục tiêu mới</label>
+            <input id="goalInput" type="text" maxlength="120" placeholder="Thêm mục tiêu, vd: Đọc 20 trang sách" autocomplete="off">
+            <label class="sr-only" for="goalCat">Nhóm</label>
+            <select id="goalCat">
+              <option>Sức khỏe</option>
+              <option>Công việc</option>
+              <option>Tài chính</option>
+              <option>Học tập</option>
+              <option>Gia đình</option>
+            </select>
+            <button class="btn btn-accent" type="submit">Thêm</button>
+          </form>
+          <div class="week" id="week" aria-label="Mức hoàn thành 7 ngày gần nhất"></div>
+          <p class="tracker-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            Lưu trên trình duyệt này. Mở lại trang vào ngày mai, danh sách vẫn còn và sẵn sàng cho ngày mới.
+          </p>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="section wrap" id="pillars">
-    <div class="section-head">
+  <!-- ===== BỐN TRỤ CỘT ===== -->
+  <section class="section wrap" id="tru-cot">
+    <div class="section-head reveal">
       <p class="eyebrow">Bốn trụ cột</p>
-      <h2>Một nơi cho mọi mục tiêu bạn theo đuổi</h2>
-      <p>Mỗi trụ cột là một nhật ký riêng, nhưng cùng chia sẻ một nguyên tắc: ghi lại, đo lường, rồi cải thiện từng ngày.</p>
+      <h2>Tự do tài chính không chỉ là chuyện tiền</h2>
+      <p>Người đầu tư bền bỉ thường cũng là người ngủ đủ, làm việc có trọng tâm và có người để trò chuyện. Kim Chỉ Nam giúp bạn chăm cả bốn phần.</p>
     </div>
     <div class="pillars">
-      <div class="pillar">
+      <article class="pillar reveal">
         <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.6z"/></svg></span>
         <h3>Sức khỏe</h3>
-        <p>Theo dõi vận động, giấc ngủ và năng lượng mỗi ngày bằng nhật ký đơn giản, không cần thiết bị đeo tay.</p>
-      </div>
-      <div class="pillar">
+        <p>Vận động, giấc ngủ, ăn uống. Một cơ thể khỏe giúp bạn bình tĩnh hơn khi thị trường biến động mạnh.</p>
+      </article>
+      <article class="pillar reveal">
         <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11"/></svg></span>
         <h3>Công việc</h3>
-        <p>Đặt mục tiêu theo quý, chia nhỏ thành việc cần làm hôm nay và theo dõi tiến độ theo tuần.</p>
+        <p>Thu nhập ổn định là nguồn vốn đầu tư quan trọng nhất. Chia mục tiêu quý thành việc nhỏ mỗi ngày.</p>
+      </article>
+      <article class="pillar reveal">
+        <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5V21h16"/></svg></span>
+        <h3>Học tập</h3>
+        <p>Đọc báo cáo tài chính, sách, bài phân tích. Hiểu doanh nghiệp trước khi bỏ tiền vào cổ phiếu.</p>
+      </article>
+      <article class="pillar reveal">
+        <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span>
+        <h3>Tài chính</h3>
+        <p>Tiết kiệm đều, đầu tư định kỳ, theo dõi danh mục. Để lãi kép làm phần việc nặng nhọc nhất.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===== CÁCH HOẠT ĐỘNG ===== -->
+  <section class="section wrap" style="padding-top:0;">
+    <div class="section-head reveal">
+      <p class="eyebrow">Cách dùng</p>
+      <h2>Ba bước, năm phút mỗi ngày</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <h3>Viết ra 3 việc</h3>
+        <p>Mỗi sáng ghi tối đa ba mục tiêu cụ thể, đo được. Ít mà chắc chắn làm được còn hơn nhiều mà bỏ dở.</p>
       </div>
-      <div class="pillar">
-        <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-        <h3>Trò chuyện</h3>
-        <p>Ghi chú suy nghĩ, nhận góc nhìn phản hồi từ cộng đồng những người cùng theo đuổi kỷ luật.</p>
+      <div class="step reveal">
+        <h3>Đánh dấu khi xong</h3>
+        <p>Mỗi lần tích xong một việc, chuỗi ngày kỷ luật của bạn dài thêm. Nhìn lịch 7 ngày để thấy mình đang đi đúng hướng.</p>
       </div>
-      <div class="pillar">
-        <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="10" width="7" height="11"/><rect x="14" y="3" width="7" height="18"/></svg></span>
-        <h3>Doanh nghiệp</h3>
-        <p>Theo dõi cổ phiếu, danh mục và tin tức ảnh hưởng tới những công ty bạn đang quan tâm.</p>
+      <div class="step reveal">
+        <h3>Nhìn về dài hạn</h3>
+        <p>Dùng máy tính lãi kép để thấy những khoản tiết kiệm nhỏ hôm nay sẽ thành bao nhiêu sau 10, 20 năm nữa.</p>
       </div>
     </div>
   </section>
 
-  <section class="market" id="thi-truong">
+  <!-- ===== MÁY TÍNH LÃI KÉP ===== -->
+  <section class="section tools" id="cong-cu">
     <div class="wrap">
-      <div class="market-head">
-        <div class="section-head" style="margin-bottom:0;">
-          <p class="eyebrow">Thị trường chứng khoán</p>
-          <h2>Dữ liệu dẫn đường cho quyết định của bạn</h2>
+      <div class="section-head reveal">
+        <p class="eyebrow">Công cụ</p>
+        <h2>Máy tính lãi kép</h2>
+        <p>Kéo các thanh trượt để xem tiền của bạn lớn lên thế nào nếu đầu tư đều đặn mỗi tháng. Đơn vị: triệu đồng.</p>
+      </div>
+      <div class="card calc reveal" id="calc">
+        <div class="calc-form">
+          <div class="field">
+            <label for="cInit">Vốn ban đầu <output id="oInit"></output></label>
+            <input id="cInit" type="range" min="0" max="2000" step="10" value="50">
+          </div>
+          <div class="field">
+            <label for="cMonthly">Góp thêm mỗi tháng <output id="oMonthly"></output></label>
+            <input id="cMonthly" type="range" min="0" max="50" step="0.5" value="3">
+          </div>
+          <div class="field">
+            <label for="cRate">Lợi nhuận kỳ vọng mỗi năm <output id="oRate"></output></label>
+            <input id="cRate" type="range" min="0" max="20" step="0.5" value="10">
+            <p class="hint">Lãi tiết kiệm ngân hàng thường khoảng 4–6%/năm.</p>
+          </div>
+          <div class="field">
+            <label for="cYears">Thời gian <output id="oYears"></output></label>
+            <input id="cYears" type="range" min="1" max="40" step="1" value="15">
+          </div>
         </div>
-        <span class="demo-pill"><span class="dot"></span>Dữ liệu minh hoạ — bản đầy đủ cập nhật theo thời gian thực</span>
+        <div class="calc-result">
+          <div class="kpis">
+            <div class="kpi main"><span>Tổng giá trị cuối kỳ</span><b id="rTotal" class="tabular">–</b></div>
+            <div class="kpi"><span>Tổng tiền bạn góp</span><b id="rPaid" class="tabular">–</b></div>
+            <div class="kpi"><span>Tiền lãi sinh ra</span><b id="rGain" class="tabular">–</b></div>
+          </div>
+          <div>
+            <div class="chart-legend" style="margin-bottom:12px;">
+              <span><i style="background:var(--ink-soft);opacity:.35"></i>Tiền góp</span>
+              <span><i style="background:var(--accent)"></i>Tiền lãi</span>
+            </div>
+            <div class="bars"><svg id="barsSvg" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Biểu đồ giá trị tài sản theo từng năm"></svg></div>
+            <div class="bars-axis"><span>Năm 1</span><span id="axisMid"></span><span id="axisEnd"></span></div>
+          </div>
+          <p class="calc-note">Kết quả giả định lợi nhuận đều đặn và gộp lãi hàng tháng, chưa trừ thuế, phí và lạm phát. Chỉ dùng để minh hoạ, không phải khuyến nghị đầu tư.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== THỊ TRƯỜNG ===== -->
+  <section class="section market" id="thi-truong">
+    <div class="wrap">
+      <div class="market-head reveal">
+        <div class="section-head">
+          <p class="eyebrow">Thị trường chứng khoán</p>
+          <h2>Bức tranh thị trường trong một màn hình</h2>
+          <p>Chọn chỉ số để xem diễn biến, bấm tiêu đề cột để sắp xếp bảng theo dõi.</p>
+        </div>
+        <span class="demo-pill"><span class="dot"></span>Dữ liệu minh hoạ, chưa phải giá thật</span>
       </div>
 
-      <div class="indices">
-        <div class="index-card">
+      <div class="indices reveal">
+        <button class="index-card" type="button" data-index="VNINDEX" aria-pressed="true">
           <p class="name">VN-INDEX</p>
           <p class="val tabular">1.286,45</p>
-          <span class="chg up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>+8,32 (0,65%)</span>
-        </div>
-        <div class="index-card">
+          <span class="chg up">▲ +8,32 (0,65%)</span>
+        </button>
+        <button class="index-card" type="button" data-index="HNXINDEX" aria-pressed="false">
           <p class="name">HNX-INDEX</p>
           <p class="val tabular">231,78</p>
-          <span class="chg down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12l7 7 7-7"/></svg>−1,14 (0,49%)</span>
-        </div>
-        <div class="index-card">
+          <span class="chg down">▼ −1,14 (0,49%)</span>
+        </button>
+        <button class="index-card" type="button" data-index="UPCOM" aria-pressed="false">
           <p class="name">UPCOM-INDEX</p>
           <p class="val tabular">98,56</p>
-          <span class="chg up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>+0,42 (0,43%)</span>
+          <span class="chg up">▲ +0,42 (0,43%)</span>
+        </button>
+      </div>
+
+      <div class="chart-card reveal">
+        <div class="chart-top">
+          <p class="chart-title"><b id="chartName">VN-INDEX</b><span id="chartChg"></span></p>
+          <div class="tabs" role="tablist" aria-label="Khoảng thời gian">
+            <button type="button" role="tab" data-range="22" aria-selected="false">1 tháng</button>
+            <button type="button" role="tab" data-range="66" aria-selected="true">3 tháng</button>
+            <button type="button" role="tab" data-range="132" aria-selected="false">6 tháng</button>
+            <button type="button" role="tab" data-range="250" aria-selected="false">1 năm</button>
+          </div>
+        </div>
+        <div class="line-chart" id="lineChart">
+          <svg viewBox="0 0 1000 260" preserveAspectRatio="none" role="img" aria-label="Biểu đồ diễn biến chỉ số">
+            <defs>
+              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop id="gradStop" offset="0" stop-color="#2FBF4F" stop-opacity=".28"/>
+                <stop offset="1" stop-color="#2FBF4F" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path id="lineArea" fill="url(#areaGrad)"/>
+            <path id="linePath" fill="none" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+          </svg>
+          <div class="y-labels" id="yLabels"></div>
+          <div class="chart-hline" id="chartHline"></div>
+          <div class="chart-dot" id="chartDot"></div>
+          <div class="chart-tip" id="chartTip"></div>
         </div>
       </div>
 
-      <div class="watchlist">
-        <div class="wl-head">
-          <span>Mã</span><span>Công ty</span><span class="right">Giá</span><span class="right">+/-%</span><span class="center">Xu hướng</span>
+      <div class="watchlist reveal" role="table" aria-label="Bảng theo dõi cổ phiếu">
+        <div class="wl-head" role="row">
+          <span role="columnheader" aria-sort="ascending"><button type="button" data-sort="t">Mã <span class="arrow">↑</span></button></span>
+          <span role="columnheader" class="wl-name"><button type="button" data-sort="n">Công ty <span class="arrow"></span></button></span>
+          <span role="columnheader" class="right"><button type="button" data-sort="p">Giá <span class="arrow"></span></button></span>
+          <span role="columnheader" class="right"><button type="button" data-sort="c">+/- % <span class="arrow"></span></button></span>
+          <span role="columnheader" class="right wl-vol"><button type="button" data-sort="v">Khối lượng <span class="arrow"></span></button></span>
+          <span role="columnheader" class="right wl-spark">Xu hướng</span>
         </div>
-
-        <div class="wl-row">
-          <span class="wl-ticker">VIC</span>
-          <span class="wl-name">Vingroup</span>
-          <span class="wl-price tabular">45.600</span>
-          <span class="wl-chg chg up tabular">▲ 2,70%</span>
-          <span class="wl-spark"><svg width="64" height="24" viewBox="0 0 64 24"><polyline points="0,18 10,16 20,17 30,12 42,13 52,6 64,4" fill="none" stroke="#0ca30c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        </div>
-        <div class="wl-row">
-          <span class="wl-ticker">VCB</span>
-          <span class="wl-name">Vietcombank</span>
-          <span class="wl-price tabular">92.800</span>
-          <span class="wl-chg chg up tabular">▲ 0,43%</span>
-          <span class="wl-spark"><svg width="64" height="24" viewBox="0 0 64 24"><polyline points="0,12 10,14 20,10 30,13 42,9 52,11 64,7" fill="none" stroke="#0ca30c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        </div>
-        <div class="wl-row">
-          <span class="wl-ticker">VHM</span>
-          <span class="wl-name">Vinhomes</span>
-          <span class="wl-price tabular">41.950</span>
-          <span class="wl-chg chg down tabular">▼ 1,29%</span>
-          <span class="wl-spark"><svg width="64" height="24" viewBox="0 0 64 24"><polyline points="0,6 10,9 20,8 30,13 42,12 52,17 64,19" fill="none" stroke="#d03b3b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        </div>
-        <div class="wl-row">
-          <span class="wl-ticker">CTG</span>
-          <span class="wl-name">VietinBank</span>
-          <span class="wl-price tabular">34.200</span>
-          <span class="wl-chg chg up tabular">▲ 0,44%</span>
-          <span class="wl-spark"><svg width="64" height="24" viewBox="0 0 64 24"><polyline points="0,14 10,13 20,15 30,11 42,12 52,9 64,8" fill="none" stroke="#0ca30c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        </div>
-        <div class="wl-row">
-          <span class="wl-ticker">TCB</span>
-          <span class="wl-name">Techcombank</span>
-          <span class="wl-price tabular">23.450</span>
-          <span class="wl-chg chg up tabular">▲ 1,30%</span>
-          <span class="wl-spark"><svg width="64" height="24" viewBox="0 0 64 24"><polyline points="0,17 10,15 20,16 30,10 42,11 52,5 64,6" fill="none" stroke="#0ca30c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        </div>
-        <div class="wl-row">
-          <span class="wl-ticker">VPB</span>
-          <span class="wl-name">VPBank</span>
-          <span class="wl-price tabular">19.800</span>
-          <span class="wl-chg chg down tabular">▼ 0,50%</span>
-          <span class="wl-spark"><svg width="64" height="24" viewBox="0 0 64 24"><polyline points="0,8 10,10 20,9 30,14 42,13 52,16 64,15" fill="none" stroke="#d03b3b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        </div>
-        <div class="wl-row">
-          <span class="wl-ticker">MBB</span>
-          <span class="wl-name">MB Bank</span>
-          <span class="wl-price tabular">22.150</span>
-          <span class="wl-chg chg up tabular">▲ 0,23%</span>
-          <span class="wl-spark"><svg width="64" height="24" viewBox="0 0 64 24"><polyline points="0,13 10,14 20,12 30,13 42,11 52,12 64,9" fill="none" stroke="#0ca30c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        </div>
+        <div id="wlBody" role="rowgroup"></div>
       </div>
+      <p class="market-note">Số liệu trong phần này được tạo ra để minh hoạ giao diện. Phiên bản sau sẽ cập nhật giá thật sau mỗi phiên giao dịch.</p>
     </div>
   </section>
 
+  <!-- ===== BLOG ===== -->
   <section class="section wrap" id="blog">
-    <div class="section-head">
+    <div class="section-head reveal">
       <p class="eyebrow">Blog</p>
       <h2>Góc nhìn về kỷ luật, mục tiêu và đầu tư</h2>
-      <p>Những bài viết ngắn, thực tế — không lý thuyết suông — về cách giữ thói quen và đọc hiểu thị trường.</p>
+      <p>Bài viết ngắn, thực tế, đọc trong một lần uống cà phê.</p>
     </div>
     <div class="blog-grid">
-      <article class="post">
-        <div class="post-thumb"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg></div>
+      <a class="post reveal" href="blog/quy-tac-1-phan-tram.html">
+        <div class="post-thumb"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10"/></svg></div>
         <p class="cat">Thói quen</p>
         <h3>Quy tắc 1% mỗi ngày: kỷ luật nhỏ, kết quả lớn</h3>
-        <p>Vì sao những thay đổi nhỏ và đều đặn thường bền hơn những mục tiêu lớn lao đặt ra vào đầu năm.</p>
-        <p class="meta"><span>Thu Hà</span>·<span>6 phút đọc</span></p>
-      </article>
-      <article class="post">
-        <div class="post-thumb"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="4"/></svg></div>
+        <p>Vì sao thay đổi nhỏ nhưng đều đặn lại bền hơn những quyết tâm lớn đầu năm, và áp dụng nó thế nào.</p>
+        <p class="meta">6 phút đọc</p>
+      </a>
+      <a class="post reveal" href="blog/doc-bao-cao-tai-chinh.html">
+        <div class="post-thumb"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/></svg></div>
         <p class="cat">Đầu tư</p>
         <h3>Đọc báo cáo tài chính trong 10 phút</h3>
-        <p>Ba chỉ số cần nhìn trước tiên khi mở một bản báo cáo quý, và những con số nên bỏ qua.</p>
-        <p class="meta"><span>Minh Khôi</span>·<span>9 phút đọc</span></p>
-      </article>
-      <article class="post">
-        <div class="post-thumb"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 22,20 2,20"/></svg></div>
+        <p>Năm con số cần nhìn đầu tiên khi mở báo cáo quý của một doanh nghiệp niêm yết.</p>
+        <p class="meta">8 phút đọc</p>
+      </a>
+      <a class="post reveal" href="blog/nhat-ky-muc-tieu-hang-tuan.html">
+        <div class="post-thumb"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12,2 22,20 2,20"/></svg></div>
         <p class="cat">Mục tiêu</p>
         <h3>Vì sao nên viết nhật ký mục tiêu hàng tuần</h3>
-        <p>Ghi lại tiến độ mỗi tuần giúp bạn nhận ra sai lệch sớm hơn, trước khi mục tiêu chệch hướng hẳn.</p>
-        <p class="meta"><span>Lan Phương</span>·<span>5 phút đọc</span></p>
-      </article>
+        <p>15 phút mỗi Chủ nhật giúp bạn phát hiện sai lệch sớm, trước khi mục tiêu trượt hẳn khỏi quỹ đạo.</p>
+        <p class="meta">5 phút đọc</p>
+      </a>
     </div>
   </section>
 
-  <section class="section community" id="community">
-    <div class="wrap">
-      <div class="quote">
-        <p>“Kiến thức và kỷ luật hôm nay, tự do tài chính ngày mai.”</p>
-        <cite>— Nguyên tắc cốt lõi của Kim Chỉ Nam</cite>
-      </div>
-      <div class="testimonials">
-        <div class="tcard">
-          <p>“Mình dùng Kim Chỉ Nam để theo dõi mục tiêu đọc báo cáo tài chính mỗi tuần. Sau 3 tháng, thói quen đó đã thành tự nhiên.”</p>
-          <div class="who"><span class="avatar">T</span><div><b>Thảo, TP.HCM</b><span>Nhà đầu tư cá nhân</span></div></div>
-        </div>
-        <div class="tcard">
-          <p>“Phần theo dõi cổ phiếu ngay trong trang mục tiêu giúp mình không phải mở nhiều app cùng lúc nữa.”</p>
-          <div class="who"><span class="avatar">Đ</span><div><b>Đức, Hà Nội</b><span>Quản lý sản phẩm</span></div></div>
-        </div>
-        <div class="tcard">
-          <p>“Cộng đồng ở đây thẳng thắn và thực tế. Không ai hứa làm giàu nhanh, chỉ chia sẻ cách giữ kỷ luật.”</p>
-          <div class="who"><span class="avatar">N</span><div><b>Ngọc, Đà Nẵng</b><span>Giáo viên</span></div></div>
-        </div>
-      </div>
-      <p class="sample-note">Trích dẫn trên mang tính minh hoạ cho trang demo này.</p>
+  <!-- ===== HỎI ĐÁP ===== -->
+  <section class="section wrap" id="hoi-dap" style="padding-top:0;">
+    <div class="section-head center reveal">
+      <p class="eyebrow">Hỏi đáp</p>
+      <h2>Câu hỏi thường gặp</h2>
+    </div>
+    <div class="faq reveal">
+      <details>
+        <summary>Kim Chỉ Nam có mất phí không?</summary>
+        <p>Không. Tất cả công cụ trên trang này đều miễn phí và không cần tạo tài khoản.</p>
+      </details>
+      <details>
+        <summary>Mục tiêu của tôi được lưu ở đâu?</summary>
+        <p>Ngay trên trình duyệt bạn đang dùng (bộ nhớ cục bộ). Trang không có máy chủ thu thập dữ liệu, nên không ai khác xem được. Đổi lại, nếu bạn xoá dữ liệu duyệt web hoặc dùng máy khác thì danh sách sẽ không đi theo.</p>
+      </details>
+      <details>
+        <summary>Chuỗi "ngày liên tiếp" được tính thế nào?</summary>
+        <p>Mỗi ngày bạn hoàn thành ít nhất một mục tiêu được tính là một ngày giữ kỷ luật. Bỏ trống một ngày thì chuỗi bắt đầu lại từ đầu, vì vậy hãy đặt mục tiêu nhỏ để dễ giữ nhịp.</p>
+      </details>
+      <details>
+        <summary>Số liệu chứng khoán trên trang có phải giá thật không?</summary>
+        <p>Chưa. Phần thị trường hiện dùng dữ liệu minh hoạ để giới thiệu giao diện. Đừng dùng các con số này để ra quyết định mua bán.</p>
+      </details>
+      <details>
+        <summary>Nội dung trên trang có phải khuyến nghị đầu tư không?</summary>
+        <p>Không. Bài viết và công cụ chỉ nhằm mục đích giáo dục và tham khảo. Hãy tự tìm hiểu kỹ hoặc hỏi ý kiến chuyên gia tư vấn được cấp phép trước khi đầu tư.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ===== CTA ===== -->
+  <section class="wrap reveal">
+    <div class="cta-band">
+      <h2>Bắt đầu bằng một việc nhỏ hôm nay</h2>
+      <p>Không cần kế hoạch hoàn hảo. Chỉ cần viết ra một mục tiêu và làm xong nó trước khi đi ngủ.</p>
+      <a class="btn btn-accent btn-lg" href="#muc-tieu">Viết mục tiêu đầu tiên</a>
+      <p class="quote">“Kiến thức và kỷ luật hôm nay, tự do tài chính ngày mai.”</p>
     </div>
   </section>
 </main>
 
-<footer class="wrap">
-  <div class="footer-grid">
-    <div class="footer-brand">
-      <a class="brand" href="#top">
-        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="#1C1304"/></svg></span>
-        Kim Chỉ Nam
-      </a>
-      <p>Nền tảng kết hợp nhật ký mục tiêu cá nhân với dữ liệu thị trường chứng khoán Việt Nam.</p>
+<footer class="site">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="./">
+          <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="#1C1304"/></svg></span>
+          Kim Chỉ Nam
+        </a>
+        <p>Nhật ký mục tiêu cá nhân và công cụ đầu tư dành cho người Việt.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Công cụ</h4>
+        <a href="#muc-tieu">Mục tiêu hôm nay</a>
+        <a href="#cong-cu">Máy tính lãi kép</a>
+        <a href="#thi-truong">Thị trường</a>
+      </div>
+      <div class="footer-col">
+        <h4>Bài viết</h4>
+        <a href="blog/quy-tac-1-phan-tram.html">Quy tắc 1% mỗi ngày</a>
+        <a href="blog/doc-bao-cao-tai-chinh.html">Đọc báo cáo tài chính</a>
+        <a href="blog/nhat-ky-muc-tieu-hang-tuan.html">Nhật ký mục tiêu tuần</a>
+      </div>
+      <div class="footer-col">
+        <h4>Thông tin</h4>
+        <a href="#hoi-dap">Hỏi đáp</a>
+        <a href="#hoi-dap">Quyền riêng tư</a>
+      </div>
     </div>
-    <div class="footer-col">
-      <h4>Sản phẩm</h4>
-      <a href="#pillars">Sức khỏe</a>
-      <a href="#pillars">Công việc</a>
-      <a href="#pillars">Trò chuyện</a>
-      <a href="#pillars">Doanh nghiệp</a>
-    </div>
-    <div class="footer-col">
-      <h4>Công ty</h4>
-      <a href="#top">Giới thiệu</a>
-      <a href="#blog">Blog</a>
-      <a href="#top">Tuyển dụng</a>
-    </div>
-    <div class="footer-col">
-      <h4>Hỗ trợ</h4>
-      <a href="#top">Trung tâm hỗ trợ</a>
-      <a href="#top">Liên hệ</a>
-      <a href="#top">Điều khoản sử dụng</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <span>© 2026 Kim Chỉ Nam. Trang demo minh hoạ — không phải sản phẩm thương mại.</span>
-    <div class="socials">
-      <a href="#top" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 22v-8h3l1-4h-4V7.5A1.5 1.5 0 0 1 14.5 6H17V2h-3a5 5 0 0 0-5 5v3H7v4h2v8z"/></svg></a>
-      <a href="#top" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="5" width="20" height="14" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><polygon points="10,9 16,12 10,15"/></svg></a>
-      <a href="#top" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2.2"/><path d="M10 9h4v2a4 4 0 0 1 4-2c3 0 4 2 4 5v7h-4v-6c0-1.5-.5-2.5-2-2.5s-2 1-2 2.5v6h-4z"/></svg></a>
+    <div class="footer-bottom">
+      <span>© <span id="year">2026</span> Kim Chỉ Nam</span>
+      <span>Nội dung chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.</span>
     </div>
   </div>
 </footer>
 
-<script>
-  (function(){
-    var toggle = document.getElementById('navToggle');
-    var nav = document.querySelector('nav.primary');
-    if(!toggle || !nav) return;
-    toggle.addEventListener('click', function(){
-      var open = nav.style.display === 'flex';
-      nav.style.display = open ? 'none' : 'flex';
-      nav.style.flexDirection = 'column';
-      nav.style.position = 'absolute';
-      nav.style.top = '100%';
-      nav.style.left = '0';
-      nav.style.right = '0';
-      nav.style.background = 'var(--surface)';
-      nav.style.borderBottom = '1px solid var(--border)';
-      nav.style.padding = '12px 20px';
-      toggle.setAttribute('aria-expanded', String(!open));
-    });
-  })();
-</script>
+<script src="assets/app.js"></script>
 </body>
 </html>
