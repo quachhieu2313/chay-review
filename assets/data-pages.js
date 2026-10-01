@@ -55,8 +55,8 @@
     var pts = vals.map(function(v, i){
       return (i / (vals.length - 1) * w).toFixed(1) + ',' + (h - 2 - (v - mn) / ((mx - mn) || 1) * (h - 4)).toFixed(1);
     }).join(' ');
-    return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true"><polyline points="' + pts +
-      '" fill="none" stroke="' + color + '" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts +
+      '" fill="none" stroke="' + color + '" stroke-width="1.7" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   }
 
   // ---------------------------------------------------------------- biểu đồ đường nhiều chuỗi
@@ -551,8 +551,8 @@
       function holdings(){
         var list = full ? f.danh_muc : f.danh_muc.slice(0, 10);
         $('#fHoldings').innerHTML = list.map(function(x, i){
-          return '<tr><td class="num muted">' + (i + 1) + '</td><td><b>' + esc(x.ma) + '</b><span class="sub">' + esc(x.ten) + '</span></td>' +
-            '<td class="hide-sm">' + esc(x.nganh) + '</td><td class="num">' + fmt(x.gia) + '</td>' +
+          return '<tr><td class="num muted">' + (i + 1) + '</td><td><b>' + esc(x.ma) + '</b><span class="sub">' + esc(x.nganh) + ' · ' + esc(x.ten) + '</span></td>' +
+            '<td class="num">' + fmt(x.gia) + '</td>' +
             '<td class="num ' + cls(x.thay_doi) + '">' + pct(x.thay_doi) + '</td>' +
             '<td class="num"><span class="wbar"><i style="width:' + Math.min(100, x.ty_trong / f.danh_muc[0].ty_trong * 100) + '%"></i></span>' + fmt(x.ty_trong, 2) + '%</td></tr>';
         }).join('');
