@@ -213,9 +213,9 @@
   }
 
   // =====================================================================
-  // POPUP CHI TIẾT MÃ CỔ PHIẾU (biểu đồ nến TradingView Lightweight Charts)
+  // POPUP CHI TIẾT MÃ CỔ PHIẾU (biểu đồ nến TradingView Lightweight Charts v5)
   // =====================================================================
-  var LWC_URL = 'https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js';
+  var LWC_URL = 'https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js';
   var lwcPromise = null;
   function loadLwc(){
     if(window.LightweightCharts) return Promise.resolve(window.LightweightCharts);
@@ -231,69 +231,302 @@
     return lwcPromise;
   }
 
-  function StockModal(getList){
-    var overlay = $('#smOverlay'), dialog = $('.sm', overlay);
-    var chartBox = $('#smChart'), legend = $('#smLegend');
-    var UP = '#3DD15C', DOWN = '#FF6B61', MA20 = '#F0B429', MA50 = '#8DA6EC';
-    var chart = null, s = {}, data = null, current = null, months = 6, type = 'nen', lastFocus = null;
-
-    function ma(c, n){
+  // ---------- công thức chỉ báo kỹ thuật (mảng trả về cùng độ dài, chỗ chưa đủ dữ liệu là null)
+  var TA = {
+    sma: function(a, n){
       var out = [], sum = 0;
-      for(var i = 0; i < c.length; i++){
-        sum += c[i];
-        if(i >= n) sum -= c[i - n];
+      for(var i = 0; i < a.length; i++){
+        sum += a[i];
+        if(i >= n) sum -= a[i - n];
         out.push(i >= n - 1 ? sum / n : null);
       }
       return out;
+    },
+    ema: function(a, n){
+      var out = [], k = 2 / (n + 1), prev = null, sum = 0, cnt = 0;
+      for(var i = 0; i < a.length; i++){
+        var v = a[i];
+        if(v === null){ out.push(null); continue; }
+        if(prev === null){
+          sum += v; cnt++;
+          if(cnt === n){ prev = sum / n; out.push(prev); } else out.push(null);
+        }else{ prev = v * k + prev * (1 - k); out.push(prev); }
+      }
+      return out;
+    },
+    bb: function(c, n, m){
+      var mid = TA.sma(c, n), up = [], lo = [];
+      for(var i = 0; i < c.length; i++){
+        if(mid[i] === null){ up.push(null); lo.push(null); continue; }
+        var s = 0;
+        for(var j = i - n + 1; j <= i; j++) s += (c[j] - mid[i]) * (c[j] - mid[i]);
+        var sd = Math.sqrt(s / n);
+        up.push(mid[i] + m * sd); lo.push(mid[i] - m * sd);
+      }
+      return {mid:mid, up:up, lo:lo};
+    },
+    rsi: function(c, n){
+      var out = [null], g = 0, l = 0;
+      for(var i = 1; i < c.length; i++){
+        var d = c[i] - c[i - 1], up = d > 0 ? d : 0, dn = d < 0 ? -d : 0;
+        if(i <= n){
+          g += up; l += dn;
+          if(i === n){ g /= n; l /= n; out.push(l === 0 ? 100 : 100 - 100 / (1 + g / l)); } else out.push(null);
+        }else{
+          g = (g * (n - 1) + up) / n; l = (l * (n - 1) + dn) / n;
+          out.push(l === 0 ? 100 : 100 - 100 / (1 + g / l));
+        }
+      }
+      return out;
+    },
+    macd: function(c, f, s, sig){
+      var a = TA.ema(c, f), b = TA.ema(c, s);
+      var m = a.map(function(v, i){ return v === null || b[i] === null ? null : v - b[i]; });
+      var sg = TA.ema(m, sig);
+      return {macd:m, signal:sg, hist:m.map(function(v, i){ return v === null || sg[i] === null ? null : v - sg[i]; })};
+    },
+    stoch: function(h, l, c, n, sk, sd){
+      var raw = [];
+      for(var i = 0; i < c.length; i++){
+        if(i < n - 1){ raw.push(null); continue; }
+        var hh = -Infinity, ll = Infinity;
+        for(var j = i - n + 1; j <= i; j++){ if(h[j] > hh) hh = h[j]; if(l[j] < ll) ll = l[j]; }
+        raw.push(hh === ll ? 50 : (c[i] - ll) / (hh - ll) * 100);
+      }
+      function smaN(a, k){
+        var out = [], buf = [];
+        a.forEach(function(v){
+          if(v === null){ out.push(null); return; }
+          buf.push(v); if(buf.length > k) buf.shift();
+          out.push(buf.length === k ? buf.reduce(function(x, y){ return x + y; }, 0) / k : null);
+        });
+        return out;
+      }
+      var k = smaN(raw, sk);
+      return {k:k, d:smaN(k, sd)};
+    },
+    sar: function(h, l, step, max){
+      var n = h.length, out = new Array(n).fill(null);
+      if(n < 2) return out;
+      var up = h[1] >= h[0], af = step, ep = up ? Math.max(h[0], h[1]) : Math.min(l[0], l[1]);
+      var sar = up ? Math.min(l[0], l[1]) : Math.max(h[0], h[1]);
+      out[1] = sar;
+      for(var i = 2; i < n; i++){
+        sar = sar + af * (ep - sar);
+        if(up){
+          sar = Math.min(sar, l[i - 1], l[i - 2]);
+          if(l[i] < sar){ up = false; sar = ep; ep = l[i]; af = step; }
+          else if(h[i] > ep){ ep = h[i]; af = Math.min(af + step, max); }
+        }else{
+          sar = Math.max(sar, h[i - 1], h[i - 2]);
+          if(h[i] > sar){ up = true; sar = ep; ep = h[i]; af = step; }
+          else if(l[i] < ep){ ep = l[i]; af = Math.min(af + step, max); }
+        }
+        out[i] = sar;
+      }
+      return out;
+    }
+  };
+
+  // danh sách chỉ báo cho người dùng chọn
+  var CHI_BAO = [
+    {id:'vol', ten:'Khối lượng', nhom:'gia'},
+    {id:'ma20', ten:'MA 20', nhom:'gia', mau:'#F0B429'},
+    {id:'ma50', ten:'MA 50', nhom:'gia', mau:'#8DA6EC'},
+    {id:'ma200', ten:'MA 200', nhom:'gia', mau:'#E879F9'},
+    {id:'ema20', ten:'EMA 20', nhom:'gia', mau:'#2DD4BF'},
+    {id:'bb', ten:'Bollinger Bands (20, 2)', nhom:'gia', mau:'#60A5FA'},
+    {id:'sar', ten:'Parabolic SAR (0,02; 0,2)', nhom:'gia', mau:'#FDE047'},
+    {id:'rsi', ten:'RSI (14)', nhom:'khung', mau:'#C084FC'},
+    {id:'macd', ten:'MACD (12, 26, 9)', nhom:'khung', mau:'#60A5FA'},
+    {id:'stoch', ten:'Stochastic (14, 3, 3)', nhom:'khung', mau:'#F0B429'}
+  ];
+  var CB = {};
+  CHI_BAO.forEach(function(x){ CB[x.id] = x; });
+
+  function StockModal(getList){
+    var overlay = $('#smOverlay'), dialog = $('.sm', overlay);
+    var chartBox = $('#smChart'), legend = $('#smLegend');
+    var UP = '#3DD15C', DOWN = '#FF6B61';
+    var L = null, chart = null, data = null, calc = null, current = null, months = 6, type = 'nen', lastFocus = null;
+    var mainSeries = null;
+    var active = (function(){
+      try{
+        var v = JSON.parse(localStorage.getItem('kcn-chi-bao'));
+        if(Array.isArray(v)) return v.filter(function(id){ return CB[id]; });
+      }catch(e){}
+      return ['vol', 'ma20', 'ma50'];
+    })();
+    function saveActive(){ try{ localStorage.setItem('kcn-chi-bao', JSON.stringify(active)); }catch(e){} }
+    function on(id){ return active.indexOf(id) > -1; }
+
+    // ---------- menu chọn chỉ báo
+    var menu = $('#smIndMenu'), menuBtn = $('#smIndBtn');
+    function renderMenu(){
+      var h = '';
+      [['gia', 'Trên biểu đồ giá'], ['khung', 'Khung riêng bên dưới']].forEach(function(g){
+        h += '<p class="sm-ind-group">' + g[1] + '</p>';
+        CHI_BAO.filter(function(x){ return x.nhom === g[0]; }).forEach(function(x){
+          h += '<label><input type="checkbox" value="' + x.id + '"' + (on(x.id) ? ' checked' : '') + '>' +
+            '<i style="background:' + (x.mau || '#5B6B9C') + '"></i>' + x.ten + '</label>';
+        });
+      });
+      menu.innerHTML = h;
+      $('#smIndCount').textContent = active.length ? '(' + active.length + ')' : '';
+      $('#smIndChips').innerHTML = active.map(function(id){
+        return '<button type="button" class="sm-chip-ind" data-id="' + id + '" aria-label="Bỏ ' + CB[id].ten + '">' +
+          '<i style="background:' + (CB[id].mau || '#5B6B9C') + '"></i>' + CB[id].ten.replace(/ \(.*\)/, '') + ' <span aria-hidden="true">×</span></button>';
+      }).join('');
+    }
+    function toggle(id, val){
+      active = active.filter(function(x){ return x !== id; });
+      if(val) active.push(id);
+      saveActive(); renderMenu();
+      if(data && L) rebuild();
+    }
+    menuBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var open = menu.hidden;
+      menu.hidden = !open;
+      menuBtn.setAttribute('aria-expanded', String(open));
+    });
+    menu.addEventListener('change', function(e){ if(e.target.value) toggle(e.target.value, e.target.checked); });
+    menu.addEventListener('click', function(e){ e.stopPropagation(); });
+    $('#smIndChips').addEventListener('click', function(e){
+      var b = e.target.closest('.sm-chip-ind'); if(b) toggle(b.getAttribute('data-id'), false);
+    });
+    overlay.addEventListener('click', function(){ if(!menu.hidden){ menu.hidden = true; menuBtn.setAttribute('aria-expanded', 'false'); } });
+    renderMenu();
+
+    // ---------- tính toán
+    function compute(){
+      var d = data;
+      calc = {
+        ma20: TA.sma(d.c, 20), ma50: TA.sma(d.c, 50), ma200: TA.sma(d.c, 200), ema20: TA.ema(d.c, 20),
+        bb: TA.bb(d.c, 20, 2), sar: TA.sar(d.h, d.l, 0.02, 0.2), rsi: TA.rsi(d.c, 14),
+        macd: TA.macd(d.c, 12, 26, 9), stoch: TA.stoch(d.h, d.l, d.c, 14, 3, 3)
+      };
+    }
+    function pts(arr, colorFn){
+      var out = [];
+      arr.forEach(function(v, i){
+        if(v === null || v === undefined || isNaN(v)) return;
+        var p = {time:data.d[i], value:v};
+        if(colorFn) p.color = colorFn(v, i);
+        out.push(p);
+      });
+      return out;
     }
 
-    function build(L){
+    // ---------- dựng lại biểu đồ (mỗi khi đổi mã hoặc đổi chỉ báo)
+    function rebuild(){
+      var keep = chart ? chart.timeScale().getVisibleLogicalRange() : null;
+      if(chart){ chart.remove(); chart = null; }
+      var osc = active.filter(function(id){ return CB[id].nhom === 'khung'; });
+      chartBox.style.height = (window.innerWidth < 900 ? 330 : 430) + osc.length * 130 + 'px';
       chart = L.createChart(chartBox, {
         autoSize: true,
-        layout: {background: {type: 'solid', color: 'transparent'}, textColor: '#AEB9DB', fontFamily: '"JetBrains Mono", monospace', fontSize: 11},
+        layout: {background: {type: 'solid', color: 'transparent'}, textColor: '#AEB9DB', fontFamily: '"JetBrains Mono", monospace', fontSize: 11,
+          panes: {separatorColor: '#2B3F86', separatorHoverColor: 'rgba(198,224,16,.25)', enableResize: true}},
         grid: {vertLines: {color: 'rgba(43,63,134,.35)'}, horzLines: {color: 'rgba(43,63,134,.35)'}},
-        rightPriceScale: {borderColor: '#2B3F86', scaleMargins: {top: 0.08, bottom: 0.26}},
+        rightPriceScale: {borderColor: '#2B3F86', minimumWidth: 72},
         timeScale: {borderColor: '#2B3F86', rightOffset: 4, minBarSpacing: 1},
         crosshair: {mode: 0},
         localization: {
           locale: 'vi-VN',
-          priceFormatter: function(p){ return fmt(p); },
-          timeFormatter: function(t){
-            var d = typeof t === 'string' ? t : (t.year + '-' + ('0' + t.month).slice(-2) + '-' + ('0' + t.day).slice(-2));
-            return ngayVN(d);
-          }
+          priceFormatter: function(p){ return Math.abs(p) >= 1000 ? fmt(p) : fmt(p, 2); },
+          timeFormatter: function(t){ return ngayVN(typeof t === 'string' ? t : t.year + '-' + ('0' + t.month).slice(-2) + '-' + ('0' + t.day).slice(-2)); }
         }
       });
-      s.candle = chart.addCandlestickSeries({upColor: UP, downColor: DOWN, borderVisible: false, wickUpColor: UP, wickDownColor: DOWN,
-        priceFormat: {type: 'price', precision: 0, minMove: 10}});
-      s.line = chart.addAreaSeries({lineColor: MA50, topColor: 'rgba(141,166,236,.28)', bottomColor: 'rgba(141,166,236,0)', lineWidth: 2,
-        visible: false, priceFormat: {type: 'price', precision: 0, minMove: 10}});
-      s.vol = chart.addHistogramSeries({priceFormat: {type: 'volume'}, priceScaleId: 'vol', lastValueVisible: false, priceLineVisible: false});
-      chart.priceScale('vol').applyOptions({scaleMargins: {top: 0.8, bottom: 0}});
-      s.ma20 = chart.addLineSeries({color: MA20, lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false});
-      s.ma50 = chart.addLineSeries({color: MA50, lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false});
+      var d = data, lw = {priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false};
+      function line(arr, color, pane, extra){
+        var o = {color: color, lineWidth: 1}; for(var k in lw) o[k] = lw[k]; for(var e in extra || {}) o[e] = extra[e];
+        var s = chart.addSeries(L.LineSeries, o, pane || 0); s.setData(pts(arr)); return s;
+      }
+
+      // giá
+      if(type === 'nen'){
+        mainSeries = chart.addSeries(L.CandlestickSeries, {upColor: UP, downColor: DOWN, borderVisible: false, wickUpColor: UP, wickDownColor: DOWN,
+          priceFormat: {type: 'price', precision: 0, minMove: 10}});
+        mainSeries.setData(d.d.map(function(t, i){ return {time: t, open: d.o[i], high: d.h[i], low: d.l[i], close: d.c[i]}; }));
+      }else{
+        mainSeries = chart.addSeries(L.AreaSeries, {lineColor: '#8DA6EC', topColor: 'rgba(141,166,236,.28)', bottomColor: 'rgba(141,166,236,0)', lineWidth: 2,
+          priceFormat: {type: 'price', precision: 0, minMove: 10}});
+        mainSeries.setData(pts(d.c));
+      }
+      mainSeries.priceScale().applyOptions({scaleMargins: {top: 0.08, bottom: on('vol') ? 0.24 : 0.06}});
+
+      if(on('vol')){
+        var vol = chart.addSeries(L.HistogramSeries, {priceFormat: {type: 'volume'}, priceScaleId: 'vol', lastValueVisible: false, priceLineVisible: false});
+        vol.priceScale().applyOptions({scaleMargins: {top: 0.82, bottom: 0}});
+        vol.setData(d.d.map(function(t, i){ return {time: t, value: d.v[i], color: d.c[i] >= d.o[i] ? 'rgba(61,209,92,.4)' : 'rgba(255,107,97,.4)'}; }));
+      }
+      ['ma20', 'ma50', 'ma200', 'ema20'].forEach(function(id){ if(on(id)) line(calc[id], CB[id].mau); });
+      if(on('bb')){
+        line(calc.bb.up, 'rgba(96,165,250,.85)');
+        line(calc.bb.mid, 'rgba(96,165,250,.55)', 0, {lineStyle: 2});
+        line(calc.bb.lo, 'rgba(96,165,250,.85)');
+      }
+      if(on('sar')){
+        line(calc.sar, CB.sar.mau, 0, {lineVisible: false, pointMarkersVisible: true, pointMarkersRadius: 1.6});
+      }
+
+      // khung riêng
+      var pane = 0;
+      osc.forEach(function(id){
+        pane++;
+        if(id === 'rsi'){
+          var r = line(calc.rsi, CB.rsi.mau, pane, {lineWidth: 1.5, lastValueVisible: true, priceFormat: {type: 'price', precision: 1, minMove: 0.1}});
+          r.createPriceLine({price: 70, color: 'rgba(255,107,97,.6)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false});
+          r.createPriceLine({price: 30, color: 'rgba(61,209,92,.6)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false});
+        }else if(id === 'macd'){
+          var hs = chart.addSeries(L.HistogramSeries, {priceLineVisible: false, lastValueVisible: false, priceFormat: {type: 'price', precision: 0, minMove: 1}}, pane);
+          hs.setData(pts(calc.macd.hist, function(v){ return v >= 0 ? 'rgba(61,209,92,.55)' : 'rgba(255,107,97,.55)'; }));
+          line(calc.macd.macd, '#60A5FA', pane, {lineWidth: 1.5, lastValueVisible: true, priceFormat: {type: 'price', precision: 0, minMove: 1}});
+          line(calc.macd.signal, '#F0B429', pane, {lineWidth: 1.2, priceFormat: {type: 'price', precision: 0, minMove: 1}});
+        }else if(id === 'stoch'){
+          var k = line(calc.stoch.k, '#60A5FA', pane, {lineWidth: 1.5, lastValueVisible: true, priceFormat: {type: 'price', precision: 1, minMove: 0.1}});
+          line(calc.stoch.d, '#F0B429', pane, {lineWidth: 1.2, priceFormat: {type: 'price', precision: 1, minMove: 0.1}});
+          k.createPriceLine({price: 80, color: 'rgba(255,107,97,.6)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false});
+          k.createPriceLine({price: 20, color: 'rgba(61,209,92,.6)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false});
+        }
+      });
+      var panes = chart.panes();
+      panes.forEach(function(p, i){ if(i > 0) p.setHeight(120); });
+
       chart.subscribeCrosshairMove(function(p){
-        if(!data) return;
-        var i = data.d.length - 1;
+        var i = d.d.length - 1;
         if(p && p.time){
-          var t = typeof p.time === 'string' ? p.time :
-            (p.time.year ? p.time.year + '-' + ('0' + p.time.month).slice(-2) + '-' + ('0' + p.time.day).slice(-2) : null);
-          if(t){ var k = data.d.lastIndexOf(t); if(k > -1) i = k; }
+          var t = typeof p.time === 'string' ? p.time : (p.time.year ? p.time.year + '-' + ('0' + p.time.month).slice(-2) + '-' + ('0' + p.time.day).slice(-2) : null);
+          if(t){ var k2 = d.d.lastIndexOf(t); if(k2 > -1) i = k2; }
         }
         showLegend(i);
       });
+      if(keep) chart.timeScale().setVisibleLogicalRange(keep); else setRange();
+      showLegend(d.d.length - 1);
     }
 
+    function v(x, dg){ return x === null || x === undefined || isNaN(x) ? '–' : fmt(x, dg); }
     function showLegend(i){
       var d = data, prev = i > 0 ? d.c[i - 1] : d.c[i], ch = (d.c[i] / prev - 1) * 100;
       var c = d.c[i] >= d.o[i] ? 'up' : 'down';
-      legend.innerHTML = '<span>' + ngayVN(d.d[i]) + '</span>' +
+      var h = '<div><span>' + ngayVN(d.d[i]) + '</span>' +
         '<span>Mở <b class="' + c + '">' + fmt(d.o[i]) + '</b></span>' +
         '<span>Cao <b class="' + c + '">' + fmt(d.h[i]) + '</b></span>' +
         '<span>Thấp <b class="' + c + '">' + fmt(d.l[i]) + '</b></span>' +
         '<span>Đóng <b class="' + c + '">' + fmt(d.c[i]) + '</b></span>' +
         '<span><b class="' + cls(ch) + '">' + pct(ch) + '</b></span>' +
-        '<span>KL <b>' + fmt(d.v[i]) + '</b></span>';
+        (on('vol') ? '<span>KL <b>' + fmt(d.v[i]) + '</b></span>' : '') + '</div>';
+      var ind = [];
+      ['ma20', 'ma50', 'ma200', 'ema20'].forEach(function(id){
+        if(on(id)) ind.push('<span style="color:' + CB[id].mau + '">' + CB[id].ten.replace(' ', '') + ' <b>' + v(calc[id][i]) + '</b></span>');
+      });
+      if(on('bb')) ind.push('<span style="color:' + CB.bb.mau + '">BB <b>' + v(calc.bb.lo[i]) + ' – ' + v(calc.bb.up[i]) + '</b></span>');
+      if(on('sar')) ind.push('<span style="color:' + CB.sar.mau + '">SAR <b>' + v(calc.sar[i]) + '</b></span>');
+      if(on('rsi')) ind.push('<span style="color:' + CB.rsi.mau + '">RSI <b>' + v(calc.rsi[i], 1) + '</b></span>');
+      if(on('macd')) ind.push('<span style="color:#60A5FA">MACD <b>' + v(calc.macd.macd[i]) + '</b> / <b style="color:#F0B429">' + v(calc.macd.signal[i]) + '</b></span>');
+      if(on('stoch')) ind.push('<span style="color:#60A5FA">%K <b>' + v(calc.stoch.k[i], 1) + '</b> <b style="color:#F0B429">%D ' + v(calc.stoch.d[i], 1) + '</b></span>');
+      legend.innerHTML = h + (ind.length ? '<div>' + ind.join('') + '</div>' : '');
     }
 
     function setRange(){
@@ -302,30 +535,6 @@
       var end = new Date(data.d[data.d.length - 1]);
       var start = new Date(end); start.setMonth(start.getMonth() - months);
       chart.timeScale().setVisibleRange({from: start.toISOString().slice(0, 10), to: data.d[data.d.length - 1]});
-    }
-
-    function applyType(){
-      s.candle.applyOptions({visible: type === 'nen'});
-      s.line.applyOptions({visible: type === 'duong'});
-    }
-
-    function draw(){
-      var d = data;
-      s.candle.setData(d.d.map(function(t, i){ return {time: t, open: d.o[i], high: d.h[i], low: d.l[i], close: d.c[i]}; }));
-      s.line.setData(d.d.map(function(t, i){ return {time: t, value: d.c[i]}; }));
-      s.vol.setData(d.d.map(function(t, i){
-        return {time: t, value: d.v[i], color: d.c[i] >= d.o[i] ? 'rgba(61,209,92,.45)' : 'rgba(255,107,97,.45)'};
-      }));
-      [['ma20', 20], ['ma50', 50]].forEach(function(m){
-        var vals = ma(d.c, m[1]), pts = [];
-        vals.forEach(function(v, i){ if(v !== null) pts.push({time: d.d[i], value: v}); });
-        s[m[0]].setData(pts);
-      });
-      s.ma20.applyOptions({visible: $('#smMa20').checked});
-      s.ma50.applyOptions({visible: $('#smMa50').checked});
-      applyType();
-      setRange();
-      showLegend(d.d.length - 1);
     }
 
     function side(){
@@ -362,7 +571,7 @@
       var cb = d.co_ban || {};
       $('#smKy').textContent = cb.ky ? '(quý ' + cb.ky.replace(' Q', '/Q').split('/').reverse().join('/') + ')' : '';
       var von = d.co_phieu_niem_yet ? c * d.co_phieu_niem_yet : null;
-      function num(v, dg, suf){ return v === null || v === undefined ? '–' : fmt(v, dg) + (suf || ''); }
+      function num(x, dg, suf){ return x === null || x === undefined ? '–' : fmt(x, dg) + (suf || ''); }
       $('#smFund').innerHTML = [
         ['Vốn hoá', von ? fmt(von / 1e9, 0) + ' tỷ' : '–'],
         ['EPS 4 quý', num(cb.eps, 0, ' đ')],
@@ -392,12 +601,13 @@
       dialog.focus();
       Promise.all([loadLwc(), load('cp/' + maCk + '.json')]).then(function(res){
         if(current !== maCk) return;
-        data = res[1];
-        if(!chart) build(res[0]);
+        L = res[0]; data = res[1];
         $('#smName').textContent = data.ten;
         $('#smSector').textContent = data.nganh;
+        compute();
         side();
-        draw();
+        if(chart){ chart.remove(); chart = null; }
+        rebuild();
       }).catch(function(){
         legend.textContent = 'Chưa tải được dữ liệu của mã này. Vui lòng thử lại sau.';
       });
@@ -405,6 +615,7 @@
 
     function close(){
       overlay.hidden = true;
+      menu.hidden = true;
       document.body.classList.remove('modal-open');
       current = null;
       try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
@@ -425,11 +636,10 @@
     overlay.addEventListener('click', function(e){ if(e.target === overlay) close(); });
     document.addEventListener('keydown', function(e){
       if(overlay.hidden) return;
-      if(e.key === 'Escape') close();
+      if(e.key === 'Escape'){ if(!menu.hidden){ menu.hidden = true; menuBtn.focus(); } else close(); }
       else if(e.key === 'ArrowLeft' && e.target.tagName !== 'INPUT') step(-1);
       else if(e.key === 'ArrowRight' && e.target.tagName !== 'INPUT') step(1);
       else if(e.key === 'Tab'){
-        // giữ phím Tab trong popup
         var f = $$('button, input, [tabindex="0"]', dialog).filter(function(x){ return x.offsetParent !== null; });
         if(!f.length) return;
         if(e.shiftKey && document.activeElement === f[0]){ e.preventDefault(); f[f.length - 1].focus(); }
@@ -441,11 +651,9 @@
       b.addEventListener('click', function(){
         type = b.getAttribute('data-t');
         $$('#smType button').forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });
-        if(chart) applyType();
+        if(data && L) rebuild();
       });
     });
-    $('#smMa20').addEventListener('change', function(e){ if(chart) s.ma20.applyOptions({visible: e.target.checked}); });
-    $('#smMa50').addEventListener('change', function(e){ if(chart) s.ma50.applyOptions({visible: e.target.checked}); });
 
     return {open: open};
   }

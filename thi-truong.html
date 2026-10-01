@@ -94,8 +94,14 @@ permalink: /thi-truong/
             <button type="button" data-t="nen" aria-pressed="true">Nến</button>
             <button type="button" data-t="duong" aria-pressed="false">Đường</button>
           </div>
-          <label class="sm-check"><input type="checkbox" id="smMa20" checked><i class="ma20"></i>MA20</label>
-          <label class="sm-check"><input type="checkbox" id="smMa50" checked><i class="ma50"></i>MA50</label>
+          <div class="sm-ind">
+            <button type="button" class="sm-ind-btn" id="smIndBtn" aria-haspopup="true" aria-expanded="false" aria-controls="smIndMenu">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-6 4 4 8-9"/><path d="M3 21h18"/></svg>
+              Chỉ báo <span class="sm-ind-count" id="smIndCount"></span>
+            </button>
+            <div class="sm-ind-menu" id="smIndMenu" hidden></div>
+          </div>
+          <div class="sm-ind-chips" id="smIndChips"></div>
         </div>
         <div class="sm-legend tabular" id="smLegend"></div>
         <div class="sm-chart" id="smChart"></div>
