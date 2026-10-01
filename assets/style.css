@@ -1,74 +1,77 @@
-/* ===== Kim Chỉ Nam — bảng màu & token ===== */
+/* ===== Kim Chỉ Nam — bảng màu & token (tông ACBS: xanh dương #264395 + xanh chuối #C6E010) ===== */
 :root{
   color-scheme: light;
-  --bg:#F5F6F8;
+  --bg:#F5F7FB;
   --surface:#FFFFFF;
-  --surface-sunk:#EEF0F4;
-  --ink:#12161F;
-  --ink-soft:#4A5165;
-  --muted:#7C8295;
-  --border:#E2E5EC;
-  --accent:#A8761F;
-  --accent-strong:#8A5E14;
-  --accent-tint:#F3E7CC;
-  --accent-ink:#2A1F0B;
-  --market-bg:#0E1420;
-  --market-surface:#161E2F;
-  --market-surface-2:#1C2538;
-  --market-border:#2A3448;
-  --market-ink:#EEF1F6;
-  --market-ink-soft:#A8AFC2;
+  --surface-sunk:#EDF1F8;
+  --ink:#121A33;
+  --ink-soft:#46506B;
+  --muted:#737C95;
+  --border:#DFE5F0;
+  --accent:#264395;
+  --accent-strong:#1B3275;
+  --accent-tint:#E4EAF7;
+  --accent-ink:#14245A;
+  --lime:#C6E010;
+  --lime-strong:#B3CC00;
+  --on-lime:#14245A;
+  --market-bg:#0F1D4A;
+  --market-surface:#172863;
+  --market-surface-2:#1E3175;
+  --market-border:#2B3F86;
+  --market-ink:#F1F4FB;
+  --market-ink-soft:#AEB9DB;
   --good:#0B8F0B;
-  --good-mkt:#2FBF4F;
+  --good-mkt:#3DD15C;
   --critical:#C93434;
-  --critical-mkt:#E8605E;
+  --critical-mkt:#FF6B61;
   --focus:#2A78D6;
-  --shadow: 0 1px 2px rgba(18,22,31,0.04), 0 8px 24px -8px rgba(18,22,31,0.10);
+  --shadow: 0 1px 2px rgba(18,26,51,0.04), 0 8px 24px -8px rgba(38,67,149,0.14);
   --radius:16px;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme: dark;
-    --bg:#0B0E14;
-    --surface:#141922;
-    --surface-sunk:#0F1319;
-    --ink:#EDEFF3;
-    --ink-soft:#B7BCCB;
-    --muted:#80869A;
-    --border:#262C3A;
-    --accent:#E3B257;
-    --accent-strong:#F0C777;
-    --accent-tint:#2B2316;
-    --accent-ink:#F7E8C6;
-    --market-bg:#07090E;
-    --market-surface:#11151F;
-    --market-surface-2:#161C29;
-    --market-border:#242C3D;
-    --good:#2FBF4F;
-    --critical:#E8605E;
-    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -12px rgba(0,0,0,0.5);
+    --bg:#0A1024;
+    --surface:#111A36;
+    --surface-sunk:#0D152D;
+    --ink:#EDF0F8;
+    --ink-soft:#B5BDD6;
+    --muted:#7F89A8;
+    --border:#243159;
+    --accent:#8DA6EC;
+    --accent-strong:#B2C3F4;
+    --accent-tint:#1A2752;
+    --accent-ink:#DCE4FA;
+    --market-bg:#070C1E;
+    --market-surface:#0F1838;
+    --market-surface-2:#152048;
+    --market-border:#223062;
+    --good:#3DD15C;
+    --critical:#FF6B61;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -12px rgba(0,0,0,0.55);
   }
 }
 :root[data-theme="dark"]{
   color-scheme: dark;
-  --bg:#0B0E14;
-  --surface:#141922;
-  --surface-sunk:#0F1319;
-  --ink:#EDEFF3;
-  --ink-soft:#B7BCCB;
-  --muted:#80869A;
-  --border:#262C3A;
-  --accent:#E3B257;
-  --accent-strong:#F0C777;
-  --accent-tint:#2B2316;
-  --accent-ink:#F7E8C6;
-  --market-bg:#07090E;
-  --market-surface:#11151F;
-  --market-surface-2:#161C29;
-  --market-border:#242C3D;
-  --good:#2FBF4F;
-  --critical:#E8605E;
-  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -12px rgba(0,0,0,0.5);
+  --bg:#0A1024;
+  --surface:#111A36;
+  --surface-sunk:#0D152D;
+  --ink:#EDF0F8;
+  --ink-soft:#B5BDD6;
+  --muted:#7F89A8;
+  --border:#243159;
+  --accent:#8DA6EC;
+  --accent-strong:#B2C3F4;
+  --accent-tint:#1A2752;
+  --accent-ink:#DCE4FA;
+  --market-bg:#070C1E;
+  --market-surface:#0F1838;
+  --market-surface-2:#152048;
+  --market-border:#223062;
+  --good:#3DD15C;
+  --critical:#FF6B61;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -12px rgba(0,0,0,0.55);
 }
 
 /* ===== nền tảng ===== */
@@ -99,7 +102,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .tabular{font-variant-numeric:tabular-nums;}
 .mono{font-family:"JetBrains Mono", ui-monospace, monospace;}
 .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
-.skip{position:absolute; left:-999px; top:8px; background:var(--accent); color:#1C1304; padding:8px 14px; border-radius:8px; z-index:99;}
+.skip{position:absolute; left:-999px; top:8px; background:var(--lime); color:var(--on-lime); padding:8px 14px; border-radius:8px; z-index:99;}
 .skip:focus{left:12px;}
 
 /* ===== nút ===== */
@@ -111,10 +114,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 .btn:active{transform:translateY(1px);}
 .btn svg{width:16px; height:16px;}
-.btn-accent{background:var(--accent); color:#1C1304;}
-.btn-accent:hover{background:var(--accent-strong); color:#fff;}
-:root[data-theme="dark"] .btn-accent:hover{color:#1C1304;}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .btn-accent:hover{color:#1C1304;} }
+.btn-accent{background:var(--lime); color:var(--on-lime);}
+.btn-accent:hover{background:var(--lime-strong);}
 .btn-ghost{background:transparent; border-color:var(--border); color:var(--ink);}
 .btn-ghost:hover{background:var(--surface-sunk);}
 .btn-lg{padding:13px 26px; font-size:15px; border-radius:26px;}
@@ -136,7 +137,7 @@ header.site{
 .brand{display:flex; align-items:center; gap:9px; font-family:"Fraunces", serif; font-weight:600; font-size:19px; flex:none;}
 .brand-mark{
   width:28px; height:28px; border-radius:8px;
-  background:linear-gradient(155deg, var(--accent-strong), var(--accent));
+  background:#264395;
   display:grid; place-items:center; flex:none;
 }
 .brand-mark svg{width:15px; height:15px;}
@@ -285,7 +286,7 @@ ul.clean{list-style:none; margin:0; padding:0;}
 /* ===== thị trường ===== */
 .market{background:var(--market-bg); color:var(--market-ink);}
 .market .section-head p{color:var(--market-ink-soft);}
-.market .eyebrow{color:#E3B257;}
+.market .eyebrow{color:var(--lime);}
 .market-head{display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap:wrap; margin-bottom:28px;}
 .market-head .section-head{margin-bottom:0;}
 .demo-pill{
@@ -293,14 +294,14 @@ ul.clean{list-style:none; margin:0; padding:0;}
   color:var(--market-ink-soft); background:var(--market-surface); border:1px solid var(--market-border);
   border-radius:20px; padding:6px 13px; display:inline-flex; align-items:center; gap:7px;
 }
-.demo-pill .dot{width:6px; height:6px; border-radius:50%; background:#E3B257;}
+.demo-pill .dot{width:6px; height:6px; border-radius:50%; background:var(--lime);}
 .indices{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:16px;}
 .index-card{
   background:var(--market-surface); border:1px solid var(--market-border); border-radius:14px; padding:18px 20px;
   text-align:left; cursor:pointer; color:inherit; font:inherit; transition:border-color .15s;
 }
-.index-card:hover{border-color:#3A4660;}
-.index-card[aria-pressed="true"]{border-color:#E3B257; box-shadow:inset 0 0 0 1px #E3B257;}
+.index-card:hover{border-color:#4560B5;}
+.index-card[aria-pressed="true"]{border-color:var(--lime); box-shadow:inset 0 0 0 1px var(--lime);}
 .index-card .name{font-size:12.5px; color:var(--market-ink-soft); margin-bottom:8px; letter-spacing:.04em;}
 .index-card .val{font-family:"JetBrains Mono",monospace; font-size:25px; font-weight:600;}
 .chg{display:inline-flex; align-items:center; gap:4px; font-family:"JetBrains Mono",monospace; font-size:12.5px; font-weight:600; margin-top:6px;}
@@ -316,7 +317,7 @@ ul.clean{list-style:none; margin:0; padding:0;}
 .line-chart{position:relative; height:260px;}
 .line-chart svg{width:100%; height:100%; display:block;}
 .y-labels{position:absolute; right:0; top:0; bottom:0; display:flex; flex-direction:column; justify-content:space-between; font-size:10.5px; color:var(--market-ink-soft); font-family:"JetBrains Mono",monospace; pointer-events:none;}
-.chart-dot{position:absolute; width:10px; height:10px; border-radius:50%; background:#E3B257; border:2px solid var(--market-surface); transform:translate(-50%,-50%); pointer-events:none; display:none;}
+.chart-dot{position:absolute; width:10px; height:10px; border-radius:50%; background:var(--lime); border:2px solid var(--market-surface); transform:translate(-50%,-50%); pointer-events:none; display:none;}
 .chart-tip{
   position:absolute; top:6px; background:var(--market-bg); border:1px solid var(--market-border); border-radius:8px;
   padding:6px 10px; font-size:12px; pointer-events:none; display:none; white-space:nowrap; font-family:"JetBrains Mono",monospace;
@@ -345,7 +346,7 @@ ul.clean{list-style:none; margin:0; padding:0;}
 .post{display:flex; flex-direction:column; gap:12px; border-radius:var(--radius);}
 .post-thumb{
   height:168px; border-radius:var(--radius); position:relative; overflow:hidden; border:1px solid var(--border);
-  background:linear-gradient(135deg, var(--accent-tint), var(--surface-sunk));
+  background:linear-gradient(135deg, var(--accent-tint), color-mix(in srgb, var(--lime) 22%, var(--surface)));
 }
 .post-thumb svg{position:absolute; right:18px; bottom:-14px; width:110px; height:110px; color:var(--accent); opacity:.45; transition:transform .3s;}
 .post:hover .post-thumb svg{transform:translateY(-6px) rotate(-4deg);}
@@ -370,11 +371,11 @@ ul.clean{list-style:none; margin:0; padding:0;}
 /* ===== CTA cuối ===== */
 .cta-band{
   border-radius:24px; padding:52px 40px; text-align:center;
-  background:linear-gradient(140deg, var(--market-bg), #1C2538); color:var(--market-ink);
+  background:linear-gradient(140deg, #14245A, #264395); color:var(--market-ink);
 }
 .cta-band h2{font-size:clamp(26px,3.4vw,38px); font-weight:600;}
 .cta-band p{color:var(--market-ink-soft); margin:14px auto 28px; max-width:520px; font-size:15.5px; line-height:1.6;}
-.cta-band .quote{font-family:"Fraunces",serif; font-style:italic; color:#E3B257; font-size:15px; margin-top:26px;}
+.cta-band .quote{font-family:"Fraunces",serif; font-style:italic; color:var(--lime); font-size:15px; margin-top:26px;}
 
 /* ===== footer ===== */
 footer.site{padding-block:56px calc(36px + env(safe-area-inset-bottom,0px)); border-top:1px solid var(--border); margin-top:76px;}
