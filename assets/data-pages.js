@@ -382,6 +382,7 @@
       active = active.filter(function(x){ return x !== id; });
       if(val) active.push(id);
       saveActive(); renderMenu();
+      if(current){ try{ history.replaceState(null, '', '#ma=' + current + '&cb=' + active.join(',')); }catch(e){} }
       if(data && L) rebuild();
     }
     menuBtn.addEventListener('click', function(e){
@@ -597,7 +598,7 @@
       $('#smName').textContent = row ? row.ten : '';
       $('#smSector').textContent = row ? row.nganh : '';
       legend.textContent = 'Đang tải dữ liệu…';
-      try{ history.replaceState(null, '', '#ma=' + maCk); }catch(e){}
+      try{ history.replaceState(null, '', '#ma=' + maCk + '&cb=' + active.join(',')); }catch(e){}
       dialog.focus();
       Promise.all([loadLwc(), load('cp/' + maCk + '.json')]).then(function(res){
         if(current !== maCk) return;
@@ -655,7 +656,13 @@
       });
     });
 
-    return {open: open};
+    function setActive(list){
+      active = list.filter(function(id){ return CB[id]; });
+      saveActive(); renderMenu();
+      if(data && L) rebuild();
+    }
+
+    return {open: open, setActive: setActive};
   }
 
   // =====================================================================
@@ -758,6 +765,8 @@
       var h = location.hash.match(/ma=([A-Z0-9]+)/i);
       if(h){
         var m0 = h[1].toUpperCase(), r0 = rows.filter(function(x){ return x.ma === m0; })[0];
+        var cbm = location.hash.match(/cb=([a-z0-9,]*)/i);
+        if(cbm) modal.setActive(cbm[1] ? cbm[1].toLowerCase().split(',') : []);
         if(r0) modal.open(m0, r0);
       }
     }).catch(function(){ fail(mkt); });
