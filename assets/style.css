@@ -170,7 +170,7 @@ nav.primary a:hover, nav.primary a[aria-current="page"]{color:var(--ink); border
 .hero h1 em{font-style:italic; color:var(--accent-strong); font-weight:500;}
 .hero-sub{margin-top:20px; font-size:17px; line-height:1.6; color:var(--ink-soft); max-width:500px;}
 .hero-cta{display:flex; gap:12px; margin-top:30px; flex-wrap:wrap;}
-ul.hero-points{display:flex; flex-direction:column; gap:10px; margin-top:34px; padding-top:24px; border-top:1px solid var(--border);}
+ul.clean.hero-points{display:flex; flex-direction:column; gap:10px; margin-top:34px; padding-top:24px; border-top:1px solid var(--border);}
 .hero-points li{display:flex; gap:10px; align-items:center; font-size:14px; color:var(--ink-soft);}
 .hero-points svg{width:18px; height:18px; color:var(--good); flex:none;}
 ul.clean{list-style:none; margin:0; padding:0;}
@@ -465,7 +465,9 @@ footer.site{padding-block:56px calc(36px + env(safe-area-inset-bottom,0px)); bor
 }
 
 /* ===== các trang riêng (đầu trang, công cụ, trang chủ) ===== */
-.page-head{padding-block:56px 36px; max-width:720px;}
+.page-head{padding-block:56px 36px;}
+.page-head > *{max-width:720px;}
+.page-head.center-head > *{margin-inline:auto;}
 .page-head h1{font-size:clamp(32px,4.6vw,48px); font-weight:600; line-height:1.1; margin-top:12px;}
 .page-head p:not(.eyebrow){color:var(--ink-soft); font-size:16.5px; line-height:1.6; margin-top:14px;}
 .page-head.center-head{text-align:center; margin-inline:auto;}
