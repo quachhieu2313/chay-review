@@ -45,6 +45,81 @@ permalink: /thi-truong/
       </div>
       <div id="wlBody" role="rowgroup"><div class="wl-empty">Đang tải dữ liệu…</div></div>
     </div>
-    <p class="market-note">Giá tính bằng đồng, khối lượng tính bằng triệu cổ phiếu. Dữ liệu lấy qua vnstock (nguồn VCI), cập nhật khoảng 10 phút một lần trong giờ giao dịch (có thể trễ vài phút) và chốt lại sau 16:30.</p>
+    <p class="market-note">Bấm vào một mã để xem biểu đồ nến và thông tin chi tiết. Giá tính bằng đồng, khối lượng tính bằng triệu cổ phiếu. Dữ liệu lấy qua vnstock (nguồn VCI), cập nhật khoảng 10 phút một lần trong giờ giao dịch (có thể trễ vài phút) và chốt lại sau 16:30.</p>
   </div>
 </section>
+
+<!-- ===== POPUP CHI TIẾT MÃ ===== -->
+<div class="sm-overlay" id="smOverlay" hidden>
+  <div class="sm" role="dialog" aria-modal="true" aria-labelledby="smCode" tabindex="-1">
+    <header class="sm-head">
+      <div class="sm-id">
+        <div class="sm-title">
+          <h2 id="smCode">…</h2>
+          <span class="sm-chip" id="smSector"></span>
+          <span class="sm-chip">HOSE</span>
+        </div>
+        <p id="smName"></p>
+      </div>
+      <div class="sm-quote">
+        <b id="smPrice" class="tabular">–</b>
+        <span id="smChg" class="sm-chg"></span>
+        <small id="smTime"></small>
+      </div>
+      <div class="sm-actions">
+        <button type="button" class="sm-btn" id="smPrev" aria-label="Mã trước">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button type="button" class="sm-btn" id="smNext" aria-label="Mã sau">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button type="button" class="sm-btn" id="smClose" aria-label="Đóng">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="sm-body">
+      <section class="sm-main">
+        <div class="sm-toolbar">
+          <div class="seg seg-dark" id="smRange" role="group" aria-label="Khoảng thời gian">
+            <button type="button" data-m="1">1T</button>
+            <button type="button" data-m="3">3T</button>
+            <button type="button" data-m="6">6T</button>
+            <button type="button" data-m="12">1N</button>
+            <button type="button" data-m="36">3N</button>
+            <button type="button" data-m="0">Tất cả</button>
+          </div>
+          <div class="seg seg-dark" id="smType" role="group" aria-label="Kiểu biểu đồ">
+            <button type="button" data-t="nen" aria-pressed="true">Nến</button>
+            <button type="button" data-t="duong" aria-pressed="false">Đường</button>
+          </div>
+          <label class="sm-check"><input type="checkbox" id="smMa20" checked><i class="ma20"></i>MA20</label>
+          <label class="sm-check"><input type="checkbox" id="smMa50" checked><i class="ma50"></i>MA50</label>
+        </div>
+        <div class="sm-legend tabular" id="smLegend"></div>
+        <div class="sm-chart" id="smChart"></div>
+      </section>
+
+      <aside class="sm-side">
+        <div class="sm-box">
+          <h3>Phiên giao dịch</h3>
+          <dl class="sm-dl" id="smSession"></dl>
+        </div>
+        <div class="sm-box">
+          <h3>Biên độ 52 tuần</h3>
+          <div id="smWeek52"></div>
+        </div>
+        <div class="sm-box">
+          <h3>Hiệu suất</h3>
+          <div class="sm-perf" id="smPerf"></div>
+        </div>
+        <div class="sm-box">
+          <h3>Chỉ số cơ bản <small id="smKy"></small></h3>
+          <dl class="sm-dl" id="smFund"></dl>
+        </div>
+      </aside>
+    </div>
+    <p class="sm-foot">P/E, P/B tính theo giá hiện tại; các chỉ số khác theo báo cáo quý gần nhất (nguồn KBS qua vnstock). Biểu đồ: TradingView Lightweight Charts. Thông tin chỉ để tham khảo.</p>
+  </div>
+</div>
