@@ -2,7 +2,8 @@
 """
 Cập nhật dữ liệu thị trường cho website Kim Chỉ Nam.
 
-Lấy dữ liệu bằng vnstock (nguồn VCI) rồi ghi ra các file JSON trong assets/data/:
+Lấy dữ liệu trực tiếp từ API bảng giá của Vietcap (VCI) và KBS (xem scripts/nguon.py),
+rồi ghi ra các file JSON trong assets/data/:
   chi_so.json        lịch sử các chỉ số (VN-Index, VN30, chỉ số tham chiếu của ETF...)
   co_phieu.json      bảng theo dõi cổ phiếu rổ VN30 (trang Thị trường)
   etf.json           danh sách ETF + hiệu suất (trang ETF)
@@ -11,17 +12,17 @@ Lấy dữ liệu bằng vnstock (nguồn VCI) rồi ghi ra các file JSON trong
   quy_mo_phong.json  quỹ mô phỏng KCN VN30 (trang Quỹ mô phỏng)
 
 Hai chế độ:
-  python scripts/cap_nhat_du_lieu.py               đầy đủ: tải lại toàn bộ lịch sử (~4 phút), chạy sau giờ đóng cửa
-  python scripts/cap_nhat_du_lieu.py --trong-phien nhanh: chỉ lấy bảng giá hiện tại (~20 giây), chạy mỗi 10 phút trong phiên
+  python scripts/cap_nhat_du_lieu.py               đầy đủ: tải lại toàn bộ lịch sử (~2 phút), chạy sau giờ đóng cửa
+  python scripts/cap_nhat_du_lieu.py --trong-phien nhanh: chỉ lấy bảng giá hiện tại (~10 giây), chạy mỗi 10 phút trong phiên
 GitHub Actions tự chạy cả hai (.github/workflows/cap-nhat-du-lieu.yml và cap-nhat-trong-phien.yml).
 Mã nào lấy lỗi thì giữ dữ liệu cũ của mã đó, không làm hỏng cả web.
 """
 import json
 import math
 import sys
-import time
+
 import warnings
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -32,16 +33,15 @@ try:
 except Exception:
     pass
 
-from vnstock import Finance, Listing, Quote, Trading  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import nguon  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets" / "data"
 (OUT / "etf").mkdir(parents=True, exist_ok=True)
 (OUT / "cp").mkdir(parents=True, exist_ok=True)
 
-START = "2020-01-01"
-TODAY = date.today().isoformat()
-PAUSE = 3.2  # giây giữa hai lần gọi, để không vượt giới hạn 20 lần/phút của vnstock bản miễn phí
+SO_PHIEN = 1800  # khoảng 7 năm giao dịch
 
 CHI_SO = {
     "VNINDEX": "VN-Index",
@@ -83,21 +83,13 @@ def log(*a):
     print(*a, flush=True)
 
 
-def lich_su(ma):
-    """Trả về DataFrame [time, open, high, low, close, volume] hoặc None nếu lỗi."""
-    for lan in range(3):
-        try:
-            df = Quote(symbol=ma, source="VCI").history(start=START, end=TODAY, interval="1D")
-            time.sleep(PAUSE)
-            if df is None or df.empty:
-                return None
-            df = df[["time", "open", "high", "low", "close", "volume"]].copy()
-            df["time"] = pd.to_datetime(df["time"]).dt.strftime("%Y-%m-%d")
-            return df.dropna(subset=["close"]).drop_duplicates("time").reset_index(drop=True)
-        except Exception as e:  # mạng chập chờn, bị giới hạn tần suất...
-            log(f"  ! {ma} lỗi lần {lan + 1}: {str(e)[:120]}")
-            time.sleep(PAUSE * (lan + 2))
-    return None
+def lich_su(ma, so_phien=SO_PHIEN):
+    """DataFrame [time, open, high, low, close, volume] (giá theo đồng, chỉ số theo điểm); None nếu lỗi."""
+    try:
+        return nguon.lich_su(ma, so_phien)
+    except Exception as e:
+        log(f"  ! {ma}: {str(e)[:120]}")
+        return None
 
 
 def doc_json(path, mac_dinh):
@@ -145,42 +137,13 @@ def rui_ro(closes, n=252):
 
 
 # ---------------------------------------------------------------- chỉ số cơ bản (nguồn KBS)
-CO_BAN = {
-    "trailing_eps": "eps",
-    "book_value_per_share_bvps": "bvps",
-    "roe_trailling": "roe",
-    "roa_trailling": "roa",
-    "net_margin": "bien_ln_rong",
-    "gross_margin": "bien_ln_gop",
-    "debt_to_equity": "no_vay_vcsh",
-    "beta": "beta",
-    "net_revenue": "tang_truong_dt",
-    "profit_after_tax_for_shareholders_of_the_parent_company": "tang_truong_ln",
-}
-
-
 def chi_so_co_ban(ma):
-    """Lấy chỉ số tài chính quý gần nhất. Lỗi thì trả None để giữ số cũ."""
+    """Chỉ số tài chính quý gần nhất. Lỗi thì trả None để giữ số cũ."""
     try:
-        df = Finance(symbol=ma, source="KBS").ratio(period="quarter")
-        time.sleep(PAUSE)
+        return nguon.chi_so_co_ban(ma)
     except Exception as e:
         log(f"  ! chỉ số cơ bản {ma}: {str(e)[:100]}")
-        time.sleep(PAUSE)
         return None
-    if df is None or df.empty or "item_id" not in df.columns:
-        return None
-    ky_cols = [c for c in df.columns if c not in ("item", "item_id") and len(c) >= 7 and c[4] == "-" and c[5] == "Q"]
-    if not ky_cols:
-        return None
-    ky = max(ky_cols, key=lambda c: (c[:4], c[6]))
-    out = {"ky": ky[:7].replace("-Q", " Q")}
-    for _, row in df.iterrows():
-        k = CO_BAN.get(row["item_id"])
-        if k:
-            v = row[ky]
-            out[k] = None if v is None or pd.isna(v) else r(float(v), 2)
-    return out
 
 
 # ---------------------------------------------------------------- chỉ số
@@ -205,12 +168,10 @@ def cap_nhat_chi_so():
 
 # ---------------------------------------------------------------- ETF
 def cap_nhat_etf():
-    lst = Listing(source="VCI").symbols_by_exchange()
-    time.sleep(PAUSE)
-    etf = lst[lst["type"] == "ETF"][["symbol", "organ_name"]].drop_duplicates("symbol")
+    etf = nguon.danh_sach_etf()
     cu = {e["ma"]: e for e in doc_json(OUT / "etf.json", {}).get("quy", [])}
     ds = []
-    for ma, ten in sorted(etf.itertuples(index=False), key=lambda x: x[0]):
+    for ma, ten in etf:
         log(f"ETF {ma}")
         ten_hoa = ten.upper()
         tc = next((v for k, v in THAM_CHIEU if k in ten_hoa), None)
@@ -219,9 +180,9 @@ def cap_nhat_etf():
             if ma in cu:
                 ds.append(cu[ma])
             continue
-        d, c = df["time"].tolist(), [r(x * 1000, 0) for x in df["close"]]
+        d, c = df["time"].tolist(), [r(x, 0) for x in df["close"]]
         ghi_json(OUT / "etf" / f"{ma}.json", {"ma": ma, "d": d, "c": c})
-        gtgd = (df["close"] * 1000 * df["volume"]).tail(20).mean()
+        gtgd = (df["close"] * df["volume"]).tail(20).mean()
         bd, sg = rui_ro(c)
         ds.append({
             "ma": ma,
@@ -244,22 +205,15 @@ def cap_nhat_etf():
 
 # ---------------------------------------------------------------- VN30 + quỹ mô phỏng
 def cap_nhat_vn30_va_quy(chi_so):
-    lst = Listing(source="VCI")
-    ro = list(lst.symbols_by_group("VN30"))
-    time.sleep(PAUSE)
-    ten = dict(lst.all_symbols()[["symbol", "organ_name"]].values)
-    time.sleep(PAUSE)
-    nganh_df = lst.symbols_by_industries()
-    time.sleep(PAUSE)
-    nganh = dict(nganh_df[nganh_df["icb_level"] == 2][["symbol", "icb_name"]].values)
+    ro = nguon.ro_chi_so("VN30")
+    cty = nguon.thong_tin_cong_ty()
+    ten = {k: v[0] for k, v in cty.items()}
+    nganh = {k: v[1] for k, v in cty.items()}
 
     # thông tin phiên: trần, sàn, tham chiếu, số cổ phiếu niêm yết
     phien = {}
     try:
-        b = Trading(source="VCI").price_board(ro)
-        time.sleep(PAUSE)
-        b.columns = ["_".join(c) if isinstance(c, tuple) else c for c in b.columns]
-        for row in b.to_dict("records"):
+        for row in nguon.bang_gia(ro):
             phien[row["listing_symbol"]] = row
     except Exception as e:
         log(f"  ! bảng giá: {str(e)[:100]}")
@@ -271,7 +225,7 @@ def cap_nhat_vn30_va_quy(chi_so):
         df = lich_su(ma)
         if df is None:
             continue
-        gia[ma] = pd.Series((df["close"] * 1000).values, index=pd.to_datetime(df["time"]))
+        gia[ma] = pd.Series(df["close"].astype(float).values, index=pd.to_datetime(df["time"]))
         kl[ma] = int(df["volume"].iloc[-1])
         cu = doc_json(OUT / "cp" / f"{ma}.json", {})
         cb = chi_so_co_ban(ma) or cu.get("co_ban")
@@ -293,10 +247,10 @@ def cap_nhat_vn30_va_quy(chi_so):
             "cap_nhat_luc": gio_vn(),
             "co_ban": cb,
             "d": df["time"].tolist(),
-            "o": [r(x * 1000, 0) for x in df["open"]],
-            "h": [r(x * 1000, 0) for x in df["high"]],
-            "l": [r(x * 1000, 0) for x in df["low"]],
-            "c": [r(x * 1000, 0) for x in df["close"]],
+            "o": [r(x, 0) for x in df["open"]],
+            "h": [r(x, 0) for x in df["high"]],
+            "l": [r(x, 0) for x in df["low"]],
+            "c": [r(x, 0) for x in df["close"]],
             "v": [int(x) for x in df["volume"]],
         })
 
@@ -432,11 +386,14 @@ def trong_phien():
         return
 
     ds_ma = [x["ma"] for x in cp["co_phieu"]] + [x["ma"] for x in etf["quy"]]
-    bang = Trading(source="VCI").price_board(ds_ma)
-    bang.columns = ["_".join(c) if isinstance(c, tuple) else c for c in bang.columns]
+    try:
+        bang = nguon.bang_gia(ds_ma)
+    except Exception as e:
+        log(f"Không lấy được bảng giá: {str(e)[:120]}")
+        return
     gia, ngay = {}, None
     nen_hom_nay = {}
-    for row in bang.to_dict("records"):
+    for row in bang:
         p = row.get("match_match_price")
         if p is None or pd.isna(p) or float(p) <= 0:
             continue
@@ -536,16 +493,10 @@ def trong_phien():
 
     # ----- chỉ số chính (bảng giá không có chỉ số nên lấy riêng 4 chỉ số)
     cu = json.loads(json.dumps(cs))
-    bat_dau = (date.fromisoformat(ngay) - timedelta(days=10)).isoformat()
     for ma in ["VNINDEX", "VN30", "HNXINDEX", "UPCOMINDEX"]:
         if ma not in cs:
             continue
-        try:
-            df = Quote(symbol=ma, source="VCI").history(start=bat_dau, end=ngay, interval="1D")
-            time.sleep(PAUSE)
-        except Exception as e:
-            log(f"  ! {ma}: {str(e)[:120]}")
-            continue
+        df = lich_su(ma, 3)
         if df is None or df.empty:
             continue
         cuoi = df.iloc[-1]

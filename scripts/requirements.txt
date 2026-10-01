@@ -1,2 +1,2 @@
-vnstock==4.0.7
+requests
 pandas
