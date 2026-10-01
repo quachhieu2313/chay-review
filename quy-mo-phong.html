@@ -1,0 +1,111 @@
+---
+layout: default
+title: Quỹ mô phỏng KCN30
+description: Quỹ ETF mô phỏng nắm giữ đều 30 cổ phiếu rổ VN30, NAV tính từ giá thật hằng ngày - danh mục, phân bổ ngành, hiệu suất và chỉ số rủi ro. Không phải quỹ thật.
+nav: quy-mo-phong
+permalink: /quy-mo-phong/
+---
+<div class="sim-banner" role="note">
+  <div class="wrap">
+    <b>Quỹ mô phỏng.</b> KCN30 không có thật, không được cấp phép và không nhận tiền đầu tư. Đây là danh mục giả lập dùng giá thị trường thật để minh hoạ cách một quỹ ETF vận hành.
+  </div>
+</div>
+
+<div class="wrap" id="fundPage">
+  <section class="fund-hero">
+    <div>
+      <span class="ticker-chip">KCN30 · Mô phỏng</span>
+      <h1>Kim Chỉ Nam VN30 Bình Quyền</h1>
+      <p class="fund-lede">Nắm giữ 30 cổ phiếu trong rổ VN30 với tỷ trọng bằng nhau, tái cân bằng đầu mỗi quý. Nhờ vậy mỗi doanh nghiệp đều đóng góp như nhau, thay vì phụ thuộc vào vài mã vốn hoá lớn.</p>
+      <p class="fund-since" id="fSince"></p>
+    </div>
+    <div class="fund-price">
+      <span class="fund-label">NAV / đơn vị</span>
+      <b id="fNav" class="tabular">–</b>
+      <span id="fChg" class="fund-chg"></span>
+      <span class="fund-date" id="fDate"></span>
+    </div>
+  </section>
+
+  <dl class="facts facts-4" id="fFacts"></dl>
+
+  <nav class="subnav" aria-label="Mục trong trang">
+    <a href="#hieu-suat">Hiệu suất</a>
+    <a href="#rui-ro">Rủi ro</a>
+    <a href="#danh-muc">Danh mục</a>
+    <a href="#phuong-phap">Phương pháp</a>
+  </nav>
+
+  <section class="card panel" id="hieu-suat">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Hiệu suất</p>
+        <h2>So với chỉ số VN30 và quỹ E1VFVN30</h2>
+      </div>
+      <div class="seg" id="fRange" role="group" aria-label="Khoảng thời gian">
+        <button type="button" data-m="1">1T</button>
+        <button type="button" data-m="3">3T</button>
+        <button type="button" data-m="6">6T</button>
+        <button type="button" data-m="12">1N</button>
+        <button type="button" data-m="36">3N</button>
+        <button type="button" data-m="0">Từ đầu</button>
+      </div>
+    </div>
+    <div id="fChart"></div>
+    <div class="table-scroll" id="fReturns"></div>
+    <p class="table-note">Hiệu suất quá khứ không đảm bảo kết quả tương lai. Kết quả mô phỏng chưa tính chi phí giao dịch khi tái cân bằng.</p>
+  </section>
+
+  <section class="card panel" id="rui-ro">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Rủi ro</p>
+        <h2>Các chỉ số rủi ro</h2>
+      </div>
+    </div>
+    <div class="risk-grid" id="fRisk"></div>
+  </section>
+
+  <section class="card panel" id="danh-muc">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Danh mục</p>
+        <h2>Cổ phiếu nắm giữ</h2>
+        <p class="panel-sub">Tỷ trọng theo giá đóng cửa ngày <span id="fHoldDate">…</span>. Tỷ trọng lệch khỏi mức bằng nhau do giá biến động kể từ lần tái cân bằng gần nhất.</p>
+      </div>
+      <button class="btn btn-ghost" type="button" id="fCsv">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+        Tải danh mục (CSV)
+      </button>
+    </div>
+    <div class="holdings-grid">
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr>
+            <th scope="col" class="num">#</th><th scope="col">Cổ phiếu</th><th scope="col" class="hide-sm">Ngành</th>
+            <th scope="col" class="num">Giá (đ)</th><th scope="col" class="num">1 ngày</th><th scope="col" class="num">Tỷ trọng</th>
+          </tr></thead>
+          <tbody id="fHoldings"><tr><td colspan="6" class="empty-row">Đang tải dữ liệu…</td></tr></tbody>
+        </table>
+        <button class="btn btn-ghost" type="button" id="fToggle" style="margin-top:14px;">Xem toàn bộ</button>
+      </div>
+      <div class="sector-box">
+        <h3>Phân bổ theo ngành</h3>
+        <div class="donut" id="fDonut"></div>
+        <ul class="clean legend" id="fSectors"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="note-card" id="phuong-phap">
+    <h2>Phương pháp mô phỏng</h2>
+    <ul>
+      <li><b>Danh mục:</b> các cổ phiếu đang nằm trong rổ VN30 tại thời điểm cập nhật dữ liệu.</li>
+      <li><b>Tỷ trọng:</b> chia đều cho các mã có giá giao dịch vào ngày tái cân bằng.</li>
+      <li><b>Tái cân bằng:</b> phiên đầu tiên của mỗi quý, đưa tỷ trọng các mã về bằng nhau.</li>
+      <li><b>NAV:</b> bắt đầu từ 10.000 đồng/đơn vị, tính theo giá đóng cửa hằng ngày, trừ phí quản lý giả định 0,5%/năm.</li>
+      <li><b>Giới hạn:</b> dùng rổ VN30 hiện tại để tính cả quá khứ, nên kết quả bị thiên lệch tốt hơn thực tế (những mã từng bị loại khỏi rổ không được tính). Chưa tính chi phí giao dịch và thuế.</li>
+    </ul>
+    <p class="muted-text">Nội dung chỉ nhằm mục đích giáo dục, không phải lời mời mua hay khuyến nghị đầu tư.</p>
+  </section>
+</div>

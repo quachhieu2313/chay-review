@@ -1,0 +1,79 @@
+---
+layout: default
+title: Chi tiết quỹ ETF
+description: Thông tin, hiệu suất so với chỉ số tham chiếu và mô phỏng đầu tư định kỳ cho từng quỹ ETF niêm yết tại Việt Nam.
+nav: etf
+permalink: /etf/chi-tiet/
+---
+<div class="wrap" id="etfDetail">
+  <p class="crumbs" style="margin-top:32px;"><a href="{{ '/' | relative_url }}">Trang chủ</a> / <a href="{{ '/etf/' | relative_url }}">ETF</a> / <span id="dCrumb">…</span></p>
+
+  <section class="fund-hero">
+    <div>
+      <span class="ticker-chip" id="dCode">…</span>
+      <h1 id="dName">Đang tải…</h1>
+      <p class="fund-date" id="dDate"></p>
+    </div>
+    <div class="fund-price">
+      <span class="fund-label">Giá thị trường</span>
+      <b id="dPrice" class="tabular">–</b>
+      <span id="dChg" class="fund-chg"></span>
+      <a class="btn btn-ghost" id="dCompare" href="{{ '/etf/' | relative_url }}">So sánh với quỹ khác</a>
+    </div>
+  </section>
+
+  <dl class="facts" id="dFacts"></dl>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Hiệu suất</p>
+        <h2>So với chỉ số tham chiếu</h2>
+      </div>
+      <div class="seg" id="dRange" role="group" aria-label="Khoảng thời gian">
+        <button type="button" data-m="1">1T</button>
+        <button type="button" data-m="3">3T</button>
+        <button type="button" data-m="6">6T</button>
+        <button type="button" data-m="12">1N</button>
+        <button type="button" data-m="36">3N</button>
+        <button type="button" data-m="0">Tất cả</button>
+      </div>
+    </div>
+    <div id="dChart"></div>
+    <div class="table-scroll" id="dReturns"></div>
+    <p class="table-note">Chênh lệch giữa giá quỹ và chỉ số phản ánh phí quản lý, sai số bám đuổi, cổ tức và chênh lệch giá thị trường so với NAV.</p>
+  </section>
+
+  <section class="card panel" id="dca">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Mô phỏng</p>
+        <h2>Nếu mỗi tháng bạn đều đặn mua quỹ này</h2>
+        <p class="panel-sub">Mua vào phiên đầu tiên của mỗi tháng theo giá đóng cửa, chưa tính phí giao dịch và thuế.</p>
+      </div>
+    </div>
+    <div class="dca-grid">
+      <div class="dca-form">
+        <div class="field">
+          <label for="dcaAmount">Số tiền mỗi tháng <output id="dcaAmountOut"></output></label>
+          <input id="dcaAmount" type="range" min="0.5" max="50" step="0.5" value="3">
+        </div>
+        <div class="field">
+          <label for="dcaFrom">Bắt đầu từ năm</label>
+          <select id="dcaFrom" class="select"></select>
+        </div>
+        <div class="dca-kpis">
+          <div><span>Tổng tiền đã góp</span><b id="dcaPaid" class="tabular">–</b></div>
+          <div><span>Giá trị hiện tại</span><b id="dcaValue" class="tabular">–</b></div>
+          <div><span>Lãi / lỗ</span><b id="dcaGain" class="tabular">–</b></div>
+        </div>
+      </div>
+      <div id="dcaChart"></div>
+    </div>
+  </section>
+
+  <section class="note-card">
+    <h2>Danh mục và NAV của quỹ</h2>
+    <p>Danh mục nắm giữ chi tiết, NAV và bản cáo bạch được công ty quản lý quỹ công bố trên website của họ và trên trang của Sở Giao dịch Chứng khoán TP.HCM (HOSE). Trang này chỉ dùng giá giao dịch trên sàn để phân tích.</p>
+  </section>
+</div>

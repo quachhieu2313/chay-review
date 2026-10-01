@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Thị trường chứng khoán
-description: Biểu đồ VN-Index, HNX-Index, UPCOM-Index và bảng theo dõi cổ phiếu tiêu biểu trên thị trường Việt Nam.
+description: Diễn biến VN-Index, VN30, HNX-Index, UPCoM-Index và bảng giá rổ VN30, cập nhật sau mỗi phiên giao dịch.
 nav: thi-truong
 permalink: /thi-truong/
 ---
@@ -11,62 +11,40 @@ permalink: /thi-truong/
       <div class="section-head">
         <p class="eyebrow">Thị trường chứng khoán</p>
         <h1 class="market-title">Bức tranh thị trường trong một màn hình</h1>
-        <p>Chọn chỉ số để xem diễn biến, bấm tiêu đề cột để sắp xếp, gõ mã vào ô tìm kiếm để lọc.</p>
+        <p>Chọn chỉ số để xem diễn biến, bấm tiêu đề cột để sắp xếp, gõ mã hoặc tên ngành vào ô tìm kiếm để lọc.</p>
       </div>
-      <span class="demo-pill"><span class="dot"></span>Dữ liệu minh hoạ, chưa phải giá thật</span>
+      <span class="demo-pill"><span class="dot"></span>Dữ liệu đóng cửa ngày <b id="mktDate">…</b></span>
     </div>
 
-    <div class="indices">
-      {%- for cs in site.data.chi_so %}
-      {%- assign up = true %}{% if cs.thay_doi < 0 %}{% assign up = false %}{% endif %}
-      <button class="index-card" type="button" data-index="{{ cs.ma }}" data-label="{{ cs.ten }}" data-last="{{ cs.diem }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">
-        <p class="name">{{ cs.ten }}</p>
-        <p class="val tabular" data-num="{{ cs.diem }}">{{ cs.diem }}</p>
-        <span class="chg {% if up %}up{% else %}down{% endif %}" data-chg="{{ cs.thay_doi }}" data-pct="{{ cs.phan_tram }}">{{ cs.thay_doi }} ({{ cs.phan_tram }}%)</span>
-      </button>
-      {%- endfor %}
-    </div>
+    <div class="indices indices-4" id="mktCards"></div>
 
     <div class="chart-card">
       <div class="chart-top">
-        <p class="chart-title"><b id="chartName"></b><span id="chartChg"></span></p>
-        <div class="tabs" role="tablist" aria-label="Khoảng thời gian">
-          <button type="button" role="tab" data-range="22" aria-selected="false">1 tháng</button>
-          <button type="button" role="tab" data-range="66" aria-selected="true">3 tháng</button>
-          <button type="button" role="tab" data-range="132" aria-selected="false">6 tháng</button>
-          <button type="button" role="tab" data-range="250" aria-selected="false">1 năm</button>
+        <div class="ret-strip" id="mktRet"></div>
+        <div class="seg seg-dark" id="mktRange" role="group" aria-label="Khoảng thời gian">
+          <button type="button" data-m="1">1T</button>
+          <button type="button" data-m="3">3T</button>
+          <button type="button" data-m="6">6T</button>
+          <button type="button" data-m="12">1N</button>
+          <button type="button" data-m="36">3N</button>
+          <button type="button" data-m="0">Tất cả</button>
         </div>
       </div>
-      <div class="line-chart" id="lineChart">
-        <svg viewBox="0 0 1000 260" preserveAspectRatio="none" role="img" aria-label="Biểu đồ diễn biến chỉ số">
-          <defs>
-            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop id="gradStop" offset="0" stop-color="#2FBF4F" stop-opacity=".28"/>
-              <stop offset="1" stop-color="#2FBF4F" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <path id="lineArea" fill="url(#areaGrad)"/>
-          <path id="linePath" fill="none" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
-        </svg>
-        <div class="y-labels" id="yLabels"></div>
-        <div class="chart-hline" id="chartHline"></div>
-        <div class="chart-dot" id="chartDot"></div>
-        <div class="chart-tip" id="chartTip"></div>
-      </div>
+      <div id="mktChart" class="lc-dark"></div>
     </div>
 
-    <div class="watchlist" role="table" aria-label="Bảng theo dõi cổ phiếu">
+    <h2 class="sub-title">Rổ VN30</h2>
+    <div class="watchlist" role="table" aria-label="Bảng giá rổ VN30">
       <div class="wl-head" role="row">
-        <span role="columnheader" aria-sort="ascending"><button type="button" data-sort="t">Mã <span class="arrow">↑</span></button></span>
-        <span role="columnheader" class="wl-name"><button type="button" data-sort="n">Công ty <span class="arrow"></span></button></span>
-        <span role="columnheader" class="right"><button type="button" data-sort="p">Giá <span class="arrow"></span></button></span>
-        <span role="columnheader" class="right"><button type="button" data-sort="c">+/- % <span class="arrow"></span></button></span>
-        <span role="columnheader" class="right wl-vol"><button type="button" data-sort="v">Khối lượng <span class="arrow"></span></button></span>
-        <span role="columnheader" class="right wl-spark">Xu hướng</span>
+        <span role="columnheader" aria-sort="ascending"><button type="button" data-sort="ma">Mã <span class="arrow">↑</span></button></span>
+        <span role="columnheader" class="wl-name"><button type="button" data-sort="ten">Công ty <span class="arrow"></span></button></span>
+        <span role="columnheader" class="right"><button type="button" data-sort="gia">Giá <span class="arrow"></span></button></span>
+        <span role="columnheader" class="right"><button type="button" data-sort="thay_doi">+/- % <span class="arrow"></span></button></span>
+        <span role="columnheader" class="right wl-vol"><button type="button" data-sort="khoi_luong">Khối lượng <span class="arrow"></span></button></span>
+        <span role="columnheader" class="right wl-spark">20 phiên</span>
       </div>
-      <div id="wlBody" role="rowgroup"></div>
+      <div id="wlBody" role="rowgroup"><div class="wl-empty">Đang tải dữ liệu…</div></div>
     </div>
-    <p class="market-note">Số liệu trong trang này được tạo ra để minh hoạ giao diện. Phiên bản sau sẽ cập nhật giá thật sau mỗi phiên giao dịch.</p>
+    <p class="market-note">Giá tính bằng đồng, khối lượng tính bằng triệu cổ phiếu. Dữ liệu lấy qua vnstock (nguồn VCI), cập nhật tự động sau 16:30 các ngày giao dịch.</p>
   </div>
 </section>
-<script>window.KCN_STOCKS = {{ site.data.co_phieu | jsonify }};</script>

@@ -28,10 +28,20 @@
   --focus:#2A78D6;
   --shadow: 0 1px 2px rgba(18,26,51,0.04), 0 8px 24px -8px rgba(38,67,149,0.14);
   --radius:16px;
+  --grid:#E6EAF3;
+  --s1:#264395;
+  --s2:#D9822B;
+  --s3:#2E9E8F;
+  --s4:#9AA800;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme: dark;
+    --grid:#1E2A50;
+    --s1:#8DA6EC;
+    --s2:#F0A35E;
+    --s3:#4CC3B0;
+    --s4:#C6E010;
     --bg:#0A1024;
     --surface:#111A36;
     --surface-sunk:#0D152D;
@@ -54,6 +64,11 @@
 }
 :root[data-theme="dark"]{
   color-scheme: dark;
+    --grid:#1E2A50;
+    --s1:#8DA6EC;
+    --s2:#F0A35E;
+    --s3:#4CC3B0;
+    --s4:#C6E010;
   --bg:#0A1024;
   --surface:#111A36;
   --surface-sunk:#0D152D;
@@ -305,8 +320,10 @@ ul.clean{list-style:none; margin:0; padding:0;}
 .index-card .name{font-size:12.5px; color:var(--market-ink-soft); margin-bottom:8px; letter-spacing:.04em;}
 .index-card .val{font-family:"JetBrains Mono",monospace; font-size:25px; font-weight:600;}
 .chg{display:inline-flex; align-items:center; gap:4px; font-family:"JetBrains Mono",monospace; font-size:12.5px; font-weight:600; margin-top:6px;}
-.up{color:var(--good-mkt);}
-.down{color:var(--critical-mkt);}
+.up{color:var(--good);}
+.down{color:var(--critical);}
+.market .up{color:var(--good-mkt);}
+.market .down{color:var(--critical-mkt);}
 .chart-card{background:var(--market-surface); border:1px solid var(--market-border); border-radius:14px; padding:18px 20px; margin-bottom:16px;}
 .chart-top{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;}
 .chart-title b{font-size:15px;}
@@ -524,4 +541,224 @@ footer.site{padding-block:56px calc(36px + env(safe-area-inset-bottom,0px)); bor
 @media (max-width:720px){
   .explain{grid-template-columns:1fr; gap:26px;}
   .page-head{padding-block:40px 28px;}
+}
+
+/* ===================================================================
+   TRANG DỮ LIỆU: ETF, QUỸ MÔ PHỎNG, THỊ TRƯỜNG
+   =================================================================== */
+.footer-note{font-size:12px; color:var(--muted); line-height:1.6; margin-top:16px !important; max-width:900px;}
+.empty-state{padding:40px 20px; text-align:center; color:var(--muted);}
+.empty-state .btn{margin-top:16px;}
+.muted-text{font-size:13px; color:var(--muted); margin-top:12px !important;}
+
+/* biểu đồ đường */
+.lc{position:relative;}
+.lc-plot{position:relative; height:300px; cursor:crosshair;}
+.lc-plot svg{width:100%; height:100%; display:block; overflow:visible;}
+.lc-y{position:absolute; right:0; top:-7px; bottom:-7px; display:flex; flex-direction:column; justify-content:space-between; font-size:11px; color:var(--muted); font-family:"JetBrains Mono",monospace; pointer-events:none; text-align:right;}
+.lc-x{display:flex; justify-content:space-between; font-size:11px; color:var(--muted); font-family:"JetBrains Mono",monospace; margin-top:8px; padding-right:7%;}
+.lc-vline{position:absolute; top:0; bottom:0; width:1px; background:var(--muted); opacity:.5; pointer-events:none; display:none;}
+.lc-dots i{position:absolute; width:10px; height:10px; border-radius:50%; border:2px solid var(--surface); transform:translate(-50%,-50%); pointer-events:none;}
+.lc-tip{
+  position:absolute; top:8px; display:none; pointer-events:none; z-index:2; min-width:150px;
+  background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow);
+  padding:8px 11px; font-size:12px; line-height:1.6;
+}
+.lc-tip b{display:block; font-size:11.5px; color:var(--muted); font-weight:600;}
+.lc-tip span{display:flex; align-items:center; gap:6px; white-space:nowrap; font-family:"JetBrains Mono",monospace;}
+.lc-tip em{width:8px; height:8px; border-radius:2px; display:inline-block;}
+.lc-legend{display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:14px; font-size:13px; color:var(--ink-soft);}
+.lc-legend span{display:inline-flex; align-items:center; gap:7px;}
+.lc-legend i{width:14px; height:3px; border-radius:2px; display:inline-block;}
+.lc-legend b{font-family:"JetBrains Mono",monospace; font-size:12.5px;}
+.lc-dark{--grid:#24356E; --muted:#93A0C8; --surface:#0F1D4A; --border:#2B3F86; color:var(--market-ink);}
+.lc-dark .lc-tip{background:#0B1638; color:var(--market-ink);}
+.lc-dark .lc-legend{display:none;}
+
+/* nút chọn khoảng thời gian */
+.seg{display:inline-flex; gap:2px; background:var(--surface-sunk); border:1px solid var(--border); border-radius:10px; padding:3px; flex-wrap:wrap;}
+.seg button{border:none; background:none; color:var(--ink-soft); padding:6px 11px; border-radius:7px; font-size:12.5px; font-weight:600; cursor:pointer;}
+.seg button:hover{color:var(--ink);}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--accent-strong); box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.seg-dark{background:var(--market-bg); border-color:var(--market-border);}
+.seg-dark button{color:var(--market-ink-soft);}
+.seg-dark button:hover{color:var(--market-ink);}
+.seg-dark button[aria-pressed="true"]{background:var(--market-surface-2); color:var(--market-ink);}
+
+/* thị trường */
+.indices-4{grid-template-columns:repeat(4,1fr);}
+.ret-strip{display:flex; flex-wrap:wrap; gap:6px 18px; font-size:12.5px; color:var(--market-ink-soft);}
+.ret-strip b{font-family:"JetBrains Mono",monospace; margin-left:4px;}
+.sub-title{font-size:22px; font-weight:600; margin:34px 0 14px; color:var(--market-ink);}
+.wl-name small{display:block; font-size:11px; opacity:.75; margin-top:2px;}
+.wl-name{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+/* panel & bảng */
+.kpis-4{grid-template-columns:repeat(4,1fr); margin-bottom:22px;}
+.kpi small{font-family:"JetBrains Mono",monospace; font-size:14px; margin-left:4px;}
+.toolbar{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px;}
+.chips{display:flex; gap:6px; flex-wrap:wrap;}
+.chip{border:1px solid var(--border); background:var(--surface); color:var(--ink-soft); border-radius:20px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer;}
+.chip:hover{border-color:var(--accent);}
+.chip[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff;}
+:root[data-theme="dark"] .chip[aria-pressed="true"]{color:#0A1024;}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .chip[aria-pressed="true"]{color:#0A1024;} }
+.search.search-inline{display:flex; background:var(--surface);}
+.search-inline input{width:200px;}
+.table-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;}
+.table-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+.data-table{width:100%; border-collapse:collapse; font-size:13.5px;}
+.data-table th{
+  text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);
+  padding:12px; border-bottom:1px solid var(--border); white-space:nowrap; background:var(--surface-sunk);
+}
+.data-table th button{all:unset; cursor:pointer; display:inline-flex; gap:3px; align-items:center;}
+.data-table th button:hover{color:var(--ink);}
+.data-table th button:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:4px;}
+.data-table td{padding:11px 12px; border-bottom:1px solid var(--border); vertical-align:middle;}
+.data-table tbody tr:last-child td{border-bottom:none;}
+.data-table tbody tr:hover{background:color-mix(in srgb, var(--accent-tint) 45%, transparent);}
+.data-table .num{text-align:right; font-family:"JetBrains Mono",monospace; white-space:nowrap; font-size:13px;}
+.data-table th.num{text-align:right;}
+.data-table .cmp{width:36px; text-align:center;}
+.data-table .cmp input{width:16px; height:16px; accent-color:var(--accent); cursor:pointer;}
+.data-table .fund a{display:flex; flex-direction:column; gap:1px;}
+.data-table .fund b{font-family:"JetBrains Mono",monospace; color:var(--accent-strong);}
+.data-table .fund span, .data-table .sub{font-size:12px; color:var(--muted); display:block; max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.data-table .fund a:hover b{text-decoration:underline;}
+.data-table .spark{width:80px;}
+.data-table .muted{color:var(--muted);}
+.empty-row{text-align:center; color:var(--muted); padding:30px !important;}
+.table-note{font-size:12px; color:var(--muted); margin-top:12px !important; line-height:1.6;}
+
+.panel{padding:26px; margin-bottom:22px;}
+.panel-head{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:20px;}
+.panel-head h2{font-size:24px; font-weight:600; margin-top:6px;}
+.panel-sub{font-size:13.5px; color:var(--ink-soft); margin-top:6px !important; max-width:620px;}
+.panel-tools{display:flex; gap:14px; align-items:center; flex-wrap:wrap;}
+.check{display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-soft); cursor:pointer;}
+.check input{accent-color:var(--accent);}
+.hint-box{background:var(--accent-tint); color:var(--accent-ink); padding:12px 16px; border-radius:10px; font-size:13.5px; margin-bottom:12px !important;}
+
+.ret-table{width:100%; border-collapse:collapse; margin-top:22px; font-size:13.5px; min-width:560px;}
+.ret-table th, .ret-table td{padding:10px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap;}
+.ret-table thead th{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700;}
+.ret-table tbody th{text-align:left; font-weight:600;}
+.ret-table tbody th i{width:12px; height:3px; border-radius:2px; display:inline-block; margin-right:8px; vertical-align:middle;}
+.ret-table td{font-family:"JetBrains Mono",monospace; font-size:13px;}
+.ret-table .muted-row th, .ret-table .muted-row td{color:var(--muted); font-weight:500;}
+
+/* đầu trang quỹ */
+.sim-banner{background:var(--lime); color:var(--on-lime); font-size:13.5px; padding:10px 0; line-height:1.5;}
+.fund-hero{display:flex; justify-content:space-between; align-items:flex-end; gap:28px; flex-wrap:wrap; padding-block:36px 26px;}
+.fund-hero h1{font-size:clamp(28px,4vw,42px); font-weight:600; line-height:1.12; margin-top:12px; max-width:720px;}
+.ticker-chip{
+  display:inline-flex; align-items:center; font-family:"JetBrains Mono",monospace; font-size:12.5px; font-weight:700;
+  background:var(--accent); color:#fff; border-radius:8px; padding:5px 10px; letter-spacing:.03em;
+}
+:root[data-theme="dark"] .ticker-chip{color:#0A1024;}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .ticker-chip{color:#0A1024;} }
+.fund-lede{font-size:15.5px; color:var(--ink-soft); line-height:1.6; margin-top:12px !important; max-width:640px;}
+.fund-since{font-size:14px; color:var(--ink-soft); margin-top:12px !important;}
+.fund-since b{font-family:"JetBrains Mono",monospace;}
+.fund-price{display:flex; flex-direction:column; align-items:flex-end; gap:4px; text-align:right;}
+.fund-price > b{font-family:"Fraunces",serif; font-size:clamp(34px,4.4vw,46px); font-weight:600; line-height:1.05;}
+.fund-price .btn{margin-top:10px;}
+.fund-label{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; font-weight:600;}
+.fund-chg{font-family:"JetBrains Mono",monospace; font-weight:700; font-size:14px;}
+.fund-date{font-size:12.5px; color:var(--muted); margin-top:6px !important;}
+
+.facts{display:grid; grid-template-columns:repeat(3,1fr); margin:0 0 22px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;}
+.facts-4{grid-template-columns:repeat(4,1fr);}
+.facts div{padding:16px 20px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); margin:0 -1px -1px 0;}
+.facts dt{font-size:12px; color:var(--muted); margin-bottom:5px;}
+.facts dd{margin:0; font-weight:700; font-size:15px;}
+.subnav{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:22px;}
+.subnav a{font-size:13.5px; font-weight:600; padding:8px 14px; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--ink-soft);}
+.subnav a:hover{border-color:var(--accent); color:var(--accent-strong);}
+
+.risk-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:12px;}
+.risk{background:var(--surface-sunk); border-radius:12px; padding:16px;}
+.risk span{display:block; font-size:12px; color:var(--muted); margin-bottom:6px;}
+.risk b{font-family:"Fraunces",serif; font-size:24px; font-weight:600;}
+.risk small{display:block; font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.45;}
+
+.holdings-grid{display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:28px; align-items:start;}
+.wbar{display:inline-block; width:56px; height:6px; background:var(--surface-sunk); border-radius:4px; margin-right:8px; vertical-align:middle; overflow:hidden;}
+.wbar i{display:block; height:100%; background:var(--accent); border-radius:4px;}
+.sector-box{background:var(--surface-sunk); border-radius:var(--radius); padding:22px;}
+.sector-box h3{font-family:"Public Sans",sans-serif; font-size:15px; font-weight:700; margin-bottom:12px;}
+.donut{max-width:220px; margin:0 auto 16px;}
+.donut svg{width:100%; display:block;}
+.donut-num{font-family:"Fraunces",serif; font-size:28px; font-weight:600; fill:var(--ink);}
+.donut-lbl{font-size:11px; fill:var(--muted);}
+.legend li{display:flex; align-items:center; gap:10px; font-size:13px; padding:6px 0; border-bottom:1px solid var(--border);}
+.legend li:last-child{border-bottom:none;}
+.legend i{width:10px; height:10px; border-radius:3px; flex:none;}
+.legend span{flex:1; color:var(--ink-soft);}
+.legend b{font-family:"JetBrains Mono",monospace; font-size:12.5px;}
+
+.dca-grid{display:grid; grid-template-columns:300px minmax(0,1fr); gap:28px; align-items:start;}
+.dca-form{display:flex; flex-direction:column; gap:18px;}
+.select{width:100%; border:1px solid var(--border); background:var(--surface-sunk); border-radius:10px; padding:9px 11px;}
+.dca-kpis{display:flex; flex-direction:column; gap:10px; padding-top:16px; border-top:1px solid var(--border);}
+.dca-kpis div{display:flex; justify-content:space-between; gap:10px; font-size:13.5px;}
+.dca-kpis span{color:var(--muted);}
+.dca-kpis b{font-family:"JetBrains Mono",monospace; font-size:13.5px;}
+
+.note-card{background:var(--surface-sunk); border:1px solid var(--border); border-radius:var(--radius); padding:26px; margin-bottom:22px;}
+.note-card h2{font-size:21px; font-weight:600; margin-bottom:12px;}
+.note-card p, .note-card li{font-size:14.5px; color:var(--ink-soft); line-height:1.65;}
+.note-card ul{padding-left:20px; margin:0;}
+.note-card li{margin-bottom:6px;}
+
+/* trang chủ */
+.hero-etf{background:linear-gradient(180deg, var(--accent-tint), var(--bg) 85%);}
+.fund-card{padding:24px; display:block; transition:transform .2s, box-shadow .2s;}
+.fund-card:hover{transform:translateY(-3px);}
+.fund-card-top{display:flex; justify-content:space-between; align-items:center;}
+.fund-card-link{font-size:13px; font-weight:700; color:var(--accent-strong);}
+.fund-card h2{font-size:22px; font-weight:600; margin-top:14px;}
+.fund-card-nav{display:flex; justify-content:space-between; align-items:flex-end; margin-top:16px;}
+.fund-card-nav b{display:block; font-family:"Fraunces",serif; font-size:38px; font-weight:600; line-height:1.1;}
+.fund-card-spark{margin-top:12px; height:70px;}
+.fund-card-spark svg{width:100%; height:70px;}
+.fund-card-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px; padding-top:14px; border-top:1px solid var(--border);}
+.fund-card-stats span{display:block; font-size:11.5px; color:var(--muted);}
+.fund-card-stats b{font-family:"JetBrains Mono",monospace; font-size:15px;}
+.etf-minis{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
+.etf-mini{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; display:flex; flex-direction:column; gap:8px; transition:border-color .15s, transform .15s;}
+.etf-mini:hover{border-color:var(--accent); transform:translateY(-2px);}
+.etf-mini-top{display:flex; justify-content:space-between; align-items:center;}
+.etf-mini-top b{font-family:"JetBrains Mono",monospace; font-size:16px; color:var(--accent-strong);}
+.etf-mini-top span{font-family:"JetBrains Mono",monospace; font-size:13px; font-weight:600;}
+.etf-mini p{font-size:12.5px; color:var(--muted); min-height:34px;}
+.etf-mini svg{width:100%; height:48px;}
+.etf-mini-bot{display:flex; justify-content:space-between; font-size:12.5px; color:var(--ink-soft); font-family:"JetBrains Mono",monospace;}
+.tool-cards-4{grid-template-columns:repeat(4,1fr);}
+
+@media (max-width:1020px){
+  .indices-4{grid-template-columns:repeat(2,1fr);}
+  .kpis-4{grid-template-columns:repeat(2,1fr);}
+  .hide-md{display:none;}
+  .facts, .facts-4{grid-template-columns:repeat(2,1fr);}
+  .risk-grid{grid-template-columns:repeat(3,1fr);}
+  .holdings-grid, .dca-grid{grid-template-columns:1fr;}
+  .etf-minis, .tool-cards-4{grid-template-columns:repeat(2,1fr);}
+}
+@media (max-width:720px){
+  .hide-sm{display:none;}
+  .lc-plot{height:220px;}
+  .indices-4 .index-card{display:block;}
+  .indices-4 .index-card .val{font-size:19px;}
+  .risk-grid{grid-template-columns:1fr 1fr;}
+  .fund-price{align-items:flex-start; text-align:left;}
+  .panel{padding:18px;}
+  .search-inline{width:100%;}
+  .search-inline input{width:100%;}
+  .tool-cards-4{grid-template-columns:1fr;}
+}
+@media (max-width:460px){
+  .facts, .facts-4, .kpis-4{grid-template-columns:1fr;}
+  .etf-minis{grid-template-columns:1fr;}
 }

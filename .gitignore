@@ -1,0 +1,5 @@
+AGENTS.md
+.agents/
+__pycache__/
+_site/
+.jekyll-cache/

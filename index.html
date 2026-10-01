@@ -4,120 +4,110 @@ title: Trang chủ
 nav: home
 ---
 <!-- ===== HERO ===== -->
-<section class="hero wrap">
-  <div class="hero-grid">
+<section class="hero hero-etf">
+  <div class="wrap hero-grid">
     <div class="reveal">
-      <p class="eyebrow">Mục tiêu cá nhân · Đầu tư dài hạn</p>
-      <h1>Biến mục tiêu<br>thành <em>thành quả</em></h1>
-      <p class="hero-sub">Kim Chỉ Nam là cuốn sổ nhỏ cho người muốn sống kỷ luật và đầu tư có hiểu biết: ghi việc cần làm mỗi ngày, giữ chuỗi thói quen, và nhìn rõ tiền của mình lớn lên theo thời gian.</p>
+      <p class="eyebrow">Quỹ ETF · Đầu tư dài hạn</p>
+      <h1>Đầu tư ETF<br>có hiểu biết, <em>kỷ luật</em><br>mỗi ngày</h1>
+      <p class="hero-sub">Theo dõi và so sánh toàn bộ quỹ ETF đang niêm yết tại Việt Nam bằng dữ liệu cập nhật sau mỗi phiên. Tìm hiểu cách một quỹ vận hành qua quỹ mô phỏng KCN30, rồi tự lập kế hoạch đầu tư định kỳ của riêng bạn.</p>
       <div class="hero-cta">
-        <a class="btn btn-accent btn-lg" href="{{ '/muc-tieu/' | relative_url }}">Đặt mục tiêu hôm nay</a>
-        <a class="btn btn-ghost btn-lg" href="{{ '/lai-kep/' | relative_url }}">Tính lãi kép</a>
+        <a class="btn btn-accent btn-lg" href="{{ '/etf/' | relative_url }}">Khám phá ETF</a>
+        <a class="btn btn-ghost btn-lg" href="{{ '/quy-mo-phong/' | relative_url }}">Xem quỹ mô phỏng</a>
       </div>
       <ul class="clean hero-points">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Dữ liệu thật của các ETF trên HOSE, tự cập nhật mỗi ngày</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Miễn phí, không cần đăng ký tài khoản</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Dữ liệu của bạn lưu ngay trên trình duyệt, không gửi đi đâu</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Viết cho nhà đầu tư cá nhân Việt Nam, bằng tiếng Việt</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Công cụ mô phỏng đầu tư định kỳ trên giá lịch sử</li>
       </ul>
     </div>
 
-    <!-- thẻ tóm tắt ngày hôm nay của người dùng (đọc từ bảng mục tiêu) -->
-    <div class="card today-card reveal" id="homeToday">
-      <p class="eyebrow">Hôm nay của bạn</p>
-      <h2 id="homeTodayTitle">Bạn chưa đặt mục tiêu nào</h2>
-      <div class="ring-row">
-        <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
-          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--surface-sunk)" stroke-width="12"/>
-          <circle id="homeRing" cx="60" cy="60" r="50" fill="none" stroke="var(--good)" stroke-width="12" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16" transform="rotate(-90 60 60)"/>
-        </svg>
-        <div>
-          <p class="ring-pct tabular" id="homePct">0%</p>
-          <p class="ring-sub" id="homeSub">Viết ra 3 việc nhỏ để bắt đầu</p>
-        </div>
+    <a class="card fund-card reveal" id="homeFund" href="{{ '/quy-mo-phong/' | relative_url }}">
+      <div class="fund-card-top">
+        <span class="ticker-chip">KCN30 · Mô phỏng</span>
+        <span class="fund-card-link">Chi tiết →</span>
       </div>
-      <ul class="clean today-list" id="homeList"></ul>
-      <a class="btn btn-accent" href="{{ '/muc-tieu/' | relative_url }}" style="width:100%; margin-top:18px;">Mở bảng mục tiêu</a>
-    </div>
+      <h2>Kim Chỉ Nam VN30 Bình Quyền</h2>
+      <div class="fund-card-nav">
+        <div>
+          <span class="fund-label">NAV / đơn vị</span>
+          <b id="hfNav" class="tabular">–</b>
+        </div>
+        <span id="hfChg" class="fund-chg"></span>
+      </div>
+      <div class="fund-card-spark" id="hfSpark"></div>
+      <div class="fund-card-stats" id="hfStats"></div>
+      <p class="fund-date" id="hfDate">Quỹ giả lập để minh hoạ, không nhận tiền đầu tư</p>
+    </a>
   </div>
+</section>
+
+<!-- ===== ETF SÔI ĐỘNG ===== -->
+<section class="section wrap">
+  <div class="section-row reveal">
+    <div class="section-head" style="margin-bottom:0;">
+      <p class="eyebrow">Quỹ ETF</p>
+      <h2>Giao dịch sôi động nhất</h2>
+      <p>Bốn quỹ có giá trị giao dịch bình quân cao nhất 20 phiên gần đây, dữ liệu ngày <b id="homeEtfDate">…</b>.</p>
+    </div>
+    <a class="btn btn-ghost" href="{{ '/etf/' | relative_url }}">Xem tất cả ETF</a>
+  </div>
+  <div class="etf-minis" id="homeEtf"></div>
 </section>
 
 <!-- ===== CÔNG CỤ ===== -->
-<section class="section wrap" style="padding-top:20px;">
-  <div class="section-head reveal">
-    <p class="eyebrow">Công cụ miễn phí</p>
-    <h2>Ba công cụ cho một hành trình dài</h2>
-  </div>
-  <div class="tool-cards">
-    <a class="tool-card reveal" href="{{ '/muc-tieu/' | relative_url }}">
-      <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11"/></svg></span>
-      <h3>Mục tiêu hôm nay</h3>
-      <p>Ghi việc cần làm, tích khi xong, giữ chuỗi ngày kỷ luật và xem lại cả tuần.</p>
-      <span class="tool-link">Mở công cụ →</span>
-    </a>
-    <a class="tool-card reveal" href="{{ '/lai-kep/' | relative_url }}">
-      <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span>
-      <h3>Máy tính lãi kép</h3>
-      <p>Xem khoản tiết kiệm mỗi tháng của bạn sẽ thành bao nhiêu sau 10, 20, 30 năm.</p>
-      <span class="tool-link">Tính thử →</span>
-    </a>
-    <a class="tool-card reveal" href="{{ '/thi-truong/' | relative_url }}">
-      <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="10" width="5" height="11"/><rect x="10" y="5" width="5" height="16"/><rect x="17" y="13" width="4" height="8"/></svg></span>
-      <h3>Thị trường</h3>
-      <p>Biểu đồ chỉ số và bảng theo dõi cổ phiếu, sắp xếp và tìm mã nhanh.</p>
-      <span class="tool-link">Xem thị trường →</span>
-    </a>
-  </div>
-</section>
-
-<!-- ===== BỐN TRỤ CỘT ===== -->
-<section class="section wrap" style="padding-top:0;">
-  <div class="section-head reveal">
-    <p class="eyebrow">Bốn trụ cột</p>
-    <h2>Tự do tài chính không chỉ là chuyện tiền</h2>
-    <p>Người đầu tư bền bỉ thường cũng là người ngủ đủ, làm việc có trọng tâm và không ngừng học hỏi. Kim Chỉ Nam giúp bạn chăm cả bốn phần.</p>
-  </div>
-  <div class="pillars">
-    <article class="pillar reveal">
-      <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.6z"/></svg></span>
-      <h3>Sức khỏe</h3>
-      <p>Vận động, giấc ngủ, ăn uống. Một cơ thể khỏe giúp bạn bình tĩnh hơn khi thị trường biến động mạnh.</p>
-    </article>
-    <article class="pillar reveal">
-      <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-9M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></span>
-      <h3>Công việc</h3>
-      <p>Thu nhập ổn định là nguồn vốn đầu tư quan trọng nhất. Chia mục tiêu quý thành việc nhỏ mỗi ngày.</p>
-    </article>
-    <article class="pillar reveal">
-      <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5V21h16"/></svg></span>
-      <h3>Học tập</h3>
-      <p>Đọc báo cáo tài chính, sách, bài phân tích. Hiểu doanh nghiệp trước khi bỏ tiền vào cổ phiếu.</p>
-    </article>
-    <article class="pillar reveal">
-      <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M14.5 9a2.5 2.5 0 0 0-2.5-1.5c-1.4 0-2.5.8-2.5 2s1.1 1.7 2.5 2 2.5.8 2.5 2-1.1 2-2.5 2A2.5 2.5 0 0 1 9.5 15M12 6v1.5M12 16.5V18"/></svg></span>
-      <h3>Tài chính</h3>
-      <p>Tiết kiệm đều, đầu tư định kỳ, theo dõi danh mục. Để lãi kép làm phần việc nặng nhọc nhất.</p>
-    </article>
+<section class="section tools">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Công cụ miễn phí</p>
+      <h2>Mọi thứ bạn cần cho một hành trình dài</h2>
+    </div>
+    <div class="tool-cards tool-cards-4">
+      <a class="tool-card reveal" href="{{ '/etf/#so-sanh' | relative_url }}">
+        <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/><path d="M7 18l4-2 3 1 5-4" opacity=".5"/></svg></span>
+        <h3>So sánh ETF</h3>
+        <p>Đặt tối đa 4 quỹ lên cùng một biểu đồ để so sánh hiệu suất qua từng giai đoạn.</p>
+        <span class="tool-link">So sánh ngay →</span>
+      </a>
+      <a class="tool-card reveal" href="{{ '/etf/chi-tiet/?ma=E1VFVN30#dca' | relative_url }}">
+        <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+        <h3>Đầu tư định kỳ</h3>
+        <p>Xem kết quả nếu bạn đã mua một quỹ ETF đều đặn mỗi tháng trong vài năm qua.</p>
+        <span class="tool-link">Mô phỏng →</span>
+      </a>
+      <a class="tool-card reveal" href="{{ '/lai-kep/' | relative_url }}">
+        <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg></span>
+        <h3>Máy tính lãi kép</h3>
+        <p>Ước tính khoản tiết kiệm mỗi tháng sẽ thành bao nhiêu sau 10, 20, 30 năm.</p>
+        <span class="tool-link">Tính thử →</span>
+      </a>
+      <a class="tool-card reveal" href="{{ '/muc-tieu/' | relative_url }}">
+        <span class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11"/></svg></span>
+        <h3>Mục tiêu hôm nay</h3>
+        <p>Giữ kỷ luật bằng danh sách việc nhỏ mỗi ngày và chuỗi ngày liên tiếp.</p>
+        <span class="tool-link">Mở công cụ →</span>
+      </a>
+    </div>
   </div>
 </section>
 
-<!-- ===== CÁCH DÙNG ===== -->
-<section class="section wrap" style="padding-top:0;">
+<!-- ===== VÌ SAO ETF ===== -->
+<section class="section wrap">
   <div class="section-head reveal">
-    <p class="eyebrow">Cách dùng</p>
-    <h2>Ba bước, năm phút mỗi ngày</h2>
+    <p class="eyebrow">Vì sao chọn ETF</p>
+    <h2>Cách đơn giản để sở hữu cả thị trường</h2>
   </div>
   <div class="steps">
     <div class="step reveal">
-      <h3>Viết ra 3 việc</h3>
-      <p>Mỗi sáng ghi tối đa ba mục tiêu cụ thể, đo được. Ít mà chắc chắn làm được còn hơn nhiều mà bỏ dở.</p>
+      <h3>Đa dạng hoá ngay lập tức</h3>
+      <p>Một chứng chỉ quỹ VN30 tương đương sở hữu một phần của 30 doanh nghiệp lớn nhất sàn, giảm rủi ro dồn vào một mã.</p>
     </div>
     <div class="step reveal">
-      <h3>Đánh dấu khi xong</h3>
-      <p>Mỗi lần tích xong một việc, chuỗi ngày kỷ luật của bạn dài thêm. Nhìn lịch 7 ngày để thấy mình đang đi đúng hướng.</p>
+      <h3>Chi phí thấp, minh bạch</h3>
+      <p>Quỹ bám theo chỉ số nên phí quản lý thường thấp hơn quỹ chủ động. Danh mục được công bố hằng ngày.</p>
     </div>
     <div class="step reveal">
-      <h3>Nhìn về dài hạn</h3>
-      <p>Dùng máy tính lãi kép để thấy những khoản tiết kiệm nhỏ hôm nay sẽ thành bao nhiêu sau 10, 20 năm nữa.</p>
+      <h3>Mua bán như cổ phiếu</h3>
+      <p>Giao dịch trên sàn qua tài khoản chứng khoán thông thường, phù hợp với chiến lược đầu tư định kỳ mỗi tháng.</p>
     </div>
   </div>
 </section>
@@ -127,7 +117,7 @@ nav: home
   <div class="wrap">
     <div class="section-row reveal">
       <div class="section-head" style="margin-bottom:0;">
-        <p class="eyebrow">Blog</p>
+        <p class="eyebrow">Kiến thức</p>
         <h2>Bài viết mới nhất</h2>
       </div>
       <a class="btn btn-ghost" href="{{ '/blog/' | relative_url }}">Xem tất cả bài viết</a>
@@ -143,9 +133,9 @@ nav: home
 <!-- ===== CTA ===== -->
 <section class="wrap reveal" style="margin-top:76px;">
   <div class="cta-band">
-    <h2>Bắt đầu bằng một việc nhỏ hôm nay</h2>
-    <p>Không cần kế hoạch hoàn hảo. Chỉ cần viết ra một mục tiêu và làm xong nó trước khi đi ngủ.</p>
-    <a class="btn btn-accent btn-lg" href="{{ '/muc-tieu/' | relative_url }}">Viết mục tiêu đầu tiên</a>
+    <h2>Bắt đầu bằng một kế hoạch nhỏ</h2>
+    <p>Chọn một quỹ, quyết định số tiền mỗi tháng, rồi để thời gian và lãi kép làm phần còn lại.</p>
+    <a class="btn btn-accent btn-lg" href="{{ '/etf/chi-tiet/?ma=E1VFVN30#dca' | relative_url }}">Thử mô phỏng đầu tư định kỳ</a>
     <p class="quote">“{{ site.slogan }}”</p>
   </div>
 </section>

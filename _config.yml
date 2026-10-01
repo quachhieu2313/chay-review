@@ -19,5 +19,7 @@ timezone: Asia/Ho_Chi_Minh
 markdown: kramdown
 
 exclude:
+  - scripts
+  - AGENTS.md
   - HUONG_DAN.md
   - README.md

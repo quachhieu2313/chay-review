@@ -43,7 +43,7 @@
     <div class="nav-actions">
       <label class="search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input id="siteSearch" type="search" placeholder="Tìm mã: FPT, VCB…" aria-label="Tìm mã cổ phiếu" data-market-url="{{ '/thi-truong/' | relative_url }}">
+        <input id="siteSearch" type="search" placeholder="Tìm mã: FPT, E1VFVN30…" aria-label="Tìm mã cổ phiếu hoặc ETF" data-market-url="{{ '/thi-truong/' | relative_url }}" data-etf-url="{{ '/etf/chi-tiet/' | relative_url }}">
       </label>
       <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Đổi giao diện sáng/tối">
         <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -72,10 +72,12 @@
         <p>{{ site.tagline }}.</p>
       </div>
       <div class="footer-col">
-        <h4>Công cụ</h4>
-        <a href="{{ '/muc-tieu/' | relative_url }}">Mục tiêu hôm nay</a>
-        <a href="{{ '/lai-kep/' | relative_url }}">Máy tính lãi kép</a>
+        <h4>Đầu tư</h4>
+        <a href="{{ '/etf/' | relative_url }}">Danh sách ETF</a>
+        <a href="{{ '/quy-mo-phong/' | relative_url }}">Quỹ mô phỏng KCN30</a>
         <a href="{{ '/thi-truong/' | relative_url }}">Thị trường</a>
+        <a href="{{ '/lai-kep/' | relative_url }}">Máy tính lãi kép</a>
+        <a href="{{ '/muc-tieu/' | relative_url }}">Mục tiêu hôm nay</a>
       </div>
       <div class="footer-col">
         <h4>Bài viết mới</h4>
@@ -93,9 +95,12 @@
       <span>© <span id="year">{{ site.time | date: "%Y" }}</span> {{ site.title }}</span>
       <span>Nội dung chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.</span>
     </div>
+    <p class="footer-note">Dữ liệu giá lấy qua thư viện vnstock (nguồn VCI), cập nhật sau giờ đóng cửa các ngày giao dịch và có thể chậm hoặc sai sót. Kim Chỉ Nam không phải công ty quản lý quỹ, không nhận tiền đầu tư; "Quỹ mô phỏng KCN30" là danh mục giả lập để minh hoạ.</p>
   </div>
 </footer>
 
+<script>window.KCN_BASE = '{{ site.baseurl }}';</script>
 <script src="{{ '/assets/app.js' | relative_url }}"></script>
+<script src="{{ '/assets/data-pages.js' | relative_url }}"></script>
 </body>
 </html>

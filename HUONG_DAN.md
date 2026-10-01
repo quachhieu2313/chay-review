@@ -15,6 +15,9 @@ Có 2 cách sửa:
 | Mục tiêu hôm nay | `muc-tieu.html` | `/muc-tieu/` |
 | Máy tính lãi kép | `lai-kep.html` | `/lai-kep/` |
 | Thị trường | `thi-truong.html` | `/thi-truong/` |
+| Danh sách ETF | `etf/index.html` | `/etf/` |
+| Chi tiết một ETF | `etf/chi-tiet.html` | `/etf/chi-tiet/?ma=E1VFVN30` |
+| Quỹ mô phỏng KCN30 | `quy-mo-phong.html` | `/quy-mo-phong/` |
 | Danh sách bài viết | `blog/index.html` | `/blog/` |
 | Hỏi đáp | `hoi-dap.html` | `/hoi-dap/` |
 | Trang lỗi 404 | `404.html` | |
@@ -67,14 +70,20 @@ Sửa file `_data/hoi_dap.yml`. Mỗi câu gồm 2 dòng `hoi:` và `dap:`, th�
 
 Sửa file `_data/menu.yml`: đổi `ten` để đổi chữ hiển thị, đổi thứ tự các khối để đổi thứ tự menu.
 
-### Sửa số liệu thị trường
+### Số liệu thị trường, ETF, quỹ mô phỏng
 
-- 3 chỉ số: `_data/chi_so.yml`
-- Bảng cổ phiếu: `_data/co_phieu.yml` (thêm mã mới bằng cách copy một dòng rồi sửa)
+Không cần sửa tay. Script `scripts/cap_nhat_du_lieu.py` lấy dữ liệu qua vnstock và ghi vào thư mục `assets/data/`. GitHub Actions tự chạy script này lúc **16:30 thứ Hai đến thứ Sáu**.
+
+- Chạy ngay không cần chờ: vào tab **Actions** trên GitHub, chọn **Cập nhật dữ liệu thị trường**, bấm **Run workflow**.
+- Chạy trên máy: `python scripts/cap_nhat_du_lieu.py` (cần `pip install vnstock pandas`), sau đó commit và push thư mục `assets/data`.
 
 ### Đổi tên web, câu khẩu hiệu, mô tả
 
 Sửa file `_config.yml` (các dòng `title`, `tagline`, `description`, `slogan`).
+
+## Muốn bỏ một phần của web
+
+Xoá file trang tương ứng, rồi xoá mục đó khỏi `_data/menu.yml` và các link trỏ tới nó ở trang chủ (`index.html`) và chân trang (`_layouts/default.html`). Cách nhanh nhất là nhắn Claude "bỏ phần ...".
 
 ## Nếu web bị lỗi sau khi sửa
 
@@ -89,4 +98,4 @@ Xem chi tiết lỗi tại tab **Actions** của repo trên GitHub.
 ## Phần giao diện và tính năng (cần biết code)
 
 - Màu sắc, kiểu chữ, bố cục: `assets/style.css` (bảng màu nằm ở đầu file).
-- Tính năng chạy được (bảng mục tiêu, máy tính lãi kép, biểu đồ): `assets/app.js`.
+- Tính năng chạy được: `assets/app.js` (menu, giao diện tối, bảng mục tiêu, máy tính lãi kép) và `assets/data-pages.js` (ETF, quỹ mô phỏng, thị trường, biểu đồ).

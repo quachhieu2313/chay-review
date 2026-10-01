@@ -1,0 +1,71 @@
+---
+layout: default
+title: Quỹ ETF Việt Nam
+description: Danh sách và so sánh hiệu suất tất cả quỹ ETF đang niêm yết trên HOSE - giá, lợi nhuận theo kỳ, thanh khoản, chỉ số tham chiếu.
+nav: etf
+---
+<section class="page-head wrap">
+  <p class="eyebrow">Quỹ ETF Việt Nam</p>
+  <h1>Tất cả ETF đang niêm yết</h1>
+  <p>So sánh giá, lợi nhuận và thanh khoản của các quỹ ETF trên sàn HOSE. Đánh dấu ô bên trái để đưa quỹ vào biểu đồ so sánh. Cập nhật đến ngày <b id="etfDate">…</b>.</p>
+</section>
+
+<section class="wrap">
+  <div class="kpis kpis-4" id="etfKpis"></div>
+
+  <div class="toolbar">
+    <div class="chips" id="etfChips" role="group" aria-label="Lọc theo nhóm chỉ số"></div>
+    <label class="search search-inline">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="etfFilter" type="search" placeholder="Lọc theo mã hoặc tên quỹ" aria-label="Lọc theo mã hoặc tên quỹ">
+    </label>
+  </div>
+
+  <div class="table-card">
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead id="etfHead">
+          <tr>
+            <th scope="col" class="cmp"><span class="sr-only">So sánh</span></th>
+            <th scope="col"><button type="button" data-sort="ma">Quỹ <span class="arrow"></span></button></th>
+            <th scope="col" class="hide-md">Chỉ số tham chiếu</th>
+            <th scope="col" class="num"><button type="button" data-sort="gia">Giá (đ) <span class="arrow"></span></button></th>
+            <th scope="col" class="num"><button type="button" data-sort="r_1d">1 ngày <span class="arrow"></span></button></th>
+            <th scope="col" class="num hide-sm"><button type="button" data-sort="r_1m">1 tháng <span class="arrow"></span></button></th>
+            <th scope="col" class="num hide-sm"><button type="button" data-sort="r_ytd">Từ đầu năm <span class="arrow"></span></button></th>
+            <th scope="col" class="num"><button type="button" data-sort="r_1y">1 năm <span class="arrow"></span></button></th>
+            <th scope="col" class="num hide-md"><button type="button" data-sort="r_3y">3 năm <span class="arrow"></span></button></th>
+            <th scope="col" class="num hide-md" aria-sort="descending"><button type="button" data-sort="gtgd_20">GTGD/phiên <span class="arrow">↓</span></button></th>
+            <th scope="col" class="hide-sm">60 phiên</th>
+          </tr>
+        </thead>
+        <tbody id="etfBody"><tr><td colspan="11" class="empty-row">Đang tải dữ liệu…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <p class="table-note">Lợi nhuận tính theo giá đóng cửa trên sàn, không phải NAV, và có thể chưa phản ánh đầy đủ phần lợi nhuận đã phân phối (nếu có). GTGD/phiên: giá trị giao dịch bình quân 20 phiên gần nhất.</p>
+</section>
+
+<section class="section wrap" id="so-sanh">
+  <div class="card panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">So sánh</p>
+        <h2>Hiệu suất các quỹ đã chọn</h2>
+        <p class="panel-sub">Đưa về cùng mốc 0% tại đầu kỳ để so sánh công bằng.</p>
+      </div>
+      <div class="panel-tools">
+        <label class="check"><input type="checkbox" id="etfWithIndex" checked> Kèm chỉ số VN30</label>
+        <div class="seg" id="etfRange" role="group" aria-label="Khoảng thời gian">
+          <button type="button" data-m="3">3T</button>
+          <button type="button" data-m="6">6T</button>
+          <button type="button" data-m="12">1N</button>
+          <button type="button" data-m="36">3N</button>
+          <button type="button" data-m="0">Tất cả</button>
+        </div>
+      </div>
+    </div>
+    <p class="hint-box" id="etfCompareHint" hidden>Chưa chọn quỹ nào. Đánh dấu ô bên trái trong bảng phía trên để so sánh (tối đa 4 quỹ).</p>
+    <div id="etfCompare"></div>
+  </div>
+</section>
