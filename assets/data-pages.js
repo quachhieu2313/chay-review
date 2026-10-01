@@ -493,7 +493,8 @@
         }
       });
       var panes = chart.panes();
-      panes.forEach(function(p, i){ if(i > 0) p.setHeight(120); });
+      // chia chiều cao: khung giá chiếm phần lớn, mỗi khung chỉ báo một phần bằng nhau
+      panes.forEach(function(p, i){ p.setStretchFactor(i === 0 ? 3.3 : 1); });
 
       chart.subscribeCrosshairMove(function(p){
         var i = d.d.length - 1;
