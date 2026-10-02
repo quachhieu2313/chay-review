@@ -1,0 +1,49 @@
+---
+layout: default
+title: Chính sách bảo mật
+description: Kim Chỉ Nam không có tài khoản người dùng và không thu thập thông tin cá nhân; dữ liệu bạn nhập chỉ lưu trên trình duyệt của bạn.
+permalink: /bao-mat/
+---
+<div class="wrap">
+  <article class="article">
+    <p class="eyebrow">Pháp lý</p>
+    <h1>Chính sách bảo mật</h1>
+    <p class="meta">Cập nhật lần cuối: {{ site.time | date: "%d/%m/%Y" }}</p>
+    <div class="prose">
+      <div class="callout" markdown="0">
+        <b>Tóm tắt</b>
+        Kim Chỉ Nam không có tài khoản người dùng, không có máy chủ lưu thông tin của bạn và không bán dữ liệu cho ai. Những gì bạn nhập chỉ nằm trên trình duyệt của chính bạn.
+      </div>
+
+      <h2>1. Thông tin lưu trên trình duyệt của bạn</h2>
+      <p>Một số tính năng lưu dữ liệu bằng bộ nhớ cục bộ (localStorage) của trình duyệt, ngay trên thiết bị của bạn:</p>
+      <ul>
+        <li>Danh sách mục tiêu hằng ngày và lịch sử hoàn thành (trang Mục tiêu).</li>
+        <li>Danh sách mã đã ghim ★ và các chỉ báo kỹ thuật bạn chọn trên biểu đồ.</li>
+        <li>Lựa chọn giao diện sáng hoặc tối.</li>
+      </ul>
+      <p>Dữ liệu này không được gửi về bất kỳ máy chủ nào. Bạn có thể xoá bất cứ lúc nào bằng cách xoá dữ liệu duyệt web của trang trong cài đặt trình duyệt. Dữ liệu không đồng bộ giữa các thiết bị.</p>
+
+      <h2>2. Thông tin chúng tôi không thu thập</h2>
+      <p>Trang không có biểu mẫu đăng ký, không yêu cầu tên, email, số điện thoại hay thông tin tài khoản chứng khoán, và không dùng cookie quảng cáo.</p>
+
+      <h2>3. Dịch vụ của bên thứ ba</h2>
+      <ul>
+        <li><strong>GitHub Pages</strong> (lưu trữ trang): như mọi máy chủ web, GitHub có thể ghi nhật ký kỹ thuật như địa chỉ IP để vận hành và bảo vệ dịch vụ, theo chính sách bảo mật của GitHub.</li>
+        <li><strong>Google Fonts</strong> (phông chữ) và <strong>jsDelivr</strong> (thư viện biểu đồ): trình duyệt tải tệp từ các dịch vụ này, nên họ có thể nhận được địa chỉ IP của bạn theo chính sách của họ.</li>
+        {%- if site.goatcounter != "" or site.cloudflare_analytics_token != "" %}
+        <li><strong>Thống kê truy cập</strong>{% if site.goatcounter != "" %} (GoatCounter){% endif %}{% if site.cloudflare_analytics_token != "" %} (Cloudflare Web Analytics){% endif %}: đếm lượt xem trang ở dạng tổng hợp, không dùng cookie, không theo dõi cá nhân và không dùng cho quảng cáo.</li>
+        {%- endif %}
+      </ul>
+
+      <h2>4. Ứng dụng cài trên thiết bị</h2>
+      <p>Khi bạn cài Kim Chỉ Nam lên màn hình chính, trình duyệt lưu tạm một bản sao các trang đã xem để vẫn mở được khi mất mạng. Bản lưu này nằm trên thiết bị của bạn và được thay mới mỗi khi có mạng.</p>
+
+      <h2>5. Thay đổi chính sách</h2>
+      <p>Nếu cách web xử lý dữ liệu thay đổi, chính sách này sẽ được cập nhật và ngày cập nhật ghi ở đầu trang.</p>
+
+      <h2>6. Liên hệ</h2>
+      <p>Câu hỏi về quyền riêng tư, vui lòng gửi tại <a href="{{ site.lien_he }}" rel="noopener">trang góp ý của dự án</a>.</p>
+    </div>
+  </article>
+</div>

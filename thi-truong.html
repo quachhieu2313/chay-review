@@ -4,6 +4,7 @@ title: Thị trường chứng khoán
 description: Diễn biến VN-Index, VN30, HNX-Index, UPCoM-Index và bảng giá rổ VN30, cập nhật sau mỗi phiên giao dịch.
 nav: thi-truong
 permalink: /thi-truong/
+image: /assets/img/og-thi-truong.png
 ---
 <section class="section market" style="padding-top:56px;">
   <div class="wrap">
@@ -16,6 +17,7 @@ permalink: /thi-truong/
       <div class="mkt-status">
         <span class="phien-badge" id="mktPhien"><i></i><b>…</b></span>
         <span class="demo-pill"><span class="dot"></span>Cập nhật <b id="mktDate">…</b></span>
+        <a class="bt-link" href="{{ '/ban-tin/' | relative_url }}">Bản tin cuối phiên →</a>
       </div>
     </div>
 
@@ -25,6 +27,7 @@ permalink: /thi-truong/
       <div class="chart-top">
         <div class="ret-strip" id="mktRet"></div>
         <div class="seg seg-dark" id="mktRange" role="group" aria-label="Khoảng thời gian">
+          <button type="button" data-m="-1">Hôm nay</button>
           <button type="button" data-m="1">1T</button>
           <button type="button" data-m="3">3T</button>
           <button type="button" data-m="6">6T</button>
@@ -36,11 +39,18 @@ permalink: /thi-truong/
       <div id="mktChart" class="lc-dark"></div>
     </div>
 
-    <!-- ===== TOÀN CẢNH VN30 ===== -->
+    <!-- ===== TOÀN CẢNH ===== -->
+    <div class="scope-head">
+      <h2 class="sub-title">Toàn cảnh</h2>
+      <div class="seg seg-dark" id="mktScope" role="group" aria-label="Chọn rổ cổ phiếu">
+        <button type="button" data-ro="VN30" aria-pressed="true">VN30</button>
+        <button type="button" data-ro="VN100" aria-pressed="false">VN100</button>
+      </div>
+    </div>
     <div class="ov-grid">
       <section class="ov-card ov-heat" aria-labelledby="heatTitle">
         <div class="ov-head">
-          <h2 id="heatTitle">Bản đồ nhiệt VN30</h2>
+          <h2 id="heatTitle">Bản đồ nhiệt <span class="ro-ten">VN30</span></h2>
           <span class="ov-sub">Ô càng to vốn hoá càng lớn · màu theo % thay đổi</span>
         </div>
         <div class="heatmap" id="mktHeat" role="list"></div>
@@ -57,7 +67,7 @@ permalink: /thi-truong/
 
       <div class="ov-side">
         <section class="ov-card" aria-labelledby="breadthTitle">
-          <div class="ov-head"><h2 id="breadthTitle">Độ rộng VN30</h2></div>
+          <div class="ov-head"><h2 id="breadthTitle">Độ rộng <span class="ro-ten">VN30</span></h2></div>
           <div id="mktBreadth"></div>
         </section>
         <section class="ov-card" aria-labelledby="topTitle">
@@ -73,7 +83,7 @@ permalink: /thi-truong/
           <ol class="clean top-list" id="mktTop"></ol>
         </section>
         <section class="ov-card" aria-labelledby="nnTitle">
-          <div class="ov-head"><h2 id="nnTitle">Khối ngoại VN30 hôm nay</h2></div>
+          <div class="ov-head"><h2 id="nnTitle">Khối ngoại <span class="ro-ten">VN30</span> hôm nay</h2></div>
           <div id="mktForeign"></div>
         </section>
       </div>
@@ -83,7 +93,7 @@ permalink: /thi-truong/
     <div class="board-head">
       <h2 class="sub-title">Bảng giá</h2>
       <div class="seg seg-dark" id="mktTabs" role="group" aria-label="Danh sách">
-        <button type="button" data-tab="all" aria-pressed="true">Rổ VN30</button>
+        <button type="button" data-tab="all" aria-pressed="true">Rổ <span class="ro-ten">VN30</span></button>
         <button type="button" data-tab="sao" aria-pressed="false">★ Của tôi <span id="saoCount"></span></button>
       </div>
     </div>
@@ -104,6 +114,33 @@ permalink: /thi-truong/
       </div>
       <div id="wlBody" role="rowgroup"><div class="wl-empty">Đang tải dữ liệu…</div></div>
     </div>
+    <!-- ===== SO SÁNH CỔ PHIẾU ===== -->
+    <section class="ov-card cmp-card" aria-labelledby="cmpTitle">
+      <div class="ov-head">
+        <div>
+          <h2 id="cmpTitle">So sánh cổ phiếu</h2>
+          <span class="ov-sub">Tối đa 4 mã, đưa về cùng mốc 0% ở đầu kỳ</span>
+        </div>
+        <div class="seg seg-dark seg-sm" id="cmpRange" role="group" aria-label="Khoảng thời gian">
+          <button type="button" data-m="1">1T</button>
+          <button type="button" data-m="3">3T</button>
+          <button type="button" data-m="6">6T</button>
+          <button type="button" data-m="12">1N</button>
+          <button type="button" data-m="36">3N</button>
+          <button type="button" data-m="0">Tất cả</button>
+        </div>
+      </div>
+      <div class="cmp-pick">
+        <div class="cmp-chips" id="cmpChips"></div>
+        <label class="cmp-add">
+          <span class="sr-only">Thêm mã để so sánh</span>
+          <input id="cmpInput" type="text" list="cmpList" placeholder="+ Thêm mã (VD: FPT)" autocomplete="off" maxlength="10">
+          <datalist id="cmpList"></datalist>
+        </label>
+      </div>
+      <div id="cmpChart" class="lc-dark"></div>
+    </section>
+
     <p class="market-note">
       Màu giá: <b class="c-tran">tím = trần</b>, <b class="c-san">xanh lơ = sàn</b>, <b class="c-tc">vàng = tham chiếu</b>, xanh lá = tăng, đỏ = giảm.
       Giá tính bằng đồng, KL bằng triệu cổ phiếu, GTGD và NN ròng bằng tỷ đồng. Dữ liệu lấy từ bảng giá công khai của Vietcap (VCI),

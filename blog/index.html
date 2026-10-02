@@ -7,12 +7,13 @@ nav: blog
 <section class="page-head wrap">
   <p class="eyebrow">Blog</p>
   <h1>Góc nhìn về kỷ luật, mục tiêu và đầu tư</h1>
-  <p>Bài viết ngắn, thực tế, đọc trong một lần uống cà phê.</p>
+  <p>Bài viết ngắn, thực tế, đọc trong một lần uống cà phê. Tổng kết từng phiên giao dịch nằm ở mục <a href="{{ '/ban-tin/' | relative_url }}" style="color:var(--accent-strong);text-decoration:underline;">Bản tin thị trường</a>.</p>
 </section>
 
 <section class="wrap">
   <div class="blog-grid">
-    {%- for post in site.posts %}
+    {%- assign bai_viet = site.posts | where_exp: "p", "p.chu_de != 'Bản tin'" %}
+    {%- for post in bai_viet %}
     {% include post-card.html post=post %}
     {%- endfor %}
   </div>

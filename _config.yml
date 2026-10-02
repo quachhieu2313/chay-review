@@ -18,6 +18,34 @@ permalink: /blog/:title.html
 timezone: Asia/Ho_Chi_Minh
 markdown: kramdown
 
+# Ảnh mặc định khi chia sẻ link (Facebook, Zalo...), mỗi trang có thể ghi đè bằng dòng image:
+image: /assets/img/og.png
+author: Kim Chỉ Nam
+logo: /assets/img/icon-512.png
+social:
+  name: Kim Chỉ Nam
+
+# Plugin có sẵn trên GitHub Pages: sơ đồ trang cho Google, RSS, thẻ SEO
+plugins:
+  - jekyll-sitemap
+  - jekyll-feed
+  - jekyll-seo-tag
+feed:
+  posts_limit: 30
+
+# ----- Các dịch vụ bên ngoài: điền vào là web tự bật, để trống là tắt -----
+# Thống kê truy cập GoatCounter (miễn phí): tạo tài khoản ở goatcounter.com, điền mã, ví dụ "kimchinam"
+goatcounter: ""
+# Thống kê Cloudflare Web Analytics: điền token trong trang Cloudflare
+cloudflare_analytics_token: ""
+# Xác minh Google Search Console: điền chuỗi trong thẻ meta google-site-verification
+webmaster_verifications:
+  google: ""
+# Kênh nhận bản tin (Telegram, Zalo OA, email...): điền link là hiện nút "Nhận bản tin"
+kenh_ban_tin: ""
+# Nơi người đọc góp ý: mặc định là trang Issues của repo
+lien_he: "https://github.com/quachhieu2313/chay-review/issues"
+
 exclude:
   - scripts
   - AGENTS.md

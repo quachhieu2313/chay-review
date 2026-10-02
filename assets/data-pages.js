@@ -33,7 +33,7 @@
     return ngayVN(ngay) + (luc ? ' lúc ' + luc : '') + (cham(ngay, luc) ? ' (dữ liệu đang chậm hơn dự kiến)' : '');
   }
   function cls(n){ return n > 0 ? 'up' : n < 0 ? 'down' : ''; }
-  function ngayVN(s){ if(!s) return '–'; var p = s.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
+  function ngayVN(s){ if(!s) return '–'; var p = s.split('-'); return p.length < 3 ? s : p[2] + '/' + p[1] + '/' + p[0]; }
   function tien(dong){
     if(dong === null || dong === undefined) return '–';
     if(Math.abs(dong) >= 1e9) return fmt(dong / 1e9, 2) + ' tỷ';
@@ -65,6 +65,17 @@
     }
     return cache[path];
   }
+  // chỉ số tách thành từng file nhỏ: chi_so/<MÃ>.json; trả về {mã: dữ liệu}
+  function loadChiSo(keys){
+    return Promise.all(keys.map(function(k){
+      return load('chi_so/' + k + '.json').then(function(x){ return [k, x]; }).catch(function(){ return null; });
+    })).then(function(ds){
+      var out = {};
+      ds.forEach(function(x){ if(x) out[x[0]] = x[1]; });
+      return out;
+    });
+  }
+  var CHI_SO_CHINH = ['VNINDEX', 'VN30', 'HNXINDEX', 'UPCOMINDEX'];
   function fail(el, msg){
     if(el) el.innerHTML = '<div class="empty-state">' + (msg || 'Chưa tải được dữ liệu. Vui lòng thử lại sau.') + '</div>';
   }
@@ -827,7 +838,9 @@
 
   var mkt = $('#mktChart');
   if(mkt){
-    var M = {cs: null, cp: null, rows: [], current: 'VNINDEX', months: 3, sortKey: 'ma', dir: 1, filter: '', tab: 'all', top: 'tang', shown: [], cu: {}};
+    var M = {cs: null, cp: null, rows: [], ro: 'VN30', current: 'VNINDEX', months: 3, sortKey: 'ma', dir: 1, filter: '', tab: 'all', top: 'tang', shown: [], cu: {}};
+    try{ var roLuu = localStorage.getItem('kcn-ro'); if(roLuu === 'VN100') M.ro = 'VN100'; }catch(e){}
+    function trongRo(){ return M.rows.filter(function(s){ return !s.ro || s.ro.indexOf(M.ro) > -1; }); }
     var modal = StockModal(function(){ return M.shown.length ? M.shown : M.rows; });
     var chart = LineChart(mkt, {label: 'Diễn biến chỉ số', area: true, yDigits: 0});
     var body = $('#wlBody');
@@ -852,14 +865,36 @@
       }).join('');
     }
 
-    function veChiSo(){
-      var s = M.cs[M.current];
-      chart.render([{name: s.ten, color: '#3DD15C', d: s.d, c: s.c}], M.months, false);
-      var leg = mkt.querySelector('.lc-legend b'), down = leg && leg.classList.contains('down');
-      mkt.querySelectorAll('svg path').forEach(function(p){
-        if(p.getAttribute('stroke')) p.setAttribute('stroke', down ? '#FF6B61' : '#3DD15C');
+    function toMauDuong(down){
+      mkt.querySelectorAll('svg path').forEach(function(p, i){
+        var st = p.getAttribute('stroke');
+        if(st && st !== '#3DD15C' && st !== '#FF6B61') return; // giữ màu đường tham chiếu
+        if(st) p.setAttribute('stroke', down ? '#FF6B61' : '#3DD15C');
         else p.setAttribute('fill', down ? '#FF6B61' : '#3DD15C');
       });
+    }
+    function veTrongNgay(){
+      load('chi_so_ngay.json').then(function(nd){
+        var x = nd.chi_so && nd.chi_so[M.current], s = M.cs[M.current];
+        if(!x || !x.t.length){ $('#mktRet').innerHTML = '<span>Chưa có dữ liệu trong ngày của chỉ số này.</span>'; return; }
+        var tc = x.tham_chieu || x.c[0];
+        chart.render([
+          {name: s.ten + ' ' + ngayVN(nd.ngay), color: '#3DD15C', d: x.t, c: x.c},
+          {name: 'Tham chiếu', color: '#F0B429', d: x.t, c: x.t.map(function(){ return tc; })}
+        ], 0, false);
+        var cuoi = x.c[x.c.length - 1], ch = cuoi - tc;
+        toMauDuong(ch < 0);
+        var thap = Math.min.apply(null, x.c), cao = Math.max.apply(null, x.c);
+        $('#mktRet').innerHTML = '<span>Phiên ' + ngayVN(nd.ngay) + ' <b class="' + cls(ch) + '">' + (ch >= 0 ? '+' : '−') + fmt(Math.abs(ch), 2) + ' (' + pct(ch / tc * 100) + ')</b></span>' +
+          '<span>Cao nhất <b>' + fmt(cao, 2) + '</b></span><span>Thấp nhất <b>' + fmt(thap, 2) + '</b></span><span>Lúc <b>' + esc(x.t[x.t.length - 1]) + '</b></span>';
+      }).catch(function(){ $('#mktRet').innerHTML = '<span>Chưa có dữ liệu trong ngày.</span>'; });
+    }
+    function veChiSo(){
+      if(M.months === -1){ veTrongNgay(); return; }
+      var s = M.cs[M.current];
+      chart.render([{name: s.ten, color: '#3DD15C', d: s.d, c: s.c}], M.months, false);
+      var leg = mkt.querySelector('.lc-legend b');
+      toMauDuong(leg && leg.classList.contains('down'));
       var ret = returns(s.d, s.c);
       $('#mktRet').innerHTML = KY.map(function(k){
         return '<span>' + k[1] + ' <b class="' + cls(ret[k[0]]) + '">' + pct(ret[k[0]]) + '</b></span>';
@@ -869,7 +904,7 @@
     function banDoNhiet(){
       var box = $('#mktHeat'), W = box.clientWidth, H = box.clientHeight;
       if(!W || !H) return;
-      var ds = M.rows.filter(function(s){ return s.von_hoa > 0; }).sort(function(a, b){ return b.von_hoa - a.von_hoa; });
+      var ds = trongRo().filter(function(s){ return s.von_hoa > 0; }).sort(function(a, b){ return b.von_hoa - a.von_hoa; });
       var tong = ds.reduce(function(a, s){ return a + s.von_hoa; }, 0);
       var rects = treemap(ds.map(function(s){ return {it: s, area: s.von_hoa / tong * W * H}; }), 0, 0, W, H);
       box.innerHTML = rects.map(function(r){
@@ -884,13 +919,14 @@
 
     function doRong(){
       var t = 0, g = 0, d = 0, tr = 0, sa = 0, gt = 0;
-      M.rows.forEach(function(s){
+      var ro = trongRo();
+      ro.forEach(function(s){
         var c = mauGia(s);
         if(c === 'c-tran'){ tr++; t++; } else if(c === 'c-san'){ sa++; g++; }
         else if(s.thay_doi > 0) t++; else if(s.thay_doi < 0) g++; else d++;
         gt += s.gtgd || 0;
       });
-      var n = M.rows.length || 1;
+      var n = ro.length || 1;
       $('#mktBreadth').innerHTML =
         '<div class="br-bar" role="img" aria-label="' + t + ' mã tăng, ' + d + ' đứng giá, ' + g + ' mã giảm">' +
           '<i class="up-bg" style="width:' + (t / n * 100) + '%"></i><i class="flat-bg" style="width:' + (d / n * 100) + '%"></i><i class="down-bg" style="width:' + (g / n * 100) + '%"></i></div>' +
@@ -898,11 +934,11 @@
           '<span><b class="up">' + t + '</b> tăng' + (tr ? ' <small class="c-tran">(' + tr + ' trần)</small>' : '') + '</span>' +
           '<span><b class="c-tc">' + d + '</b> đứng</span>' +
           '<span><b class="down">' + g + '</b> giảm' + (sa ? ' <small class="c-san">(' + sa + ' sàn)</small>' : '') + '</span></div>' +
-        '<p class="br-note">Tổng giá trị giao dịch VN30: <b>' + ty(gt, 0) + ' tỷ</b></p>';
+        '<p class="br-note">Tổng giá trị giao dịch ' + M.ro + ': <b>' + ty(gt, 0) + ' tỷ</b></p>';
     }
 
     function noiBat(){
-      var ds = M.rows.slice(), k = M.top;
+      var ds = trongRo(), k = M.top;
       if(k === 'tang') ds.sort(function(a, b){ return b.thay_doi - a.thay_doi; });
       else if(k === 'giam') ds.sort(function(a, b){ return a.thay_doi - b.thay_doi; });
       else if(k === 'kl') ds.sort(function(a, b){ return b.khoi_luong - a.khoi_luong; });
@@ -921,7 +957,7 @@
 
     function khoiNgoai(){
       var mua = 0, ban = 0, co = false;
-      var ds = M.rows.map(function(s){
+      var ds = trongRo().map(function(s){
         if(s.nn_mua !== null && s.nn_mua !== undefined){ co = true; mua += s.nn_mua; ban += s.nn_ban || 0; }
         return {s: s, r: (s.nn_mua || 0) - (s.nn_ban || 0)};
       });
@@ -946,7 +982,7 @@
     function bang(nhay){
       var sao = docSao();
       $('#saoCount').textContent = sao.length ? '(' + sao.length + ')' : '';
-      var list = M.rows.filter(function(s){
+      var list = (M.tab === 'sao' ? M.rows : trongRo()).filter(function(s){
         if(M.tab === 'sao' && sao.indexOf(s.ma) < 0) return false;
         var f = M.filter;
         return !f || s.ma.indexOf(f) > -1 || s.ten.toUpperCase().indexOf(f) > -1 || s.nganh.toUpperCase().indexOf(f) > -1;
@@ -991,7 +1027,7 @@
     }
 
     function napDuLieu(){
-      return Promise.all([load('chi_so.json'), load('co_phieu.json')]).then(function(res){
+      return Promise.all([loadChiSo(CHI_SO_CHINH), load('co_phieu.json')]).then(function(res){
         M.cs = res[0]; M.cp = res[1]; M.rows = M.cp.co_phieu;
       });
     }
@@ -1004,6 +1040,19 @@
       veChiSo();
     });
     bindRange($('#mktRange'), M.months, function(m){ M.months = m; veChiSo(); });
+    function datRo(ro){
+      M.ro = ro;
+      try{ localStorage.setItem('kcn-ro', ro); }catch(e){}
+      $$('#mktScope button').forEach(function(x){ x.setAttribute('aria-pressed', String(x.getAttribute('data-ro') === ro)); });
+      $$('.ro-ten').forEach(function(x){ x.textContent = ro; });
+    }
+    datRo(M.ro);
+    $$('#mktScope button').forEach(function(b){
+      b.addEventListener('click', function(){
+        datRo(b.getAttribute('data-ro'));
+        doRong(); noiBat(); khoiNgoai(); bang(false); banDoNhiet();
+      });
+    });
     $$('#mktTopTabs button').forEach(function(b){
       b.addEventListener('click', function(){
         M.top = b.getAttribute('data-t');
@@ -1073,14 +1122,54 @@
     }
     window.KCN_moPopup = moMa;
 
+    // ----- so sánh cổ phiếu (tối đa 4 mã)
+    var cmp = {ds: [], thang: 12, chart: LineChart($('#cmpChart'), {label: 'So sánh hiệu suất cổ phiếu'})};
+    try{ var cmpLuu = JSON.parse(localStorage.getItem('kcn-so-sanh')); if(Array.isArray(cmpLuu)) cmp.ds = cmpLuu.slice(0, 4); }catch(e){}
+    if(!cmp.ds.length) cmp.ds = ['FPT', 'VCB', 'HPG'];
+    var MAU_SS = ['#8DA6EC', '#C6E010', '#F0A35E', '#4CC3B0'];
+    function veSoSanh(){
+      try{ localStorage.setItem('kcn-so-sanh', JSON.stringify(cmp.ds)); }catch(e){}
+      $('#cmpChips').innerHTML = cmp.ds.map(function(m, i){
+        return '<button type="button" class="sm-chip-ind" data-bo="' + esc(m) + '" aria-label="Bỏ ' + esc(m) + '"><i style="background:' + MAU_SS[i] + '"></i>' + esc(m) + ' <span aria-hidden="true">×</span></button>';
+      }).join('');
+      $('#cmpInput').disabled = cmp.ds.length >= 4;
+      $('#cmpInput').placeholder = cmp.ds.length >= 4 ? 'Tối đa 4 mã' : '+ Thêm mã (VD: FPT)';
+      Promise.all(cmp.ds.map(function(m){ return load('cp/' + m + '.json').catch(function(){ return null; }); })).then(function(ds){
+        var series = ds.map(function(x, i){ return x ? {name: x.ma, color: MAU_SS[i], d: x.d, c: x.c} : null; }).filter(Boolean);
+        if(series.length) cmp.chart.render(series, cmp.thang, true);
+        else $('#cmpChart').querySelector('svg').innerHTML = '';
+      });
+    }
+    bindRange($('#cmpRange'), cmp.thang, function(m){ cmp.thang = m; veSoSanh(); });
+    $('#cmpChips').addEventListener('click', function(e){
+      var b = e.target.closest('[data-bo]'); if(!b) return;
+      cmp.ds = cmp.ds.filter(function(m){ return m !== b.getAttribute('data-bo'); });
+      veSoSanh();
+    });
+    load('danh_muc_ma.json').then(function(dm){
+      $('#cmpList').innerHTML = dm.map(function(x){ return '<option value="' + esc(x.ma) + '">' + esc(x.ten) + '</option>'; }).join('');
+      function them(){
+        var v = $('#cmpInput').value.trim().toUpperCase();
+        if(!v) return;
+        if(!dm.some(function(x){ return x.ma === v; })){ $('#cmpInput').setCustomValidity('Chưa có dữ liệu mã ' + v); $('#cmpInput').reportValidity(); return; }
+        $('#cmpInput').setCustomValidity('');
+        if(cmp.ds.indexOf(v) < 0 && cmp.ds.length < 4) cmp.ds.push(v);
+        $('#cmpInput').value = '';
+        veSoSanh();
+      }
+      $('#cmpInput').addEventListener('change', them);
+      $('#cmpInput').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); them(); } });
+    }).catch(function(){});
+
     // cập nhật tại chỗ khi có dữ liệu mới (không tải lại trang), giá đổi thì nháy màu
     window.KCN_lamMoi = function(){
-      ['chi_so.json', 'co_phieu.json'].forEach(function(f){ delete cache[f]; });
+      ['co_phieu.json', 'chi_so_ngay.json'].concat(CHI_SO_CHINH.map(function(k){ return 'chi_so/' + k + '.json'; })).forEach(function(f){ delete cache[f]; });
       return napDuLieu().then(function(){ veHet(true); });
     };
 
     napDuLieu().then(function(){
       veHet(false);
+      veSoSanh();
       var h = location.hash.match(/ma=([A-Z0-9]+)/i);
       if(h){
         var cbm = location.hash.match(/cb=([a-z0-9,]*)/i);
@@ -1099,8 +1188,9 @@
   // =====================================================================
   var etfTable = $('#etfTable');
   if(etfTable){
-    Promise.all([load('etf.json'), load('chi_so.json')]).then(function(res){
-      var data = res[0], cs = res[1], quy = data.quy;
+    Promise.all([load('etf.json'), load('chi_so/danh_sach.json').catch(function(){ return {}; }), loadChiSo(['VN30'])]).then(function(res){
+      var data = res[0], cs = res[2], quy = data.quy;
+      Object.keys(res[1]).forEach(function(k){ if(!cs[k]) cs[k] = {ten: res[1][k]}; });
       $('#etfDate').textContent = moc(data.cap_nhat, data.cap_nhat_luc);
 
       // thẻ tổng quan
@@ -1215,7 +1305,10 @@
   var etfDetail = $('#etfDetail');
   if(etfDetail){
     var ma = (new URLSearchParams(location.search).get('ma') || '').toUpperCase();
-    Promise.all([load('etf.json'), load('chi_so.json')]).then(function(res){
+    load('etf.json').then(function(etfData){
+      var q0 = etfData.quy.filter(function(x){ return x.ma === ma; })[0];
+      return loadChiSo(q0 && q0.tham_chieu ? [q0.tham_chieu] : []).then(function(cs){ return [etfData, cs]; });
+    }).then(function(res){
       var q = res[0].quy.filter(function(x){ return x.ma === ma; })[0];
       var cs = res[1];
       if(!q){
@@ -1310,7 +1403,7 @@
   // =====================================================================
   var fund = $('#fundPage');
   if(fund){
-    Promise.all([load('quy_mo_phong.json'), load('chi_so.json'), load('etf/E1VFVN30.json').catch(function(){ return null; })]).then(function(res){
+    Promise.all([load('quy_mo_phong.json'), loadChiSo(['VN30']), load('etf/E1VFVN30.json').catch(function(){ return null; })]).then(function(res){
       var f = res[0], cs = res[1], e1 = res[2];
       var n = f.nav.length, L = f.loi_nhuan;
       $('#fNav').textContent = fmt(f.nav[n - 1], 2);

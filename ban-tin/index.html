@@ -1,0 +1,31 @@
+---
+layout: default
+title: Bản tin thị trường
+description: Tổng kết từng phiên giao dịch chứng khoán Việt Nam - chỉ số, độ rộng, thanh khoản, khối ngoại và quỹ ETF - tự động cập nhật sau giờ đóng cửa.
+nav: thi-truong
+image: /assets/img/og-ban-tin.png
+---
+<section class="page-head wrap">
+  <p class="eyebrow">Bản tin</p>
+  <h1>Bản tin thị trường</h1>
+  <p>Mỗi ngày giao dịch, sau giờ đóng cửa, hệ thống tự tổng hợp diễn biến chỉ số, độ rộng, thanh khoản và khối ngoại thành một bản tin ngắn.{% if site.kenh_ban_tin != "" %} <a href="{{ site.kenh_ban_tin }}" rel="noopener" style="color:var(--accent-strong);text-decoration:underline;">Nhận bản tin hằng ngày</a>.{% endif %}</p>
+</section>
+
+<section class="wrap">
+  {%- assign ban_tin = site.posts | where: "chu_de", "Bản tin" %}
+  {%- if ban_tin.size == 0 %}
+  <div class="note-card"><p>Bản tin đầu tiên sẽ xuất hiện sau phiên giao dịch gần nhất (sau 16:40).</p></div>
+  {%- else %}
+  <ol class="clean bt-list">
+    {%- for post in ban_tin limit:60 %}
+    <li>
+      <a href="{{ post.url | relative_url }}">
+        <span class="bt-date">{{ post.date | date: "%d/%m/%Y" }}</span>
+        <b>{{ post.title | split: ": " | last }}</b>
+        <span class="bt-desc">{{ post.description }}</span>
+      </a>
+    </li>
+    {%- endfor %}
+  </ol>
+  {%- endif %}
+</section>

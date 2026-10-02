@@ -1,0 +1,25 @@
+---
+layout: null
+sitemap: false
+---
+{
+  "name": "{{ site.title }} — {{ site.tagline }}",
+  "short_name": "{{ site.title }}",
+  "description": "{{ site.description }}",
+  "lang": "vi",
+  "start_url": "{{ '/' | relative_url }}",
+  "scope": "{{ '/' | relative_url }}",
+  "display": "standalone",
+  "background_color": "#0F1D4A",
+  "theme_color": "#264395",
+  "icons": [
+    {"src": "{{ '/assets/img/icon-192.png' | relative_url }}", "sizes": "192x192", "type": "image/png"},
+    {"src": "{{ '/assets/img/icon-512.png' | relative_url }}", "sizes": "512x512", "type": "image/png"},
+    {"src": "{{ '/assets/img/icon-maskable-512.png' | relative_url }}", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Thị trường", "url": "{{ '/thi-truong/' | relative_url }}"},
+    {"name": "Danh sách ETF", "url": "{{ '/etf/' | relative_url }}"},
+    {"name": "Bản tin", "url": "{{ '/ban-tin/' | relative_url }}"}
+  ]
+}

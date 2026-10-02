@@ -18,7 +18,9 @@ nav: blog
       <h2>Đọc tiếp</h2>
       <div class="related">
         {%- assign count = 0 %}
-        {%- for post in site.posts %}
+        {%- assign cung_loai = site.posts | where: "chu_de", page.chu_de %}
+        {%- if page.chu_de != 'Bản tin' %}{% assign cung_loai = site.posts | where_exp: "p", "p.chu_de != 'Bản tin'" %}{% endif %}
+        {%- for post in cung_loai %}
           {%- if post.url != page.url and count < 2 %}
           <a href="{{ post.url | relative_url }}"><span>{{ post.chu_de }}</span><b>{{ post.title }}</b></a>
           {%- assign count = count | plus: 1 %}

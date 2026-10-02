@@ -4,8 +4,10 @@ Cập nhật dữ liệu thị trường cho website Kim Chỉ Nam.
 
 Lấy dữ liệu trực tiếp từ API bảng giá của Vietcap (VCI) và KBS (xem scripts/nguon.py),
 rồi ghi ra các file JSON trong assets/data/:
-  chi_so.json        lịch sử các chỉ số (VN-Index, VN30, chỉ số tham chiếu của ETF...)
-  co_phieu.json      bảng theo dõi cổ phiếu rổ VN30 (trang Thị trường)
+  chi_so/<MÃ>.json   lịch sử từng chỉ số (VN-Index, VN30, chỉ số tham chiếu của ETF...)
+  chi_so_ngay.json   diễn biến theo phút trong phiên gần nhất của 4 chỉ số chính
+  ban-tin/_posts/    bản tin tổng kết phiên tự viết sau giờ đóng cửa (chế độ đầy đủ)
+  co_phieu.json      bảng giá rổ VN100 (gồm cả VN30) cho trang Thị trường
   etf.json           danh sách ETF + hiệu suất (trang ETF)
   etf/<MÃ>.json      lịch sử giá từng ETF (trang chi tiết ETF)
   cp/<MÃ>.json       nến OHLCV (+ chỉ số cơ bản với cổ phiếu) từng mã VN30 và ETF (popup chi tiết mã)
@@ -41,6 +43,9 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets" / "data"
 (OUT / "etf").mkdir(parents=True, exist_ok=True)
 (OUT / "cp").mkdir(parents=True, exist_ok=True)
+(OUT / "chi_so").mkdir(parents=True, exist_ok=True)
+BAN_TIN = ROOT / "ban-tin" / "_posts"
+CHI_SO_CHINH = ["VNINDEX", "VN30", "HNXINDEX", "UPCOMINDEX"]
 
 SO_PHIEN = 1800  # khoảng 7 năm giao dịch
 
@@ -153,8 +158,17 @@ def chi_so_co_ban(ma):
 
 
 # ---------------------------------------------------------------- chỉ số
+def doc_chi_so(ds=None):
+    out = {}
+    for ma in ds or CHI_SO:
+        x = doc_json(OUT / "chi_so" / f"{ma}.json", None)
+        if x:
+            out[ma] = x
+    return out
+
+
 def cap_nhat_chi_so():
-    cu = doc_json(OUT / "chi_so.json", {})
+    cu = doc_chi_so()
     out = {}
     for ma, ten in CHI_SO.items():
         log(f"Chỉ số {ma}")
@@ -163,13 +177,38 @@ def cap_nhat_chi_so():
             if ma in cu:
                 out[ma] = cu[ma]
             continue
-        out[ma] = {
-            "ten": ten,
-            "d": df["time"].tolist(),
-            "c": [r(x, 2) for x in df["close"]],
-        }
-    ghi_json(OUT / "chi_so.json", out)
+        out[ma] = {"ma": ma, "ten": ten, "d": df["time"].tolist(), "c": [r(x, 2) for x in df["close"]]}
+        ghi_json(OUT / "chi_so" / f"{ma}.json", out[ma])
+    ghi_json(OUT / "chi_so" / "danh_sach.json", {k: v["ten"] for k, v in out.items()})
     return out
+
+
+def cap_nhat_trong_ngay(cs):
+    """Diễn biến theo phút của phiên gần nhất cho 4 chỉ số chính."""
+    out, ngay = {}, None
+    for ma in CHI_SO_CHINH:
+        try:
+            nen = nguon.lich_su_phut(ma)
+        except Exception as e:
+            log(f"  ! phút {ma}: {str(e)[:100]}")
+            continue
+        if not nen:
+            continue
+        hom = nen[-1][1]
+        ngay = ngay or hom
+        diem = [(g, c) for g, d, c in nen if d == hom]
+        s = cs.get(ma)
+        tc = None
+        if s and s["d"]:
+            tc = s["c"][-2] if s["d"][-1] == hom and len(s["c"]) > 1 else s["c"][-1]
+        out[ma] = {"t": [g for g, _ in diem], "c": [r(c, 2) for _, c in diem], "tham_chieu": tc}
+    if out:
+        cu = doc_json(OUT / "chi_so_ngay.json", {})
+        moi = {"ngay": ngay, "chi_so": out}
+        if json.dumps(cu.get("chi_so"), sort_keys=True) != json.dumps(out, sort_keys=True):
+            moi["cap_nhat_luc"] = gio_vn()
+            ghi_json(OUT / "chi_so_ngay.json", moi)
+            log("chi_so_ngay.json đổi")
 
 
 # ---------------------------------------------------------------- ETF
@@ -276,7 +315,9 @@ def ghi_danh_muc_ma():
 
 # ---------------------------------------------------------------- VN30 + quỹ mô phỏng
 def cap_nhat_vn30_va_quy(chi_so):
-    ro = nguon.ro_chi_so("VN30")
+    ro30 = nguon.ro_chi_so("VN30")
+    ro100 = nguon.ro_chi_so("VN100")
+    ro = ro100 + [m for m in ro30 if m not in ro100]
     cty = nguon.thong_tin_cong_ty()
     ten = {k: v[0] for k, v in cty.items()}
     nganh = {k: v[1] for k, v in cty.items()}
@@ -311,13 +352,14 @@ def cap_nhat_vn30_va_quy(chi_so):
             "thay_doi": r((s.iloc[-1] / s.iloc[-2] - 1) * 100) if len(s) > 1 else 0,
             "khoi_luong": kl[ma],
             "spark": [r(x, 0) for x in s.tail(20)],
+            "ro": (["VN30"] if ma in ro30 else []) + (["VN100"] if ma in ro100 else []),
             **thong_tin_phien(phien.get(ma, {}), float(s.iloc[-1])),
         })
     ngay_cuoi = max(s.index[-1] for s in gia.values()).strftime("%Y-%m-%d") if gia else None
-    ghi_json(OUT / "co_phieu.json", {"cap_nhat": ngay_cuoi, "cap_nhat_luc": gio_vn(), "ro": "VN30", "co_phieu": co_phieu})
+    ghi_json(OUT / "co_phieu.json", {"cap_nhat": ngay_cuoi, "cap_nhat_luc": gio_vn(), "ro": "VN100", "co_phieu": co_phieu})
 
     # ----- quỹ mô phỏng: chia đều tỷ trọng các mã VN30 hiện tại, tái cân bằng đầu mỗi quý
-    bang = pd.DataFrame(gia).sort_index()
+    bang = pd.DataFrame({m: gia[m] for m in ro30 if m in gia}).sort_index()
     bang = bang[bang.index >= NGAY_KHOI_DAU].ffill()
     if bang.empty:
         return
@@ -426,7 +468,7 @@ def dat_diem(d, c, ngay, gia_tri):
 def trong_phien():
     etf = doc_json(OUT / "etf.json", None)
     cp = doc_json(OUT / "co_phieu.json", None)
-    cs = doc_json(OUT / "chi_so.json", None)
+    cs = doc_chi_so()
     quy = doc_json(OUT / "quy_mo_phong.json", None)
     if not (etf and cp and cs and quy):
         log("Chưa có dữ liệu nền, hãy chạy chế độ đầy đủ trước.")
@@ -551,9 +593,11 @@ def trong_phien():
         cuoi = df.iloc[-1]
         if pd.to_datetime(cuoi["time"]).strftime("%Y-%m-%d") == ngay:
             dat_diem(cs[ma]["d"], cs[ma]["c"], ngay, r(float(cuoi["close"]), 2))
-    if json.dumps(cs, sort_keys=True) != json.dumps(cu, sort_keys=True):
-        ghi_json(OUT / "chi_so.json", cs)
-        log("chi_so.json đổi")
+    for ma in CHI_SO_CHINH:
+        if ma in cs and json.dumps(cs[ma]) != json.dumps(cu.get(ma)):
+            ghi_json(OUT / "chi_so" / f"{ma}.json", cs[ma])
+            log(f"chi_so/{ma}.json đổi")
+    cap_nhat_trong_ngay(cs)
 
     # ----- quỹ mô phỏng: NAV tạm tính từ tỷ trọng và giá ở phiên trước
     nen = quy.get("nen")
@@ -596,6 +640,125 @@ def trong_phien():
             log("quy_mo_phong.json", "đổi" if luu(OUT / "quy_mo_phong.json", cu, quy) else "không đổi")
 
 
+# ---------------------------------------------------------------- bản tin tổng kết phiên
+def vn(x, so_le=2):
+    """Định dạng số kiểu Việt Nam: 1.234,56"""
+    if x is None:
+        return "–"
+    s = f"{abs(x):,.{so_le}f}".replace(",", "_").replace(".", ",").replace("_", ".")
+    return ("−" if x < 0 else "") + s
+
+
+def dau(x, so_le=2):
+    return ("+" if x and x > 0 else "") + vn(x, so_le)
+
+
+def viet_ban_tin():
+    """Viết bài tổng kết phiên vào ban-tin/_posts/. Chỉ viết sau 15:05 của chính ngày giao dịch đó."""
+    bay_gio = datetime.now(timezone(timedelta(hours=7)))
+    hom_nay = bay_gio.strftime("%Y-%m-%d")
+    cs = doc_chi_so(CHI_SO_CHINH)
+    vni = cs.get("VNINDEX")
+    if not vni or vni["d"][-1] != hom_nay or bay_gio.hour * 60 + bay_gio.minute < 15 * 60 + 5:
+        log("Chưa đến lúc viết bản tin (chỉ viết sau 15:05 ngày có giao dịch).")
+        return
+    cp = doc_json(OUT / "co_phieu.json", {}).get("co_phieu", [])
+    etf = doc_json(OUT / "etf.json", {}).get("quy", [])
+    quy = doc_json(OUT / "quy_mo_phong.json", {})
+    ngay_vn = bay_gio.strftime("%d/%m/%Y")
+
+    def doi(s):
+        c = s["c"]
+        return c[-1], c[-1] - c[-2], (c[-1] / c[-2] - 1) * 100
+
+    v, dv, pv = doi(vni)
+    xu_huong = "tăng" if dv > 0 else "giảm" if dv < 0 else "đứng yên"
+    dong_chi_so = []
+    for ma in CHI_SO_CHINH:
+        if ma in cs:
+            a, b, c = doi(cs[ma])
+            dong_chi_so.append(f"| {cs[ma]['ten']} | {vn(a)} | {dau(b)} | {dau(c)}% |")
+
+    def ro(m):
+        return [x for x in cp if m in (x.get("ro") or [])]
+    vn100 = ro("VN100") or cp
+    tang = sum(1 for x in vn100 if x["thay_doi"] > 0)
+    giam = sum(1 for x in vn100 if x["thay_doi"] < 0)
+    dung = len(vn100) - tang - giam
+    tran = sum(1 for x in vn100 if x.get("tran") and x["gia"] >= x["tran"])
+    san = sum(1 for x in vn100 if x.get("san") and x["gia"] <= x["san"])
+    gtgd = sum(x.get("gtgd") or 0 for x in vn100)
+    top_tang = sorted(vn100, key=lambda x: -x["thay_doi"])[:5]
+    top_giam = sorted(vn100, key=lambda x: x["thay_doi"])[:5]
+    top_gt = sorted(vn100, key=lambda x: -(x.get("gtgd") or 0))[:5]
+    nn = [(x, (x.get("nn_mua") or 0) - (x.get("nn_ban") or 0)) for x in vn100]
+    nn_rong = sum(r_ for _, r_ in nn)
+    nn_mua = sorted([t for t in nn if t[1] > 0], key=lambda t: -t[1])[:5]
+    nn_ban = sorted([t for t in nn if t[1] < 0], key=lambda t: t[1])[:5]
+
+    def ds_ma(lst, f):
+        return ", ".join(f(x) for x in lst) or "không có"
+
+    etf_top = sorted(etf, key=lambda q: -(q.get("gtgd_20") or 0))[:3]
+    tieu_de = f"Bản tin thị trường {ngay_vn}: VN-Index {xu_huong} {vn(abs(dv))} điểm"
+    mo_ta = (f"VN-Index {xu_huong} {vn(abs(pv))}% về {vn(v)} điểm; nhóm VN100 có {tang} mã tăng, {giam} mã giảm; "
+             f"khối ngoại {'mua' if nn_rong >= 0 else 'bán'} ròng {vn(abs(nn_rong) / 1e9, 1)} tỷ đồng ở nhóm VN100.")
+    nav = quy.get("nav") or []
+    dong_quy = ""
+    if nav and len(nav) > 1:
+        dong_quy = (f"\n## Quỹ mô phỏng KCN30\n\nNAV mô phỏng đạt **{vn(nav[-1])} đồng/đơn vị**, "
+                    f"{dau((nav[-1] / nav[-2] - 1) * 100)}% trong phiên, {dau(quy.get('tu_dau'), 1)}% từ ngày khởi đầu. "
+                    f"[Xem chi tiết quỹ]({{{{ '/quy-mo-phong/' | relative_url }}}}).\n")
+    noi_dung = f"""---
+title: "{tieu_de}"
+description: "{mo_ta}"
+chu_de: Bản tin
+hinh: sao
+phut_doc: 2
+image: /assets/img/og-ban-tin.png
+tu_dong: true
+---
+
+Kết thúc phiên giao dịch ngày {ngay_vn}, **VN-Index {xu_huong} {vn(abs(dv))} điểm ({dau(pv)}%)**, đóng cửa ở mức **{vn(v)} điểm**.
+
+## Các chỉ số chính
+
+| Chỉ số | Đóng cửa | Thay đổi (điểm) | Thay đổi (%) |
+|---|---:|---:|---:|
+{chr(10).join(dong_chi_so)}
+
+## Độ rộng và thanh khoản nhóm VN100
+
+- **{tang} mã tăng** ({tran} mã tăng trần), **{dung} mã đứng giá**, **{giam} mã giảm** ({san} mã giảm sàn).
+- Tổng giá trị giao dịch khớp lệnh của nhóm VN100: **{vn(gtgd / 1e9, 0)} tỷ đồng**.
+- Giao dịch sôi động nhất: {ds_ma(top_gt, lambda x: f"**{x['ma']}** ({vn((x.get('gtgd') or 0) / 1e9, 0)} tỷ)")}.
+
+## Cổ phiếu nổi bật
+
+- **Tăng mạnh nhất:** {ds_ma(top_tang, lambda x: f"{x['ma']} ({dau(x['thay_doi'])}%)")}.
+- **Giảm mạnh nhất:** {ds_ma(top_giam, lambda x: f"{x['ma']} ({dau(x['thay_doi'])}%)")}.
+
+## Khối ngoại
+
+Khối ngoại **{'mua' if nn_rong >= 0 else 'bán'} ròng {vn(abs(nn_rong) / 1e9, 1)} tỷ đồng** ở nhóm VN100.
+
+- **Mua ròng nhiều nhất:** {ds_ma(nn_mua, lambda t: f"{t[0]['ma']} ({vn(t[1] / 1e9, 1)} tỷ)")}.
+- **Bán ròng nhiều nhất:** {ds_ma(nn_ban, lambda t: f"{t[0]['ma']} ({vn(abs(t[1]) / 1e9, 1)} tỷ)")}.
+
+## Quỹ ETF
+
+Ba quỹ ETF có thanh khoản bình quân cao nhất: {ds_ma(etf_top, lambda q: f"**{q['ma']}** ({vn(q['gia'], 0)} đ, {dau(q['loi_nhuan'].get('1d'))}%)")}. [So sánh tất cả ETF]({{{{ '/etf/' | relative_url }}}}).
+{dong_quy}
+---
+
+*Bản tin được hệ thống tự động tổng hợp lúc {bay_gio.strftime("%H:%M")} từ bảng giá công khai của Vietcap (VCI). Số liệu có thể chậm hoặc sai sót, chỉ mang tính tham khảo, không phải khuyến nghị đầu tư. Xem số liệu chi tiết tại [trang Thị trường]({{{{ '/thi-truong/' | relative_url }}}}).*
+"""
+    BAN_TIN.mkdir(parents=True, exist_ok=True)
+    path = BAN_TIN / f"{hom_nay}-ban-tin-thi-truong-{bay_gio.strftime('%d-%m-%Y')}.md"
+    path.write_text(noi_dung, encoding="utf-8")
+    log(f"Đã viết bản tin: {path.name}")
+
+
 def main():
     if "--trong-phien" in sys.argv:
         trong_phien()
@@ -604,6 +767,8 @@ def main():
         cap_nhat_etf()
         cap_nhat_vn30_va_quy(chi_so)
         ghi_danh_muc_ma()
+        cap_nhat_trong_ngay(chi_so)
+        viet_ban_tin()
     if DA_GHI:
         # file nhỏ để trang web đang mở biết có dữ liệu mới mà tự tải lại
         bay_gio = datetime.now(timezone(timedelta(hours=7)))

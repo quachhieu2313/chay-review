@@ -42,9 +42,13 @@ def _goi(method, url, headers, lan=3, **kw):
             time.sleep(2 * (i + 1))
 
 
+# Vietcap dùng tên riêng cho chỉ số sàn HNX và UPCoM
+MA_VCI = {"HNXINDEX": "HNXIndex", "UPCOMINDEX": "HNXUpcomIndex"}
+
+
 def lich_su(ma, so_phien=2000):
     """Nến ngày gần nhất: DataFrame [time, open, high, low, close, volume]; None nếu không có dữ liệu."""
-    body = {"timeFrame": "ONE_DAY", "symbols": [ma], "to": int(time.time()) + 86400, "countBack": so_phien}
+    body = {"timeFrame": "ONE_DAY", "symbols": [MA_VCI.get(ma, ma)], "to": int(time.time()) + 86400, "countBack": so_phien}
     data = _goi("POST", f"{VCI}/chart/OHLCChart/gap-chart", H_VCI, data=json.dumps(body))
     if not data or not data[0].get("t"):
         return None
@@ -54,6 +58,17 @@ def lich_su(ma, so_phien=2000):
         "open": x["o"], "high": x["h"], "low": x["l"], "close": x["c"], "volume": x["v"],
     })
     return df.dropna(subset=["close"]).drop_duplicates("time", keep="last").reset_index(drop=True)
+
+
+def lich_su_phut(ma, so_nen=300):
+    """Nến 1 phút gần nhất: list (giờ 'HH:MM', ngày 'YYYY-MM-DD', giá đóng). Giờ theo giờ Việt Nam."""
+    body = {"timeFrame": "ONE_MINUTE", "symbols": [MA_VCI.get(ma, ma)], "to": int(time.time()) + 60, "countBack": so_nen}
+    data = _goi("POST", f"{VCI}/chart/OHLCChart/gap-chart", H_VCI, data=json.dumps(body))
+    if not data or not data[0].get("t"):
+        return []
+    x = data[0]
+    tg = pd.to_datetime([int(t) for t in x["t"]], unit="s") + pd.Timedelta(hours=7)
+    return [(t.strftime("%H:%M"), t.strftime("%Y-%m-%d"), c) for t, c in zip(tg, x["c"])]
 
 
 def bang_gia(ds_ma):

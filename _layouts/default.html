@@ -8,18 +8,17 @@
 {%- else -%}
   {%- assign full_title = page.title | append: " — " | append: site.title -%}
 {%- endif %}
-{%- assign desc = page.description | default: site.description %}
 <title>{{ full_title }}</title>
-<meta name="description" content="{{ desc | strip_html | escape }}">
-<link rel="canonical" href="{{ page.url | absolute_url }}">
-<meta property="og:type" content="{% if page.date %}article{% else %}website{% endif %}">
-<meta property="og:site_name" content="{{ site.title }}">
-<meta property="og:title" content="{{ page.title | default: site.title | escape }}">
-<meta property="og:description" content="{{ desc | strip_html | escape }}">
-<meta property="og:url" content="{{ page.url | absolute_url }}">
+{% seo title=false %}
 <meta property="og:locale" content="vi_VN">
 <meta name="theme-color" content="#264395">
 <link rel="icon" href="{{ '/favicon.svg' | relative_url }}" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{{ '/assets/img/apple-touch-icon.png' | relative_url }}">
+<link rel="manifest" href="{{ '/manifest.webmanifest' | relative_url }}">
+{% feed_meta %}
+{%- if page.json_ld %}
+<script type="application/ld+json">{{ page.json_ld }}</script>
+{%- endif %}
 <script>document.documentElement.classList.add('js');try{var t=localStorage.getItem('kcn-theme');if(t)document.documentElement.setAttribute('data-theme',JSON.parse(t));}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -89,14 +88,23 @@
       </div>
       <div class="footer-col">
         <h4>Bài viết mới</h4>
-        {%- for post in site.posts limit:3 %}
+        {%- assign bai_viet = site.posts | where_exp: "p", "p.chu_de != 'Bản tin'" %}
+        {%- for post in bai_viet limit:3 %}
         <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
         {%- endfor %}
       </div>
       <div class="footer-col">
         <h4>Thông tin</h4>
+        <a href="{{ '/ban-tin/' | relative_url }}">Bản tin thị trường</a>
         <a href="{{ '/blog/' | relative_url }}">Tất cả bài viết</a>
         <a href="{{ '/hoi-dap/' | relative_url }}">Hỏi đáp</a>
+        <a href="{{ '/gioi-thieu/' | relative_url }}">Giới thiệu</a>
+        <a href="{{ '/dieu-khoan/' | relative_url }}">Điều khoản &amp; miễn trừ</a>
+        <a href="{{ '/bao-mat/' | relative_url }}">Chính sách bảo mật</a>
+        <a href="{{ '/feed.xml' | relative_url }}">RSS</a>
+        {%- if site.kenh_ban_tin != "" %}
+        <a href="{{ site.kenh_ban_tin }}" rel="noopener">Nhận bản tin</a>
+        {%- endif %}
       </div>
     </div>
     <div class="footer-bottom">
@@ -108,6 +116,18 @@
 </footer>
 
 <script>window.KCN_BASE = '{{ site.baseurl }}';</script>
+<script>
+  // cài như ứng dụng (PWA): luôn lấy bản mới từ mạng, chỉ dùng bản lưu khi mất mạng
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){ navigator.serviceWorker.register('{{ '/sw.js' | relative_url }}').catch(function(){}); });
+  }
+</script>
+{%- if site.goatcounter != "" %}
+<script data-goatcounter="https://{{ site.goatcounter }}.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+{%- endif %}
+{%- if site.cloudflare_analytics_token != "" %}
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ site.cloudflare_analytics_token }}"}'></script>
+{%- endif %}
 <script src="{{ '/assets/app.js' | relative_url }}"></script>
 <script src="{{ '/assets/data-pages.js' | relative_url }}"></script>
 </body>

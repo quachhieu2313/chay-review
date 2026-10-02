@@ -20,6 +20,10 @@ Có 2 cách sửa:
 | Quỹ mô phỏng KCN30 | `quy-mo-phong.html` | `/quy-mo-phong/` |
 | Danh sách bài viết | `blog/index.html` | `/blog/` |
 | Hỏi đáp | `hoi-dap.html` | `/hoi-dap/` |
+| Bản tin thị trường | `ban-tin/index.html` (bài tự viết trong `ban-tin/_posts/`) | `/ban-tin/` |
+| Giới thiệu | `gioi-thieu.html` | `/gioi-thieu/` |
+| Điều khoản & miễn trừ | `dieu-khoan.html` | `/dieu-khoan/` |
+| Chính sách bảo mật | `bao-mat.html` | `/bao-mat/` |
 | Trang lỗi 404 | `404.html` | |
 
 Đầu trang (menu, logo) và chân trang chỉ nằm ở **một chỗ**: `_layouts/default.html`. Sửa ở đó là mọi trang đổi theo.
@@ -75,7 +79,7 @@ Sửa file `_data/menu.yml`: đổi `ten` để đổi chữ hiển thị, đổ
 Không cần sửa tay. Script `scripts/cap_nhat_du_lieu.py` lấy dữ liệu từ bảng giá công khai của Vietcap (VCI) và KBS (mã nguồn trong `scripts/nguon.py`) rồi ghi vào thư mục `assets/data/`. GitHub Actions chạy script này, được **cron-job.org** gọi theo lịch (lịch "schedule" của GitHub chạy trễ hàng giờ nên không dùng):
 
 - **Cronjob 1, `cap-nhat-trong-phien.yml`: 9:00–14:50 thứ Hai đến thứ Sáu, mỗi 10 phút.** Chỉ lấy bảng giá hiện tại, khoảng 30 giây (`--trong-phien`).
-- **Cronjob 2, `cap-nhat-du-lieu.yml`: 16:40 thứ Hai đến thứ Sáu, một lần.** Chạy đầy đủ: tải lại lịch sử, chốt giá đóng cửa, tính lại NAV quỹ mô phỏng và chỉ số rủi ro.
+- **Cronjob 2, `cap-nhat-du-lieu.yml`: 16:40 thứ Hai đến thứ Sáu, một lần.** Chạy đầy đủ: tải lại lịch sử, chốt giá đóng cửa, tính lại NAV quỹ mô phỏng và chỉ số rủi ro, **tự viết bản tin cuối phiên** vào `ban-tin/_posts/` (chỉ viết sau 15:05).
 
 Cả hai cronjob gọi `POST https://api.github.com/repos/quachhieu2313/chay-review/actions/workflows/<tên file>/dispatches` với header `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28` và body `{"ref":"main"}`. Token là fine-grained token, chỉ cấp cho repo này, quyền Actions: Read and write.
 
@@ -89,6 +93,23 @@ Không nên chạy dày hơn 10 phút: GitHub Pages chỉ build lại web khoả
 ### Đổi tên web, câu khẩu hiệu, mô tả
 
 Sửa file `_config.yml` (các dòng `title`, `tagline`, `description`, `slogan`).
+
+## Bật các dịch vụ bên ngoài (chỉ cần điền vào `_config.yml`)
+
+| Dòng trong `_config.yml` | Tác dụng | Lấy ở đâu |
+|---|---|---|
+| `goatcounter: "ten-cua-ban"` | Thống kê lượt xem, không cookie | Đăng ký miễn phí ở goatcounter.com, tên chọn lúc đăng ký |
+| `cloudflare_analytics_token: "..."` | Thống kê lượt xem của Cloudflare | Cloudflare → Web Analytics → Add site → copy token |
+| `webmaster_verifications: google: "..."` | Xác minh với Google Search Console | Search Console → Thêm tài sản → Thẻ HTML → copy phần `content="..."` |
+| `kenh_ban_tin: "https://t.me/..."` | Hiện nút "Nhận bản tin" ở chân trang và trang Bản tin | Link kênh Telegram/Zalo OA/trang đăng ký email |
+| `lien_he: "..."` | Link góp ý ở các trang Giới thiệu/Điều khoản/Bảo mật | Mặc định là trang Issues của repo |
+
+Sau khi xác minh Search Console, gửi sơ đồ trang: `https://<địa-chỉ-web>/sitemap.xml`.
+
+## Đổi tên repo hoặc dùng tên miền riêng
+
+- **Đổi tên repo** (ví dụ thành `kim-chi-nam`): GitHub → Settings → General → Repository name. Sau đó sửa `baseurl: "/kim-chi-nam"` trong `_config.yml`, sửa tên repo trong URL của 2 cronjob trên cron-job.org và dòng `lien_he`.
+- **Tên miền riêng** (ví dụ `kimchinam.vn`): mua tên miền, trỏ bản ghi DNS về GitHub Pages (4 bản ghi A: 185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153, hoặc CNAME `www` → `quachhieu2313.github.io`), vào Settings → Pages → Custom domain điền tên miền và bật Enforce HTTPS. Sau đó trong `_config.yml` đổi `url: "https://kimchinam.vn"` và `baseurl: ""`.
 
 ## Muốn bỏ một phần của web
 

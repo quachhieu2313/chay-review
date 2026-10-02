@@ -1014,3 +1014,26 @@ body.modal-open{overflow:hidden;}
   .board .wl-name, .board .wl-vol, .board .wl-spark{display:none;}
   .nn-cols{grid-template-columns:1fr;}
 }
+
+/* bản tin, chọn rổ, so sánh cổ phiếu */
+.bt-list{display:flex; flex-direction:column; gap:10px;}
+.bt-list a{display:grid; grid-template-columns:110px 1fr; gap:4px 18px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 20px; transition:border-color .15s;}
+.bt-list a:hover{border-color:var(--accent);}
+.bt-date{grid-row:span 2; font-family:"JetBrains Mono",monospace; font-size:13px; color:var(--accent-strong); font-weight:600; padding-top:2px;}
+.bt-list b{font-size:16px;}
+.bt-desc{font-size:13.5px; color:var(--ink-soft); line-height:1.55;}
+.bt-link{font-size:12.5px; font-weight:600; color:var(--lime);}
+.bt-link:hover{text-decoration:underline;}
+.scope-head{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin:30px 0 4px;}
+.scope-head .sub-title{margin:0;}
+.cmp-card{margin-top:24px;}
+.cmp-pick{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;}
+.cmp-chips{display:flex; gap:6px; flex-wrap:wrap;}
+.cmp-add input{background:var(--market-bg); border:1px solid var(--market-border); color:var(--market-ink); border-radius:8px; padding:6px 10px; font-family:"JetBrains Mono",monospace; font-size:12.5px; width:170px; text-transform:uppercase;}
+.cmp-add input::placeholder{text-transform:none; color:#7F89A8;}
+.cmp-add input:focus{outline:2px solid var(--lime); outline-offset:1px;}
+.cmp-card .lc-legend{display:flex;}
+@media (max-width:720px){
+  .bt-list a{grid-template-columns:1fr;}
+  .bt-date{grid-row:auto;}
+}

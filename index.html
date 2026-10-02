@@ -54,6 +54,25 @@ nav: home
   <div class="etf-minis" id="homeEtf"></div>
 </section>
 
+<!-- ===== BẢN TIN MỚI NHẤT ===== -->
+{%- assign ban_tin = site.posts | where: "chu_de", "Bản tin" %}
+{%- if ban_tin.size > 0 %}
+<section class="wrap" style="margin-bottom:56px;">
+  <div class="section-row reveal" style="margin-bottom:18px;">
+    <div class="section-head" style="margin-bottom:0;">
+      <p class="eyebrow">Bản tin</p>
+      <h2>Tổng kết phiên gần nhất</h2>
+    </div>
+    <a class="btn btn-ghost" href="{{ '/ban-tin/' | relative_url }}">Tất cả bản tin</a>
+  </div>
+  <ol class="clean bt-list reveal">
+    {%- for post in ban_tin limit:3 %}
+    <li><a href="{{ post.url | relative_url }}"><span class="bt-date">{{ post.date | date: "%d/%m/%Y" }}</span><b>{{ post.title | split: ": " | last }}</b><span class="bt-desc">{{ post.description }}</span></a></li>
+    {%- endfor %}
+  </ol>
+</section>
+{%- endif %}
+
 <!-- ===== CÔNG CỤ ===== -->
 <section class="section tools">
   <div class="wrap">
@@ -123,7 +142,8 @@ nav: home
       <a class="btn btn-ghost" href="{{ '/blog/' | relative_url }}">Xem tất cả bài viết</a>
     </div>
     <div class="blog-grid">
-      {%- for post in site.posts limit:3 %}
+      {%- assign bai_viet = site.posts | where_exp: "p", "p.chu_de != 'Bản tin'" %}
+      {%- for post in bai_viet limit:3 %}
       {% include post-card.html post=post %}
       {%- endfor %}
     </div>
