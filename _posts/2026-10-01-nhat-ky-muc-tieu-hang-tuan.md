@@ -28,4 +28,4 @@ Nhà đầu tư giỏi cũng làm điều tương tự với danh mục của h�
 
 ## Bắt đầu từ tuần này
 
-Bạn không cần ứng dụng phức tạp. Hãy dùng [bảng mục tiêu hôm nay]({{ '/muc-tieu/' | relative_url }}) để ghi lại việc mỗi ngày. Lịch 7 ngày bên dưới bảng sẽ cho bạn biết ngay tuần này mình đã giữ nhịp tốt đến đâu.
+Bạn không cần ứng dụng phức tạp. Hãy dùng [bảng mục tiêu hôm nay]({{ '/cong-cu/' | relative_url }}#muc-tieu) để ghi lại việc mỗi ngày. Lịch 7 ngày bên dưới bảng sẽ cho bạn biết ngay tuần này mình đã giữ nhịp tốt đến đâu.

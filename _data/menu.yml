@@ -15,12 +15,9 @@
 - id: thi-truong
   ten: Thị trường
   link: /thi-truong/
-- id: lai-kep
-  ten: Lãi kép
-  link: /lai-kep/
-- id: muc-tieu
-  ten: Mục tiêu
-  link: /muc-tieu/
+- id: cong-cu
+  ten: Công cụ
+  link: /cong-cu/
 - id: blog
   ten: Blog
   link: /blog/

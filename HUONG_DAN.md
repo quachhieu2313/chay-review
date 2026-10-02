@@ -12,8 +12,7 @@ Có 2 cách sửa:
 | Trang | File | Địa chỉ |
 |---|---|---|
 | Trang chủ | `index.html` | `/` |
-| Mục tiêu hôm nay | `muc-tieu.html` | `/muc-tieu/` |
-| Máy tính lãi kép | `lai-kep.html` | `/lai-kep/` |
+| Công cụ (lãi kép + mục tiêu hôm nay, hai tab) | `cong-cu.html` | `/cong-cu/` |
 | Thị trường | `thi-truong.html` | `/thi-truong/` |
 | Danh sách ETF | `etf/index.html` | `/etf/` |
 | Chi tiết một ETF | `etf/chi-tiet.html` | `/etf/chi-tiet/?ma=E1VFVN30` |

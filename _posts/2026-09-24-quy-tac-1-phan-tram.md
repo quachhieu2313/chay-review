@@ -41,4 +41,4 @@ Nếu mỗi ngày bạn tiến bộ 1% và duy trì suốt một năm, kết qu�
 3. Gắn nó vào một thói quen có sẵn: "sau khi pha cà phê buổi sáng, tôi sẽ…".
 4. Đánh dấu mỗi ngày bạn làm được. Đừng phá chuỗi.
 
-Bạn có thể dùng ngay [bảng mục tiêu hôm nay]({{ '/muc-tieu/' | relative_url }}) để bắt đầu chuỗi đầu tiên của mình.
+Bạn có thể dùng ngay [bảng mục tiêu hôm nay]({{ '/cong-cu/' | relative_url }}#muc-tieu) để bắt đầu chuỗi đầu tiên của mình.

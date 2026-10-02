@@ -1,0 +1,157 @@
+---
+layout: default
+title: Công cụ lãi kép và mục tiêu hôm nay
+description: Hai công cụ miễn phí trong một trang - máy tính lãi kép cho khoản đầu tư đều đặn hằng tháng, và bảng mục tiêu hôm nay giữ chuỗi ngày kỷ luật. Lưu ngay trên trình duyệt của bạn.
+nav: cong-cu
+permalink: /cong-cu/
+---
+<section class="page-head wrap">
+  <p class="eyebrow">Công cụ</p>
+  <h1 id="ccTieuDe">Máy tính lãi kép</h1>
+  <p id="ccMoTa">Kéo các thanh trượt để xem tiền của bạn lớn lên thế nào nếu đầu tư đều đặn mỗi tháng. Đơn vị: triệu đồng.</p>
+  <div class="seg" id="ccTab" role="tablist" aria-label="Chọn công cụ" style="margin-top:14px;">
+    <button type="button" role="tab" id="tabLaiKep" data-t="lai-kep" aria-controls="panLaiKep" aria-selected="true">Lãi kép</button>
+    <button type="button" role="tab" id="tabMucTieu" data-t="muc-tieu" aria-controls="panMucTieu" aria-selected="false">Mục tiêu hôm nay</button>
+  </div>
+</section>
+
+<div id="panLaiKep" role="tabpanel" aria-labelledby="tabLaiKep">
+<section class="wrap">
+  <div class="card calc" id="calc">
+    <div class="calc-form">
+      <div class="field">
+        <label for="cInit">Vốn ban đầu <output id="oInit"></output></label>
+        <input id="cInit" type="range" min="0" max="2000" step="10" value="50">
+      </div>
+      <div class="field">
+        <label for="cMonthly">Góp thêm mỗi tháng <output id="oMonthly"></output></label>
+        <input id="cMonthly" type="range" min="0" max="50" step="0.5" value="3">
+      </div>
+      <div class="field">
+        <label for="cRate">Lợi nhuận kỳ vọng mỗi năm <output id="oRate"></output></label>
+        <input id="cRate" type="range" min="0" max="20" step="0.5" value="10">
+        <p class="hint">Lãi tiết kiệm ngân hàng thường khoảng 4–6%/năm.</p>
+      </div>
+      <div class="field">
+        <label for="cYears">Thời gian <output id="oYears"></output></label>
+        <input id="cYears" type="range" min="1" max="40" step="1" value="15">
+      </div>
+    </div>
+    <div class="calc-result">
+      <div class="kpis">
+        <div class="kpi main"><span>Tổng giá trị cuối kỳ</span><b id="rTotal" class="tabular">–</b></div>
+        <div class="kpi"><span>Tổng tiền bạn góp</span><b id="rPaid" class="tabular">–</b></div>
+        <div class="kpi"><span>Tiền lãi sinh ra</span><b id="rGain" class="tabular">–</b></div>
+      </div>
+      <div>
+        <div class="chart-legend" style="margin-bottom:12px;">
+          <span><i style="background:var(--ink-soft);opacity:.35"></i>Tiền góp</span>
+          <span><i style="background:var(--accent)"></i>Tiền lãi</span>
+        </div>
+        <div class="bars"><svg id="barsSvg" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Biểu đồ giá trị tài sản theo từng năm"></svg></div>
+        <div class="bars-axis"><span>Năm 1</span><span id="axisMid"></span><span id="axisEnd"></span></div>
+      </div>
+      <p class="calc-note">Kết quả giả định lợi nhuận đều đặn và gộp lãi hàng tháng, chưa trừ thuế, phí và lạm phát. Chỉ dùng để minh hoạ, không phải khuyến nghị đầu tư.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section wrap">
+  <div class="explain">
+    <div>
+      <h2>Lãi kép là gì?</h2>
+      <p>Lãi kép là khi tiền lãi của kỳ này được cộng vào vốn để tiếp tục sinh lãi ở kỳ sau. Thời gian càng dài, phần lãi càng chiếm tỷ trọng lớn trong tổng tài sản. Đó là lý do bắt đầu sớm thường quan trọng hơn bắt đầu với nhiều tiền.</p>
+    </div>
+    <div>
+      <h2>Quy tắc 72</h2>
+      <p>Lấy 72 chia cho lãi suất mỗi năm để ước tính số năm cần thiết để tiền tăng gấp đôi. Ví dụ với lợi nhuận 8%/năm, tiền của bạn gấp đôi sau khoảng 72 ÷ 8 = 9 năm.</p>
+    </div>
+  </div>
+</section>
+</div>
+
+<div id="panMucTieu" role="tabpanel" aria-labelledby="tabMucTieu" hidden>
+<section class="wrap tool-layout">
+  <div class="card tracker">
+    <div id="tracker">
+      <div class="tracker-head">
+        <div>
+          <h2>Danh sách hôm nay</h2>
+          <p class="tracker-date" id="trackerDate"></p>
+        </div>
+        <span class="streak" title="Số ngày liên tiếp có ít nhất một mục tiêu hoàn thành">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 11a5 5 0 0 1-10 0c0-2.5 1.2-4 2.5-5 .2 1.8 1 3 2.5 3.5C11 9 11 5 12 2z"/></svg>
+          <span><span id="streakDays">0</span> ngày liên tiếp</span>
+        </span>
+      </div>
+      <div class="progress">
+        <div class="progress-label"><span id="goalCount">0/0 mục tiêu</span><span id="goalPct" class="tabular">0%</span></div>
+        <div class="progress-bar"><span id="goalBar"></span></div>
+      </div>
+      <ul class="clean goal-list" id="goalList" aria-live="polite"></ul>
+      <form class="goal-form" id="goalForm">
+        <label class="sr-only" for="goalInput">Mục tiêu mới</label>
+        <input id="goalInput" type="text" maxlength="120" placeholder="Thêm mục tiêu, vd: Đọc 20 trang sách" autocomplete="off">
+        <label class="sr-only" for="goalCat">Nhóm</label>
+        <select id="goalCat">
+          <option>Sức khỏe</option>
+          <option>Công việc</option>
+          <option>Tài chính</option>
+          <option>Học tập</option>
+          <option>Gia đình</option>
+        </select>
+        <button class="btn btn-accent" type="submit">Thêm</button>
+      </form>
+      <div class="week" id="week" aria-label="Mức hoàn thành 7 ngày gần nhất"></div>
+      <p class="tracker-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        Lưu trên trình duyệt này. Mở lại trang vào ngày mai, danh sách vẫn còn và sẵn sàng cho ngày mới.
+      </p>
+    </div>
+  </div>
+
+  <aside class="side-tips">
+    <div class="tip">
+      <h3>Đặt mục tiêu thế nào cho dễ giữ?</h3>
+      <ul>
+        <li><b>Cụ thể:</b> "Đi bộ 30 phút" thay vì "tập thể dục".</li>
+        <li><b>Nhỏ:</b> nhỏ đến mức gần như không thể thất bại.</li>
+        <li><b>Ít:</b> ba việc mỗi ngày là đủ.</li>
+      </ul>
+    </div>
+    <div class="tip">
+      <h3>Ý nghĩa ô màu trong lịch tuần</h3>
+      <p class="legend-row"><i class="week-dot"></i> Chưa làm</p>
+      <p class="legend-row"><i class="week-dot l1"></i> Dưới một nửa</p>
+      <p class="legend-row"><i class="week-dot l2"></i> Từ một nửa trở lên</p>
+      <p class="legend-row"><i class="week-dot l3"></i> Hoàn thành tất cả</p>
+    </div>
+    <a class="tip tip-link" href="{{ '/blog/nhat-ky-muc-tieu-hang-tuan.html' | relative_url }}">
+      <span class="eyebrow">Đọc thêm</span>
+      <b>Vì sao nên viết nhật ký mục tiêu hàng tuần →</b>
+    </a>
+  </aside>
+</section>
+</div>
+
+<script>
+(function(){
+  var TAB = {
+    'lai-kep': {tieu_de: 'Máy tính lãi kép', mo_ta: 'Kéo các thanh trượt để xem tiền của bạn lớn lên thế nào nếu đầu tư đều đặn mỗi tháng. Đơn vị: triệu đồng.', pan: 'panLaiKep'},
+    'muc-tieu': {tieu_de: 'Mục tiêu hôm nay', mo_ta: 'Viết ra tối đa ba việc cụ thể, làm xong thì tích. Mỗi ngày có ít nhất một việc hoàn thành, chuỗi kỷ luật của bạn dài thêm một ngày.', pan: 'panMucTieu'}
+  };
+  var nut = document.querySelectorAll('#ccTab button');
+  function chon(k, doiHash){
+    if(!TAB[k]) k = 'lai-kep';
+    Object.keys(TAB).forEach(function(t){ document.getElementById(TAB[t].pan).hidden = t !== k; });
+    Array.prototype.forEach.call(nut, function(b){ b.setAttribute('aria-selected', b.getAttribute('data-t') === k ? 'true' : 'false'); });
+    document.getElementById('ccTieuDe').textContent = TAB[k].tieu_de;
+    document.getElementById('ccMoTa').textContent = TAB[k].mo_ta;
+    document.title = TAB[k].tieu_de + ' | ' + document.title.split(' | ').slice(-1)[0];
+    if(doiHash && history.replaceState) history.replaceState(null, '', '#' + k);
+  }
+  Array.prototype.forEach.call(nut, function(b){ b.addEventListener('click', function(){ chon(b.getAttribute('data-t'), true); }); });
+  window.addEventListener('hashchange', function(){ chon(location.hash.slice(1), false); });
+  chon(location.hash.slice(1), false);
+})();
+</script>

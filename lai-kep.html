@@ -1,65 +1,17 @@
 ---
-layout: default
-title: Máy tính lãi kép
-description: Tính nhanh số tiền bạn có được khi đầu tư đều đặn mỗi tháng trong nhiều năm, kèm biểu đồ tiền góp và tiền lãi theo từng năm.
-nav: lai-kep
+layout: null
 permalink: /lai-kep/
+sitemap: false
 ---
-<section class="page-head wrap">
-  <p class="eyebrow">Công cụ</p>
-  <h1>Máy tính lãi kép</h1>
-  <p>Kéo các thanh trượt để xem tiền của bạn lớn lên thế nào nếu đầu tư đều đặn mỗi tháng. Đơn vị: triệu đồng.</p>
-</section>
-
-<section class="wrap">
-  <div class="card calc" id="calc">
-    <div class="calc-form">
-      <div class="field">
-        <label for="cInit">Vốn ban đầu <output id="oInit"></output></label>
-        <input id="cInit" type="range" min="0" max="2000" step="10" value="50">
-      </div>
-      <div class="field">
-        <label for="cMonthly">Góp thêm mỗi tháng <output id="oMonthly"></output></label>
-        <input id="cMonthly" type="range" min="0" max="50" step="0.5" value="3">
-      </div>
-      <div class="field">
-        <label for="cRate">Lợi nhuận kỳ vọng mỗi năm <output id="oRate"></output></label>
-        <input id="cRate" type="range" min="0" max="20" step="0.5" value="10">
-        <p class="hint">Lãi tiết kiệm ngân hàng thường khoảng 4–6%/năm.</p>
-      </div>
-      <div class="field">
-        <label for="cYears">Thời gian <output id="oYears"></output></label>
-        <input id="cYears" type="range" min="1" max="40" step="1" value="15">
-      </div>
-    </div>
-    <div class="calc-result">
-      <div class="kpis">
-        <div class="kpi main"><span>Tổng giá trị cuối kỳ</span><b id="rTotal" class="tabular">–</b></div>
-        <div class="kpi"><span>Tổng tiền bạn góp</span><b id="rPaid" class="tabular">–</b></div>
-        <div class="kpi"><span>Tiền lãi sinh ra</span><b id="rGain" class="tabular">–</b></div>
-      </div>
-      <div>
-        <div class="chart-legend" style="margin-bottom:12px;">
-          <span><i style="background:var(--ink-soft);opacity:.35"></i>Tiền góp</span>
-          <span><i style="background:var(--accent)"></i>Tiền lãi</span>
-        </div>
-        <div class="bars"><svg id="barsSvg" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Biểu đồ giá trị tài sản theo từng năm"></svg></div>
-        <div class="bars-axis"><span>Năm 1</span><span id="axisMid"></span><span id="axisEnd"></span></div>
-      </div>
-      <p class="calc-note">Kết quả giả định lợi nhuận đều đặn và gộp lãi hàng tháng, chưa trừ thuế, phí và lạm phát. Chỉ dùng để minh hoạ, không phải khuyến nghị đầu tư.</p>
-    </div>
-  </div>
-</section>
-
-<section class="section wrap">
-  <div class="explain">
-    <div>
-      <h2>Lãi kép là gì?</h2>
-      <p>Lãi kép là khi tiền lãi của kỳ này được cộng vào vốn để tiếp tục sinh lãi ở kỳ sau. Thời gian càng dài, phần lãi càng chiếm tỷ trọng lớn trong tổng tài sản. Đó là lý do bắt đầu sớm thường quan trọng hơn bắt đầu với nhiều tiền.</p>
-    </div>
-    <div>
-      <h2>Quy tắc 72</h2>
-      <p>Lấy 72 chia cho lãi suất mỗi năm để ước tính số năm cần thiết để tiền tăng gấp đôi. Ví dụ với lợi nhuận 8%/năm, tiền của bạn gấp đôi sau khoảng 72 ÷ 8 = 9 năm.</p>
-    </div>
-  </div>
-</section>
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Đang chuyển trang…</title>
+<meta name="robots" content="noindex">
+<link rel="canonical" href="{{ '/cong-cu/' | absolute_url }}">
+<meta http-equiv="refresh" content="0; url={{ '/cong-cu/' | relative_url }}#lai-kep">
+<script>location.replace("{{ '/cong-cu/' | relative_url }}#lai-kep");</script>
+</head>
+<body><p>Trang này đã được gộp vào <a href="{{ '/cong-cu/' | relative_url }}#lai-kep">trang Công cụ</a>.</p></body>
+</html>
