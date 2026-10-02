@@ -216,6 +216,26 @@ def cap_nhat_etf():
     return ds
 
 
+# ---------------------------------------------------------------- thông tin phiên cho bảng giá
+def thong_tin_phien(row, gia):
+    """Tham chiếu/trần/sàn, giá trị giao dịch, khối ngoại, vốn hoá từ một dòng bảng giá."""
+    def so(k):
+        v = row.get(k)
+        return None if v is None or pd.isna(v) else float(v)
+    gt = so("match_accumulated_value")
+    nn_mua, nn_ban = so("match_foreign_buy_value"), so("match_foreign_sell_value")
+    cp_ny = so("listing_listed_share")
+    return {
+        "tham_chieu": so("listing_ref_price"),
+        "tran": so("listing_ceiling"),
+        "san": so("listing_floor"),
+        "gtgd": r(gt * 1e6, 0) if gt is not None else None,
+        "nn_mua": r(nn_mua, 0) if nn_mua is not None else None,
+        "nn_ban": r(nn_ban, 0) if nn_ban is not None else None,
+        "von_hoa": r(cp_ny * gia, 0) if cp_ny and gia else None,
+    }
+
+
 # ---------------------------------------------------------------- file nến cho popup
 def ghi_nen(ma, ten, nganh, loai, df, ph, co_ban):
     cu = doc_json(OUT / "cp" / f"{ma}.json", {})
@@ -291,6 +311,7 @@ def cap_nhat_vn30_va_quy(chi_so):
             "thay_doi": r((s.iloc[-1] / s.iloc[-2] - 1) * 100) if len(s) > 1 else 0,
             "khoi_luong": kl[ma],
             "spark": [r(x, 0) for x in s.tail(20)],
+            **thong_tin_phien(phien.get(ma, {}), float(s.iloc[-1])),
         })
     ngay_cuoi = max(s.index[-1] for s in gia.values()).strftime("%Y-%m-%d") if gia else None
     ghi_json(OUT / "co_phieu.json", {"cap_nhat": ngay_cuoi, "cap_nhat_luc": gio_vn(), "ro": "VN30", "co_phieu": co_phieu})
@@ -419,6 +440,7 @@ def trong_phien():
         return
     gia, ngay = {}, None
     nen_hom_nay = {}
+    dong_bang = {row.get("listing_symbol"): row for row in bang}
     for row in bang:
         p = row.get("match_match_price")
         if p is None or pd.isna(p) or float(p) <= 0:
@@ -468,6 +490,7 @@ def trong_phien():
         if ref:
             x["thay_doi"] = r((p / ref - 1) * 100)
         x["khoi_luong"] = vol
+        x.update(thong_tin_phien(dong_bang.get(x["ma"], {}), p))
         if hom_nay_da_co:
             x["spark"][-1] = r(p, 0)
         else:

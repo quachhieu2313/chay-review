@@ -76,6 +76,9 @@ def bang_gia(ds_ma):
                 "match_open_price": mp.get("openPrice"),
                 "match_highest": mp.get("highest"),
                 "match_lowest": mp.get("lowest"),
+                "match_accumulated_value": mp.get("accumulatedValue"),  # triệu đồng
+                "match_foreign_buy_value": mp.get("foreignBuyValue"),   # đồng
+                "match_foreign_sell_value": mp.get("foreignSellValue"),
             })
     return out
 

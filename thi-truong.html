@@ -11,9 +11,12 @@ permalink: /thi-truong/
       <div class="section-head">
         <p class="eyebrow">Thị trường chứng khoán</p>
         <h1 class="market-title">Bức tranh thị trường trong một màn hình</h1>
-        <p>Chọn chỉ số để xem diễn biến, bấm tiêu đề cột để sắp xếp, gõ mã hoặc tên ngành vào ô tìm kiếm để lọc.</p>
+        <p>Bấm vào chỉ số để xem diễn biến, bấm vào ô hoặc dòng của một mã để mở biểu đồ chi tiết, bấm ☆ để ghim mã vào danh sách của bạn.</p>
       </div>
-      <span class="demo-pill"><span class="dot"></span>Cập nhật <b id="mktDate">…</b></span>
+      <div class="mkt-status">
+        <span class="phien-badge" id="mktPhien"><i></i><b>…</b></span>
+        <span class="demo-pill"><span class="dot"></span>Cập nhật <b id="mktDate">…</b></span>
+      </div>
     </div>
 
     <div class="indices indices-4" id="mktCards"></div>
@@ -33,19 +36,79 @@ permalink: /thi-truong/
       <div id="mktChart" class="lc-dark"></div>
     </div>
 
-    <h2 class="sub-title">Rổ VN30</h2>
-    <div class="watchlist" role="table" aria-label="Bảng giá rổ VN30">
+    <!-- ===== TOÀN CẢNH VN30 ===== -->
+    <div class="ov-grid">
+      <section class="ov-card ov-heat" aria-labelledby="heatTitle">
+        <div class="ov-head">
+          <h2 id="heatTitle">Bản đồ nhiệt VN30</h2>
+          <span class="ov-sub">Ô càng to vốn hoá càng lớn · màu theo % thay đổi</span>
+        </div>
+        <div class="heatmap" id="mktHeat" role="list"></div>
+        <div class="heat-legend" aria-hidden="true">
+          <span class="hl" style="background:#2AA9C9">Sàn</span>
+          <span class="hl" style="background:#B83B3B">≤ −3%</span>
+          <span class="hl" style="background:#8A3A45">−1%</span>
+          <span class="hl" style="background:#3A4770">0%</span>
+          <span class="hl" style="background:#2D7A4A">+1%</span>
+          <span class="hl" style="background:#25A653">≥ +3%</span>
+          <span class="hl" style="background:#8A4FD6">Trần</span>
+        </div>
+      </section>
+
+      <div class="ov-side">
+        <section class="ov-card" aria-labelledby="breadthTitle">
+          <div class="ov-head"><h2 id="breadthTitle">Độ rộng VN30</h2></div>
+          <div id="mktBreadth"></div>
+        </section>
+        <section class="ov-card" aria-labelledby="topTitle">
+          <div class="ov-head">
+            <h2 id="topTitle">Nổi bật</h2>
+            <div class="seg seg-dark seg-sm" id="mktTopTabs" role="group" aria-label="Xếp hạng theo">
+              <button type="button" data-t="tang" aria-pressed="true">Tăng</button>
+              <button type="button" data-t="giam" aria-pressed="false">Giảm</button>
+              <button type="button" data-t="kl" aria-pressed="false">KL</button>
+              <button type="button" data-t="gtgd" aria-pressed="false">GTGD</button>
+            </div>
+          </div>
+          <ol class="clean top-list" id="mktTop"></ol>
+        </section>
+        <section class="ov-card" aria-labelledby="nnTitle">
+          <div class="ov-head"><h2 id="nnTitle">Khối ngoại VN30 hôm nay</h2></div>
+          <div id="mktForeign"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ===== BẢNG GIÁ ===== -->
+    <div class="board-head">
+      <h2 class="sub-title">Bảng giá</h2>
+      <div class="seg seg-dark" id="mktTabs" role="group" aria-label="Danh sách">
+        <button type="button" data-tab="all" aria-pressed="true">Rổ VN30</button>
+        <button type="button" data-tab="sao" aria-pressed="false">★ Của tôi <span id="saoCount"></span></button>
+      </div>
+    </div>
+    <div class="watchlist board" role="table" aria-label="Bảng giá">
       <div class="wl-head" role="row">
+        <span role="columnheader"><span class="sr-only">Ghim</span></span>
         <span role="columnheader" aria-sort="ascending"><button type="button" data-sort="ma">Mã <span class="arrow">↑</span></button></span>
         <span role="columnheader" class="wl-name"><button type="button" data-sort="ten">Công ty <span class="arrow"></span></button></span>
+        <span role="columnheader" class="right b-ext">TC</span>
+        <span role="columnheader" class="right b-ext">Trần</span>
+        <span role="columnheader" class="right b-ext">Sàn</span>
         <span role="columnheader" class="right"><button type="button" data-sort="gia">Giá <span class="arrow"></span></button></span>
         <span role="columnheader" class="right"><button type="button" data-sort="thay_doi">+/- % <span class="arrow"></span></button></span>
-        <span role="columnheader" class="right wl-vol"><button type="button" data-sort="khoi_luong">Khối lượng <span class="arrow"></span></button></span>
+        <span role="columnheader" class="right wl-vol"><button type="button" data-sort="khoi_luong">KL <span class="arrow"></span></button></span>
+        <span role="columnheader" class="right b-ext"><button type="button" data-sort="gtgd">GTGD <span class="arrow"></span></button></span>
+        <span role="columnheader" class="right b-ext"><button type="button" data-sort="nn_rong">NN ròng <span class="arrow"></span></button></span>
         <span role="columnheader" class="right wl-spark">20 phiên</span>
       </div>
       <div id="wlBody" role="rowgroup"><div class="wl-empty">Đang tải dữ liệu…</div></div>
     </div>
-    <p class="market-note">Bấm vào một mã để xem biểu đồ nến và thông tin chi tiết. Giá tính bằng đồng, khối lượng tính bằng triệu cổ phiếu. Dữ liệu lấy từ bảng giá công khai của Vietcap (VCI), cập nhật khoảng 10 phút một lần trong giờ giao dịch (có thể trễ vài phút) và chốt lại sau 16:40.</p>
+    <p class="market-note">
+      Màu giá: <b class="c-tran">tím = trần</b>, <b class="c-san">xanh lơ = sàn</b>, <b class="c-tc">vàng = tham chiếu</b>, xanh lá = tăng, đỏ = giảm.
+      Giá tính bằng đồng, KL bằng triệu cổ phiếu, GTGD và NN ròng bằng tỷ đồng. Dữ liệu lấy từ bảng giá công khai của Vietcap (VCI),
+      cập nhật khoảng 10 phút một lần trong giờ giao dịch và chốt lại sau 16:40.
+    </p>
   </div>
 </section>
 
@@ -67,6 +130,7 @@ permalink: /thi-truong/
         <small id="smTime"></small>
       </div>
       <div class="sm-actions">
+        <button type="button" class="sm-btn sm-star" id="smStar" aria-label="Ghim vào danh sách của tôi" aria-pressed="false">☆</button>
         <button type="button" class="sm-btn" id="smPrev" aria-label="Mã trước">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
