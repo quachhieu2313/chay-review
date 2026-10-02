@@ -20,7 +20,10 @@
   // trong giờ giao dịch mà dữ liệu cũ hơn 25 phút thì coi là chậm
   function cham(ngay, luc){
     var n = bayGioVN(), thu = n.getDay(), phut = n.getHours() * 60 + n.getMinutes();
-    if(thu === 0 || thu === 6 || phut < 9 * 60 + 25 || phut > 15 * 60 + 30) return false;
+    if(thu === 0 || thu === 6) return false;
+    // chỉ xét trong lúc sàn đang khớp lệnh: 9:25–11:35 và 13:25–14:50 (nghỉ trưa, sau ATC giá đứng yên là bình thường)
+    var trongPhien = (phut >= 9 * 60 + 25 && phut <= 11 * 60 + 35) || (phut >= 13 * 60 + 25 && phut <= 14 * 60 + 50);
+    if(!trongPhien) return false;
     var hom = n.getFullYear() + '-' + ('0' + (n.getMonth() + 1)).slice(-2) + '-' + ('0' + n.getDate()).slice(-2);
     if(ngay !== hom || !luc) return true;
     var p = luc.split(':');

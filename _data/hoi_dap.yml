@@ -8,7 +8,7 @@
   dap: Là một danh mục giả lập gồm 30 cổ phiếu rổ VN30 với tỷ trọng bằng nhau, NAV được tính lại mỗi ngày từ giá thật. Quỹ không có thật và không thể mua; mục đích là minh hoạ cách một quỹ ETF được trình bày và vận hành.
 
 - hoi: Số liệu trên trang lấy từ đâu, có chính xác không?
-  dap: Giá cổ phiếu, ETF và chỉ số được lấy từ bảng giá công khai của Vietcap (VCI), chỉ số tài chính từ KBS, tự động cập nhật khoảng 10 phút một lần trong giờ giao dịch và chốt lại sau 16:30. Đây không phải dữ liệu thời gian thực. Dữ liệu có thể chậm hoặc sai sót, vì vậy hãy đối chiếu với nguồn chính thức trước khi ra quyết định.
+  dap: Giá cổ phiếu, ETF và chỉ số được lấy từ bảng giá công khai của Vietcap (VCI), chỉ số tài chính từ KBS, tự động cập nhật khoảng 10 phút một lần trong giờ giao dịch và chốt lại sau 16:40. Đây không phải dữ liệu thời gian thực. Dữ liệu có thể chậm hoặc sai sót, vì vậy hãy đối chiếu với nguồn chính thức trước khi ra quyết định.
 
 - hoi: Vì sao lợi nhuận ETF ở đây khác với số công ty quản lý quỹ công bố?
   dap: Trang này tính theo giá giao dịch trên sàn, trong khi công ty quản lý quỹ thường công bố theo NAV. Giá thị trường có thể cao hơn hoặc thấp hơn NAV, và cách tính phần lợi nhuận đã phân phối cũng có thể khác.
