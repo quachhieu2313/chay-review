@@ -121,6 +121,36 @@ def thanh_phan_ro(ma):
     return ro_chi_so(ma)
 
 
+FMARKET = "https://api.fmarket.vn/res/products"
+H_FM = {"User-Agent": UA, "Accept": "application/json", "Content-Type": "application/json",
+        "Referer": "https://fmarket.vn/", "Origin": "https://fmarket.vn"}
+
+
+def quy_mo_nam_giu():
+    """Danh mục top 10 của các quỹ mở cổ phiếu/cân bằng (Fmarket): list dict {ma, ten, loai, ngay, top:[(mã, %NAV)]}."""
+    body = {"types": ["NEW_FUND", "TRADING_FUND"], "issuerIds": [], "sortOrder": "DESC", "sortField": "navTo6Months",
+            "page": 1, "pageSize": 200, "isIpo": False, "fundAssetTypes": [], "bondRemainPeriods": [],
+            "searchField": "", "isBuyByReward": False, "thirdAppIds": []}
+    ds = _goi("POST", f"{FMARKET}/filter", H_FM, data=json.dumps(body))["data"]["rows"]
+    out = []
+    for q in ds:
+        loai = (q.get("dataFundAssetType") or {}).get("code")
+        if loai not in ("STOCK", "BALANCED"):
+            continue
+        d = _goi("GET", f"{FMARKET}/{q['id']}", H_FM)["data"]
+        th = d.get("productTopHoldingList") or []
+        top = [(x["stockCode"], float(x["netAssetPercent"])) for x in th if x.get("stockCode") and x.get("netAssetPercent") is not None]
+        if not top:
+            continue
+        ngay = max((x.get("updateAt") or 0) for x in th)
+        out.append({
+            "ma": q["shortName"], "ten": q.get("name") or q["shortName"], "loai": loai,
+            "ngay": pd.to_datetime(ngay, unit="ms").strftime("%Y-%m-%d") if ngay else None,
+            "top": top,
+        })
+    return out
+
+
 def thong_tin_cong_ty():
     """{mã: (tên công ty, ngành ICB cấp 2)}"""
     data = _goi("GET", f"{VCI_IQ}/v2/company/search-bar", H_VCI, params={"language": 1})

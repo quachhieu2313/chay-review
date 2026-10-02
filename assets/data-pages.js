@@ -1645,9 +1645,103 @@
   }
 
   // =====================================================================
+  // TRANG QUỸ NẮM GIỮ
+  // =====================================================================
+  var holdPage = $('#holdPage');
+  if(holdPage){
+    load('quy_nam_giu.json').then(function(d){
+      var ds = d.co_phieu, sortKey = 'so_quy', filter = '', soDong = 30;
+      $('#hQuyMo').textContent = d.so_quy_mo;
+      $('#hEtf').textContent = d.so_etf;
+      $('#hNgay').textContent = ngayVN(d.ngay_tu) + ' – ' + ngayVN(d.ngay_den);
+
+      function xep(){
+        return ds.filter(function(x){
+          var f = filter;
+          return !f || x.ma.indexOf(f) > -1 || x.nganh.toUpperCase().indexOf(f) > -1 || x.ten.toUpperCase().indexOf(f) > -1;
+        }).sort(function(a, b){
+          var u = (b[sortKey] || 0) - (a[sortKey] || 0);
+          return u || (b.so_quy - a.so_quy) || ((b.pct_tb || 0) - (a.pct_tb || 0));
+        });
+      }
+      function ve(){
+        var list = xep();
+        $('#hBody').innerHTML = list.slice(0, soDong).map(function(x, i){
+          var tl = d.so_quy_mo ? x.so_quy / d.so_quy_mo * 100 : 0;
+          return '<tr class="hold-row" tabindex="0" data-ma="' + esc(x.ma) + '"><td class="num muted">' + (i + 1) + '</td>' +
+            '<td><b>' + esc(x.ma) + '</b><span class="sub">' + esc(x.nganh) + ' · ' + esc(x.ten) + '</span></td>' +
+            '<td class="num"><b>' + x.so_quy + '</b><small class="muted">/' + d.so_quy_mo + '</small></td>' +
+            '<td class="num hide-sm"><span class="wbar"><i style="width:' + tl + '%"></i></span>' + fmt(tl, 0) + '%</td>' +
+            '<td class="num">' + (x.pct_tb === null ? '–' : fmt(x.pct_tb, 2) + '%') + '</td>' +
+            '<td class="num hide-sm">' + (x.pct_max === null ? '–' : fmt(x.pct_max, 1) + '%') + '</td>' +
+            '<td class="num">' + x.so_etf + '<small class="muted">/' + d.so_etf + '</small></td></tr>';
+        }).join('') || '<tr><td colspan="7" class="empty-row">Không tìm thấy mã phù hợp.</td></tr>';
+        var nut = $('#hMore');
+        nut.hidden = list.length <= soDong;
+        nut.textContent = 'Xem thêm (' + (list.length - soDong) + ' mã nữa)';
+      }
+
+      // 6 mã được nhiều quỹ mở giữ nhất
+      var top6 = ds.slice().sort(function(a, b){ return (b.so_quy - a.so_quy) || ((b.pct_tb || 0) - (a.pct_tb || 0)); }).slice(0, 6);
+      $('#hTop6').innerHTML = top6.map(function(x, i){
+        return '<button type="button" class="top6-card" data-ma="' + esc(x.ma) + '"><span class="top6-rank">#' + (i + 1) + '</span><b>' + esc(x.ma) + '</b>' +
+          '<span class="top6-n">' + x.so_quy + '<small>/' + d.so_quy_mo + ' quỹ mở</small></span>' +
+          '<span class="top6-s">% NAV trung bình <b>' + fmt(x.pct_tb, 1) + '%</b> · cao nhất ' + fmt(x.pct_max, 1) + '%</span>' +
+          '<span class="top6-s">' + x.so_etf + '/' + d.so_etf + ' quỹ ETF</span></button>';
+      }).join('');
+
+      // cửa sổ chi tiết: quỹ nào đang giữ một mã
+      var ov = $('#hOverlay'), dlg = $('.hd', ov), cuoi = null;
+      function mo(ma){
+        var x = ds.filter(function(y){ return y.ma === ma; })[0];
+        if(!x) return;
+        cuoi = document.activeElement;
+        $('#hdCode').textContent = x.ma;
+        $('#hdName').textContent = x.nganh + ' · ' + x.ten;
+        $('#hdLink').href = BASE + '/thi-truong/#ma=' + x.ma;
+        $('#hdQuyN').textContent = '(' + x.so_quy + ' quỹ)';
+        var mx = x.quy_mo.length ? x.quy_mo[0].pct : 1;
+        $('#hdQuy').innerHTML = x.quy_mo.map(function(q){
+          return '<li><span class="hd-ma">' + esc(q.ma) + '</span><span class="hd-ten">' + esc(q.ten) + '</span>' +
+            '<span class="tl-bar"><i class="acc-bg" style="width:' + (q.pct / mx * 100) + '%"></i></span><b>' + fmt(q.pct, 2) + '%</b></li>';
+        }).join('') || '<li class="muted">Không có quỹ mở nào giữ mã này trong top 10.</li>';
+        $('#hdEtfN').textContent = '(' + x.so_etf + ' quỹ, ước tính theo rổ chỉ số)';
+        $('#hdEtf').innerHTML = x.etf.map(function(m){
+          return '<a class="chip" href="' + BASE + '/etf/chi-tiet/?ma=' + esc(m) + '">' + esc(m) + '</a>';
+        }).join('') || '<span class="muted">Không có quỹ ETF nào giữ mã này.</span>';
+        ov.hidden = false;
+        document.body.classList.add('modal-open');
+        dlg.focus();
+      }
+      function dong(){ ov.hidden = true; document.body.classList.remove('modal-open'); if(cuoi) cuoi.focus(); }
+      $('#hdClose').addEventListener('click', dong);
+      ov.addEventListener('click', function(e){ if(e.target === ov) dong(); });
+      document.addEventListener('keydown', function(e){ if(!ov.hidden && e.key === 'Escape') dong(); });
+      $('#hTop6').addEventListener('click', function(e){ var b = e.target.closest('[data-ma]'); if(b) mo(b.getAttribute('data-ma')); });
+      $('#hBody').addEventListener('click', function(e){ var r = e.target.closest('[data-ma]'); if(r) mo(r.getAttribute('data-ma')); });
+      $('#hBody').addEventListener('keydown', function(e){
+        var r = e.target.closest('[data-ma]');
+        if(r && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); mo(r.getAttribute('data-ma')); }
+      });
+      $$('#hSort button').forEach(function(b){
+        b.addEventListener('click', function(){
+          sortKey = b.getAttribute('data-k');
+          $$('#hSort button').forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+          ve();
+        });
+      });
+      $('#hFilter').addEventListener('input', function(e){ filter = e.target.value.trim().toUpperCase(); ve(); });
+      $('#hMore').addEventListener('click', function(){ soDong += 30; ve(); });
+      ve();
+      var h = location.hash.match(/ma=([A-Z0-9]+)/i);
+      if(h) mo(h[1].toUpperCase());
+    }).catch(function(){ fail(holdPage); });
+  }
+
+  // =====================================================================
   // TỰ TẢI LẠI KHI CÓ DỮ LIỆU MỚI (2 phút kiểm tra một lần, chỉ khi tab đang được xem)
   // =====================================================================
-  var dungDuLieu = document.querySelector('#mktChart, #etfTable, #etfDetail, #fundPage, #homeFund, #homeEtf');
+  var dungDuLieu = document.querySelector('#mktChart, #etfTable, #etfDetail, #fundPage, #homeFund, #homeEtf, #holdPage');
   if(dungDuLieu){
     var toast = null;
     function banDangThaoTac(){

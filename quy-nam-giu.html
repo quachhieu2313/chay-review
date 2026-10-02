@@ -1,0 +1,79 @@
+---
+layout: default
+title: Cổ phiếu được quỹ nắm giữ
+description: Cổ phiếu được các quỹ mở và quỹ ETF Việt Nam nắm giữ nhiều nhất - số quỹ nắm giữ, tỷ trọng trên NAV và danh sách quỹ đang giữ từng mã.
+nav: quy-nam-giu
+permalink: /quy-nam-giu/
+image: /assets/img/og-etf.png
+---
+<section class="page-head wrap">
+  <p class="eyebrow">Quỹ nắm giữ</p>
+  <h1>Các quỹ đang mua những cổ phiếu nào</h1>
+  <p>Tổng hợp từ danh mục của <b id="hQuyMo">…</b> quỹ mở cổ phiếu/cân bằng và <b id="hEtf">…</b> quỹ ETF. Bấm vào một mã để xem quỹ nào đang giữ và với tỷ trọng bao nhiêu.</p>
+</section>
+
+<div class="wrap" id="holdPage">
+  <div class="hold-warn" role="note">
+    <b>Cách đọc số liệu.</b>
+    <b>Quỹ mở:</b> lấy từ danh mục <b>top 10 mã</b> mà từng quỹ công bố (nguồn Fmarket), chốt ngày <span id="hNgay">…</span>, nên mã nằm ngoài top 10 của một quỹ không được tính và số liệu có thể chậm vài tuần.
+    <b>Quỹ ETF:</b> ước tính theo thành phần rổ chỉ số quỹ bám theo, không phải danh mục chính thức.
+    Chưa có quy mô quỹ nên kết quả đếm theo <b>số quỹ</b> và <b>% NAV trung bình</b>, không phải theo số tiền. Chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.
+  </div>
+
+  <div class="top6" id="hTop6" aria-label="6 mã được nhiều quỹ mở nắm giữ nhất"></div>
+
+  <div class="toolbar">
+    <div class="seg" id="hSort" role="group" aria-label="Xếp hạng theo">
+      <button type="button" data-k="so_quy" aria-pressed="true">Số quỹ mở giữ</button>
+      <button type="button" data-k="pct_tb" aria-pressed="false">% NAV trung bình</button>
+      <button type="button" data-k="pct_max" aria-pressed="false">% NAV cao nhất</button>
+      <button type="button" data-k="so_etf" aria-pressed="false">Số quỹ ETF giữ</button>
+    </div>
+    <label class="search search-inline">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="hFilter" type="search" placeholder="Lọc theo mã hoặc ngành" aria-label="Lọc theo mã hoặc ngành">
+    </label>
+  </div>
+
+  <div class="table-card">
+    <div class="table-scroll">
+      <table class="data-table hold-table">
+        <thead><tr>
+          <th scope="col" class="num">#</th>
+          <th scope="col">Cổ phiếu</th>
+          <th scope="col" class="num">Quỹ mở giữ</th>
+          <th scope="col" class="num hide-sm">% quỹ mở</th>
+          <th scope="col" class="num">% NAV TB</th>
+          <th scope="col" class="num hide-sm">% NAV cao nhất</th>
+          <th scope="col" class="num">Quỹ ETF giữ</th>
+        </tr></thead>
+        <tbody id="hBody"><tr><td colspan="7" class="empty-row">Đang tải dữ liệu…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <p class="table-note"><button type="button" class="btn btn-ghost" id="hMore" hidden>Xem thêm</button></p>
+</div>
+
+<!-- cửa sổ chi tiết quỹ nào đang giữ một mã -->
+<div class="sm-overlay" id="hOverlay" hidden>
+  <div class="hd" role="dialog" aria-modal="true" aria-labelledby="hdCode" tabindex="-1">
+    <header class="hd-head">
+      <div>
+        <h2 id="hdCode">…</h2>
+        <p id="hdName"></p>
+      </div>
+      <div class="hd-actions">
+        <a class="btn btn-ghost" id="hdLink" href="#">Xem biểu đồ</a>
+        <button type="button" class="sm-btn" id="hdClose" aria-label="Đóng">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </header>
+    <div class="hd-body">
+      <h3>Quỹ mở nắm giữ <small id="hdQuyN"></small></h3>
+      <ul class="clean hd-list" id="hdQuy"></ul>
+      <h3>Quỹ ETF nắm giữ <small id="hdEtfN"></small></h3>
+      <div class="hd-etf" id="hdEtf"></div>
+    </div>
+  </div>
+</div>

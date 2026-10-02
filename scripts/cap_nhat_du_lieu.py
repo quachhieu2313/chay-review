@@ -12,6 +12,7 @@ rồi ghi ra các file JSON trong assets/data/:
   etf/<MÃ>.json      lịch sử giá từng ETF (trang chi tiết ETF)
   cp/<MÃ>.json       nến OHLCV (+ chỉ số cơ bản với cổ phiếu) từng mã VN30 và ETF (popup chi tiết mã)
   danh_muc_ma.json   danh sách mã có popup, dùng cho ô tìm kiếm
+  quy_nam_giu.json   cổ phiếu được các quỹ mở (Fmarket) và quỹ ETF nắm giữ nhiều nhất (trang Quỹ nắm giữ)
   quy_mo_phong.json  quỹ mô phỏng KCN VN30 (trang Quỹ mô phỏng)
 
 Hai chế độ:
@@ -727,6 +728,57 @@ def cap_nhat_ro_etf():
         log(f"Rổ {ro}: {len(muc)} mã")
 
 
+def cap_nhat_quy_nam_giu():
+    """Tổng hợp cổ phiếu được các quỹ nắm giữ: quỹ mở (danh mục top 10 thật) + quỹ ETF (theo rổ chỉ số)."""
+    try:
+        quy = nguon.quy_mo_nam_giu()
+    except Exception as e:
+        log(f"  ! quỹ mở: {str(e)[:100]}")
+        return
+    if not quy:
+        return
+    cty = nguon.thong_tin_cong_ty()
+    etf = [q for q in doc_json(OUT / "etf.json", {}).get("quy", []) if q.get("tham_chieu")]
+    ro = {}
+    for q in etf:
+        if q["tham_chieu"] not in ro:
+            d = doc_json(OUT / "ro_chi_so" / f"{q['tham_chieu']}.json", {})
+            ro[q["tham_chieu"]] = {x["ma"] for x in d.get("thanh_phan", [])}
+
+    ma_ds = {m for q in quy for m, _ in q["top"]} | {m for v in ro.values() for m in v}
+    cp = {}
+    for m in ma_ds:
+        cp[m] = {"ma": m, "ten": cty.get(m, (m, "Khác"))[0], "nganh": cty.get(m, (m, "Khác"))[1], "quy_mo": [], "etf": []}
+    for q in quy:
+        for m, pc in q["top"]:
+            cp[m]["quy_mo"].append({"ma": q["ma"], "ten": q["ten"], "loai": q["loai"], "pct": r(pc, 2)})
+    for q in etf:
+        for m in ro[q["tham_chieu"]]:
+            cp[m]["etf"].append(q["ma"])
+    ds = []
+    for m, x in cp.items():
+        x["quy_mo"].sort(key=lambda t: -t["pct"])
+        n = len(x["quy_mo"])
+        pcs = [t["pct"] for t in x["quy_mo"]]
+        x["so_quy"] = n
+        x["pct_tb"] = r(sum(pcs) / n, 2) if n else None
+        x["pct_max"] = max(pcs) if n else None
+        x["so_etf"] = len(x["etf"])
+        ds.append(x)
+    ds.sort(key=lambda x: (-x["so_quy"], -(x["pct_tb"] or 0)))
+    ngay = [q["ngay"] for q in quy if q["ngay"]]
+    moi = {
+        "so_quy_mo": len(quy), "so_etf": len(etf),
+        "ngay_tu": min(ngay) if ngay else None, "ngay_den": max(ngay) if ngay else None,
+        "co_phieu": ds,
+    }
+    cu = doc_json(OUT / "quy_nam_giu.json", {})
+    if {k: v for k, v in cu.items() if k != "cap_nhat_luc"} != moi:
+        moi["cap_nhat_luc"] = gio_vn()
+        ghi_json(OUT / "quy_nam_giu.json", moi)
+    log(f"Quỹ nắm giữ: {len(quy)} quỹ mở, {len(etf)} quỹ ETF, {len(ds)} mã")
+
+
 def date_vn():
     return datetime.now(timezone(timedelta(hours=7))).strftime("%Y-%m-%d")
 
@@ -861,6 +913,7 @@ def main():
         cap_nhat_vn30_va_quy(chi_so)
         ghi_danh_muc_ma()
         cap_nhat_ro_etf()
+        cap_nhat_quy_nam_giu()
         cap_nhat_trong_ngay(chi_so)
         viet_ban_tin()
     if DA_GHI:

@@ -3,6 +3,9 @@
 - id: etf
   ten: ETF
   link: /etf/
+- id: quy-nam-giu
+  ten: Quỹ nắm giữ
+  link: /quy-nam-giu/
 - id: quy-mo-phong
   ten: Quỹ mô phỏng
   link: /quy-mo-phong/
