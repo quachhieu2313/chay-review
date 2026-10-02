@@ -1658,6 +1658,7 @@
       function xep(){
         return ds.filter(function(x){
           var f = filter;
+          if((sortKey === 'pct_tb' || sortKey === 'pct_max') && x.so_quy < 5) return false; // ít quỹ giữ thì số trung bình không có ý nghĩa
           return !f || x.ma.indexOf(f) > -1 || x.nganh.toUpperCase().indexOf(f) > -1 || x.ten.toUpperCase().indexOf(f) > -1;
         }).sort(function(a, b){
           var u = (b[sortKey] || 0) - (a[sortKey] || 0);
@@ -1679,6 +1680,8 @@
         var nut = $('#hMore');
         nut.hidden = list.length <= soDong;
         nut.textContent = 'Xem thêm (' + (list.length - soDong) + ' mã nữa)';
+        var gc = $('#hNote');
+        if(gc) gc.hidden = !(sortKey === 'pct_tb' || sortKey === 'pct_max');
       }
 
       // 6 mã được nhiều quỹ mở giữ nhất
