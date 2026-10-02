@@ -984,7 +984,8 @@
 
     function veHet(nhay){
       $('#mktDate').textContent = moc(M.cp.cap_nhat, M.cp.cap_nhat_luc);
-      phien(); the(); veChiSo(); banDoNhiet(); doRong(); noiBat(); khoiNgoai(); bang(nhay);
+      phien(); the(); veChiSo(); doRong(); noiBat(); khoiNgoai(); bang(nhay);
+      banDoNhiet(); // vẽ sau cùng để đo đúng kích thước khung (giãn theo cột bên phải)
       M.cu = {};
       M.rows.forEach(function(s){ M.cu[s.ma] = s.gia; });
     }
@@ -1051,7 +1052,13 @@
     });
     document.addEventListener('kcn-sao', function(){ bang(false); });
     var hen = null;
-    window.addEventListener('resize', function(){ clearTimeout(hen); hen = setTimeout(banDoNhiet, 150); });
+    if(window.ResizeObserver){
+      var kichCu = '';
+      new ResizeObserver(function(){
+        var k = $('#mktHeat').clientWidth + 'x' + $('#mktHeat').clientHeight;
+        if(k !== kichCu && M.rows.length){ kichCu = k; clearTimeout(hen); hen = setTimeout(banDoNhiet, 80); }
+      }).observe($('#mktHeat'));
+    }else window.addEventListener('resize', function(){ clearTimeout(hen); hen = setTimeout(banDoNhiet, 150); });
     setInterval(phien, 30000);
     (window.requestIdleCallback || function(f){ setTimeout(f, 1500); })(function(){ loadLwc().catch(function(){}); });
 
