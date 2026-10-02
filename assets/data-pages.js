@@ -1662,8 +1662,14 @@
             '<p class="nn-meta">Danh mục ngày <b>' + ngayVN(q.ngay) + '</b>' + (q.tong_ma_quy ? ' · ' + fmt(q.tong_ma_quy) + ' cổ phiếu toàn cầu' : '') + ' · <a href="' + esc(q.nguon) + '" rel="noopener">Nguồn: trang chính thức</a></p>' +
             '<p class="nn-empty"><b>Chưa có cổ phiếu Việt Nam.</b> Việt Nam chỉ vào chỉ số FTSE từ 21/09/2026 với trọng số khả đầu tư 10%, trong khi danh mục này công bố theo tháng và mới chốt ngày ' + ngayVN(q.ngay) + '. Các mã Việt Nam sẽ tự hiện ở kỳ cập nhật sau.</p></article>';
         }
+        var th = q.them, extra = '';
+        if(th){
+          var qm = th.quy_mo_ty_ndt || [], cuoi = qm[qm.length - 1], dau = qm[qm.length - 2];
+          extra = '<p class="nn-meta nn-extra">' + esc(th.loai_quy) + '. ' + (cuoi ? 'Quy mô <b>' + fmt(cuoi.gia_tri, 2) + ' tỷ NDT</b> (' + ngayVN(cuoi.ngay) + (dau ? ', quý trước ' + fmt(dau.gia_tri, 2) : '') + ')' : '') +
+            (th.co_phieu_pct ? ' · cổ phiếu chiếm ' + fmt(th.co_phieu_pct, 1) + '% tài sản, tiền mặt ' + fmt(th.tien_mat_pct, 1) + '%' : '') + '. Chỉ công bố <b>top ' + th.chi_top + '</b> mã theo quý.</p>';
+        }
         return '<article class="nn-card"><header><b>' + esc(q.ma) + '</b><span>' + esc(q.ten) + '</span></header>' +
-          '<p class="nn-meta">Danh mục ngày <b>' + ngayVN(q.ngay) + '</b> · ' + q.so_ma + ' cổ phiếu Việt Nam · <a href="' + esc(q.nguon) + '" rel="noopener">Nguồn: trang chính thức</a></p>' +
+          '<p class="nn-meta">Danh mục ngày <b>' + ngayVN(q.ngay) + '</b> · ' + q.so_ma + (th ? ' cổ phiếu Việt Nam (top ' + th.chi_top + ')' : ' cổ phiếu Việt Nam') + ' · <a href="' + esc(q.nguon) + '" rel="noopener">Nguồn: trang chính thức</a></p>' + extra +
           '<ol class="clean nn-top">' + q.top.map(function(t){
             return '<li><button type="button" data-ma="' + esc(t.ma) + '"><b>' + esc(t.ma) + '</b><span class="tl-bar"><i class="acc-bg" style="width:' + (t.pct / q.top[0].pct * 100) + '%"></i></span><em>' + fmt(t.pct, 2) + '%</em></button></li>';
           }).join('') + '</ol></article>';

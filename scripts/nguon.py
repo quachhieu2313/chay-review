@@ -217,6 +217,47 @@ def dws_ro_swap():
     return {"so_ma": len(ds), "top": ds[:5], "tong_my_pct": round(sum(x["pct"] for x in ds if x["nuoc"] == "United States"), 1)}
 
 
+def quy_thien_hoang():
+    """Thiên Hoằng Việt Nam (天弘越南市场股票发起 QDII, mã 008763): quỹ mở của Trung Quốc đầu tư riêng vào Việt Nam.
+    Danh mục top 20 theo quý và quy mô quỹ lấy từ Thiên Thiên Cơ Kim (Eastmoney)."""
+    H = {"User-Agent": UA, "Referer": "https://fundf10.eastmoney.com/", "Accept-Language": "zh-CN,zh;q=0.9"}
+    res = _phien.get("https://fundf10.eastmoney.com/FundArchivesDatas.aspx",
+                     params={"type": "jjcc", "code": "008763", "topline": "20", "year": "", "month": "", "rt": "0.1"}, headers=H, timeout=40)
+    res.raise_for_status()
+    box = re.search(r"<div class='box'>(.*?)</table>", res.text, flags=re.S)
+    if not box:
+        raise RuntimeError("không đọc được danh mục Thiên Hoằng")
+    box = box.group(1)
+    ngay = re.search(r"截止至：?\s*<font[^>]*>(\d{4}-\d{2}-\d{2})", box)
+    top = []
+    for tr in re.findall(r"<tr>(.*?)</tr>", box, flags=re.S)[1:]:
+        c = [re.sub(r"<[^>]+>", "", x).replace("&nbsp;", "").strip() for x in re.findall(r"<td[^>]*>(.*?)</td>", tr, flags=re.S)]
+        pct_i = next((i for i, x in enumerate(c) if x.endswith("%")), None)
+        if pct_i is None or len(c) < pct_i + 3 or not c[1].startswith("VN"):
+            continue
+        ma = c[1][8:-1]  # VN000000HPG4 -> HPG
+        if re.fullmatch(r"[A-Z0-9]{3,4}", ma):
+            top.append((ma, float(c[pct_i].rstrip("%")), float(c[pct_i + 1].replace(",", "")) * 1e4, float(c[pct_i + 2].replace(",", "")) * 1e4))
+    if len(top) < 10 or not ngay:
+        raise RuntimeError(f"danh mục Thiên Hoằng bất thường ({len(top)} mã)")
+    pz = _phien.get("https://fund.eastmoney.com/pingzhongdata/008763.js", headers=H, timeout=40).text
+    quy_mo = re.search(r"Data_fluctuationScale\s*=\s*(\{.*?\});", pz, flags=re.S)
+    phan_bo = re.search(r"Data_assetAllocation\s*=\s*(\{.*?\});", pz, flags=re.S)
+    them = {"chi_top": 20, "tien_te": "NDT", "loai_quy": "Quỹ mở QDII (Trung Quốc), bám VN30 90%", "ma_quy": "008763 / 008764 / 022524"}
+    try:
+        q = json.loads(quy_mo.group(1))
+        them["quy_mo_ty_ndt"] = [{"ngay": d, "gia_tri": s["y"]} for d, s in zip(q["categories"], q["series"])]
+        a = json.loads(phan_bo.group(1))
+        them["co_phieu_pct"] = a["series"][0]["data"][-1]
+        them["tien_mat_pct"] = a["series"][2]["data"][-1]
+    except Exception:
+        pass
+    time.sleep(NGHI)
+    return {"ma": "008763", "ten": "Thiên Hoằng Việt Nam (天弘越南 QDII, Trung Quốc)", "loai": "QUY_NN", "ngay": ngay.group(1),
+            "top": [(m, p) for m, p, _, _ in top], "chi_tiet": [{"ma": m, "pct": p, "so_cp": sl, "gia_tri_ndt": gt} for m, p, sl, gt in top],
+            "them": them, "nguon": "https://fundf10.eastmoney.com/ccmx_008763.html"}
+
+
 def quy_fubon_00885():
     """Fubon FTSE Vietnam ETF (00885, Đài Loan): bảng danh mục hằng ngày trên website Fubon Asset Management."""
     url = "https://websys.fsit.com.tw/FubonETF/Trade/Assets.aspx?stkId=00885&lan=EN"

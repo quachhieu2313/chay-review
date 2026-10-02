@@ -1122,3 +1122,6 @@ body.modal-open{overflow:hidden;}
 .xt-swap{font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin:8px 0 0 !important; padding-top:10px; border-top:1px solid var(--border);}
 .xt-warn{color:#9A6B00 !important;}
 @media (max-width:560px){ .xt-facts{grid-template-columns:1fr;} }
+
+.nn-extra{background:var(--surface-sunk); border-radius:8px; padding:8px 10px; color:var(--ink-soft) !important;}
+.nn-extra b{color:var(--ink);}
