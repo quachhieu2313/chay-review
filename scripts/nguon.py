@@ -109,6 +109,18 @@ def ro_chi_so(nhom="VN30"):
     return [x["symbol"] for x in data]
 
 
+# mã nhóm của KBS cho các rổ chỉ số mà VCI không trả thành phần
+MA_KBS = {"VNDIAMOND": "DIAMOND", "VNFINLEAD": "FINLEAD", "VNFINSELECT": "FINSELECT", "VNX50": "X50"}
+
+
+def thanh_phan_ro(ma):
+    """Danh sách mã thuộc rổ chỉ số: VN30/VN100 từ VCI, các rổ còn lại từ KBS. Rỗng nếu không có."""
+    if ma in MA_KBS:
+        d = _goi("GET", f"{KBS}/index/{MA_KBS[ma]}/stocks", H_KBS)
+        return list((d or {}).get("data") or [])
+    return ro_chi_so(ma)
+
+
 def thong_tin_cong_ty():
     """{mã: (tên công ty, ngành ICB cấp 2)}"""
     data = _goi("GET", f"{VCI_IQ}/v2/company/search-bar", H_VCI, params={"language": 1})

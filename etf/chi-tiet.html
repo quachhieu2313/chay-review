@@ -73,8 +73,45 @@ image: /assets/img/og-etf.png
     </div>
   </section>
 
+  <section class="card panel" id="dHold" hidden>
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Danh mục</p>
+        <h2>Quỹ đang mua những mã nào</h2>
+        <p class="panel-sub" id="dHoldSub"></p>
+      </div>
+      <button class="btn btn-ghost" type="button" id="dHoldCsv">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+        Tải danh sách (CSV)
+      </button>
+    </div>
+    <div class="hold-warn" role="note">
+      <b>Đây là rổ chỉ số quỹ bám theo, không phải danh mục chính thức.</b>
+      Quỹ ETF mua các cổ phiếu trong rổ chỉ số tham chiếu, nhưng tỷ trọng thật phụ thuộc vốn hoá tự do chuyển nhượng, trần tỷ trọng và cách mô phỏng của quỹ.
+      Cột "Tỷ trọng vốn hoá" dưới đây chỉ là <b>vốn hoá niêm yết của từng mã chia cho tổng rổ</b>, chưa điều chỉnh các yếu tố đó nên thường lệch so với thực tế (mã vốn hoá lớn bị phóng đại).
+    </div>
+    <div class="holdings-grid">
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr>
+            <th scope="col" class="num">#</th><th scope="col">Cổ phiếu</th>
+            <th scope="col" class="num">Giá (đ)</th><th scope="col" class="num">Hôm nay</th>
+            <th scope="col" class="num hide-sm">Vốn hoá (nghìn tỷ)</th><th scope="col" class="num">Tỷ trọng vốn hoá</th>
+          </tr></thead>
+          <tbody id="dHoldBody"></tbody>
+        </table>
+        <button class="btn btn-ghost" type="button" id="dHoldToggle" style="margin-top:14px;" hidden></button>
+      </div>
+      <div class="sector-box">
+        <h3>Theo ngành (vốn hoá)</h3>
+        <div class="donut" id="dDonut"></div>
+        <ul class="clean legend" id="dSectors"></ul>
+      </div>
+    </div>
+  </section>
+
   <section class="note-card">
-    <h2>Danh mục và NAV của quỹ</h2>
-    <p>Danh mục nắm giữ chi tiết, NAV và bản cáo bạch được công ty quản lý quỹ công bố trên website của họ và trên trang của Sở Giao dịch Chứng khoán TP.HCM (HOSE). Trang này chỉ dùng giá giao dịch trên sàn để phân tích.</p>
+    <h2>Danh mục chính thức và NAV</h2>
+    <p>Danh mục nắm giữ chính thức, NAV và bản cáo bạch được công ty quản lý quỹ công bố trên website của họ và trên trang của Sở Giao dịch Chứng khoán TP.HCM (HOSE). Trang này chỉ dùng giá giao dịch trên sàn để phân tích.</p>
   </section>
 </div>

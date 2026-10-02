@@ -1037,3 +1037,12 @@ body.modal-open{overflow:hidden;}
   .bt-list a{grid-template-columns:1fr;}
   .bt-date{grid-row:auto;}
 }
+
+/* danh mục ETF, nhóm FTSE */
+.hold-warn{background:var(--accent-tint); color:var(--accent-ink); border-radius:12px; padding:14px 18px; font-size:13.5px; line-height:1.6; margin-bottom:18px;}
+.hold-warn b{font-weight:700;}
+.data-table .fund-link, .data-table td a b{color:var(--accent-strong);}
+.data-table td a:hover b{text-decoration:underline;}
+.scope-note{font-size:13px; color:var(--market-ink-soft); line-height:1.6; background:var(--market-surface); border:1px solid var(--market-border); border-radius:12px; padding:12px 16px; margin:8px 0 4px !important;}
+.scope-note[hidden]{display:none;}
+.scope-note b{color:var(--market-ink);}

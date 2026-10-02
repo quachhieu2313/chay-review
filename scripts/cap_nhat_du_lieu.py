@@ -80,6 +80,9 @@ NHOM = {
     "VNX50": "VNX50",
 }
 
+# 6 mã vào chỉ số FTSE All-World khi Việt Nam được FTSE Russell nâng hạng (hiệu lực 21/9/2026)
+FTSE_ALLWORLD = ["VCB", "VIC", "VHM", "BID", "HPG", "VPB"]
+
 PHI_MO_PHONG = 0.005  # phí quản lý giả định 0,5%/năm của quỹ mô phỏng
 NAV_KHOI_DAU = 10000.0
 NGAY_KHOI_DAU = "2021-01-04"
@@ -352,7 +355,7 @@ def cap_nhat_vn30_va_quy(chi_so):
             "thay_doi": r((s.iloc[-1] / s.iloc[-2] - 1) * 100) if len(s) > 1 else 0,
             "khoi_luong": kl[ma],
             "spark": [r(x, 0) for x in s.tail(20)],
-            "ro": (["VN30"] if ma in ro30 else []) + (["VN100"] if ma in ro100 else []),
+            "ro": (["VN30"] if ma in ro30 else []) + (["VN100"] if ma in ro100 else []) + (["FTSE"] if ma in FTSE_ALLWORLD else []),
             **thong_tin_phien(phien.get(ma, {}), float(s.iloc[-1])),
         })
     ngay_cuoi = max(s.index[-1] for s in gia.values()).strftime("%Y-%m-%d") if gia else None
@@ -640,6 +643,80 @@ def trong_phien():
             log("quy_mo_phong.json", "đổi" if luu(OUT / "quy_mo_phong.json", cu, quy) else "không đổi")
 
 
+# ---------------------------------------------------------------- danh mục ước tính của các quỹ ETF
+def cap_nhat_ro_etf():
+    """Thành phần rổ chỉ số mà các quỹ ETF bám theo, kèm tỷ trọng ước tính theo vốn hoá niêm yết.
+
+    Đây KHÔNG phải danh mục chính thức của quỹ: chỉ số thật dùng vốn hoá tự do chuyển nhượng và có
+    trần tỷ trọng, nên tỷ trọng thật khác. Chỉ dùng để biết quỹ nắm giữ những mã nào."""
+    (OUT / "ro_chi_so").mkdir(parents=True, exist_ok=True)
+    etf = doc_json(OUT / "etf.json", {}).get("quy", [])
+    ds_ro = sorted({q["tham_chieu"] for q in etf if q.get("tham_chieu")})
+    cty = nguon.thong_tin_cong_ty()
+    thanh_phan = {}
+    for ro in ds_ro:
+        try:
+            thanh_phan[ro] = nguon.thanh_phan_ro(ro)
+        except Exception as e:
+            log(f"  ! rổ {ro}: {str(e)[:100]}")
+    moi = sorted({m for v in thanh_phan.values() for m in v})
+    if not moi:
+        return
+    gia = {}
+    try:
+        for row in nguon.bang_gia(moi):
+            gia[row["listing_symbol"]] = row
+    except Exception as e:
+        log(f"  ! bảng giá rổ ETF: {str(e)[:100]}")
+        return
+    for ro, ma_list in thanh_phan.items():
+        if not ma_list:
+            log(f"Rổ {ro}: không có thành phần")
+            continue
+        muc = []
+        for m in ma_list:
+            row = gia.get(m)
+            if not row:
+                continue
+
+            def so(k):
+                v = row.get(k)
+                return None if v is None or pd.isna(v) else float(v)
+            p = so("match_match_price") or so("listing_ref_price")
+            ref = so("listing_ref_price")
+            cp = so("listing_listed_share")
+            if not p or not cp:
+                continue
+            muc.append({
+                "ma": m,
+                "ten": cty.get(m, (m, "Khác"))[0],
+                "nganh": cty.get(m, (m, "Khác"))[1],
+                "gia": r(p, 0),
+                "thay_doi": r((p / ref - 1) * 100) if ref else None,
+                "von_hoa": r(p * cp, 0),
+            })
+        tong = sum(x["von_hoa"] for x in muc) or 1
+        for x in muc:
+            x["ty_trong"] = r(x["von_hoa"] / tong * 100, 2)
+        muc.sort(key=lambda x: -x["ty_trong"])
+        nganh = {}
+        for x in muc:
+            nganh[x["nganh"]] = nganh.get(x["nganh"], 0) + x["ty_trong"]
+        ghi_json(OUT / "ro_chi_so" / f"{ro}.json", {
+            "ma": ro,
+            "cap_nhat": date_vn(),
+            "cap_nhat_luc": gio_vn(),
+            "so_ma": len(muc),
+            "thanh_phan": muc,
+            "nganh": sorted(({"nganh": k, "ty_trong": r(v, 2)} for k, v in nganh.items()), key=lambda x: -x["ty_trong"]),
+        })
+        log(f"Rổ {ro}: {len(muc)} mã")
+
+
+def date_vn():
+    return datetime.now(timezone(timedelta(hours=7))).strftime("%Y-%m-%d")
+
+
 # ---------------------------------------------------------------- bản tin tổng kết phiên
 def vn(x, so_le=2):
     """Định dạng số kiểu Việt Nam: 1.234,56"""
@@ -767,6 +844,7 @@ def main():
         cap_nhat_etf()
         cap_nhat_vn30_va_quy(chi_so)
         ghi_danh_muc_ma()
+        cap_nhat_ro_etf()
         cap_nhat_trong_ngay(chi_so)
         viet_ban_tin()
     if DA_GHI:

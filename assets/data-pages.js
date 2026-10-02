@@ -839,7 +839,7 @@
   var mkt = $('#mktChart');
   if(mkt){
     var M = {cs: null, cp: null, rows: [], ro: 'VN30', current: 'VNINDEX', months: 3, sortKey: 'ma', dir: 1, filter: '', tab: 'all', top: 'tang', shown: [], cu: {}};
-    try{ var roLuu = localStorage.getItem('kcn-ro'); if(roLuu === 'VN100') M.ro = 'VN100'; }catch(e){}
+    try{ var roLuu = localStorage.getItem('kcn-ro'); if(roLuu === 'VN100' || roLuu === 'FTSE') M.ro = roLuu; }catch(e){}
     function trongRo(){ return M.rows.filter(function(s){ return !s.ro || s.ro.indexOf(M.ro) > -1; }); }
     var modal = StockModal(function(){ return M.shown.length ? M.shown : M.rows; });
     var chart = LineChart(mkt, {label: 'Diễn biến chỉ số', area: true, yDigits: 0});
@@ -1044,7 +1044,9 @@
       M.ro = ro;
       try{ localStorage.setItem('kcn-ro', ro); }catch(e){}
       $$('#mktScope button').forEach(function(x){ x.setAttribute('aria-pressed', String(x.getAttribute('data-ro') === ro)); });
-      $$('.ro-ten').forEach(function(x){ x.textContent = ro; });
+      $$('.ro-ten').forEach(function(x){ x.textContent = ro === 'FTSE' ? 'FTSE All-World' : ro; });
+      var gc = $('#mktScopeNote');
+      if(gc) gc.hidden = ro !== 'FTSE';
     }
     datRo(M.ro);
     $$('#mktScope button').forEach(function(b){
@@ -1357,8 +1359,51 @@
         }
         returnsTable($('#dReturns'), rows);
         dca(h);
+        danhMucQuy(q);
       });
     }).catch(function(){ fail(etfDetail); });
+  }
+
+  // danh sách mã trong rổ chỉ số mà quỹ bám theo (ước tính, xem cảnh báo trên trang)
+  function danhMucQuy(q){
+    var box = $('#dHold');
+    if(!box || !q.tham_chieu) return;
+    load('ro_chi_so/' + q.tham_chieu + '.json').then(function(ro){
+      if(!ro || !ro.thanh_phan || !ro.thanh_phan.length) return;
+      box.hidden = false;
+      var ten = {VN30: 'VN30', VN100: 'VN100', VNDIAMOND: 'VN Diamond', VNFINLEAD: 'VNFIN Lead', VNFINSELECT: 'VNFIN Select', VNX50: 'VNX50'}[q.tham_chieu] || q.tham_chieu;
+      $('#dHoldSub').textContent = q.ma + ' bám theo chỉ số ' + ten + ' gồm ' + ro.so_ma + ' cổ phiếu. Giá cập nhật ' + moc(ro.cap_nhat, ro.cap_nhat_luc) + '.';
+      var full = false;
+      load('danh_muc_ma.json').catch(function(){ return []; }).then(function(dm){
+        var co = {}; dm.forEach(function(x){ co[x.ma] = 1; });
+        function ve(){
+          var ds = full ? ro.thanh_phan : ro.thanh_phan.slice(0, 15);
+          $('#dHoldBody').innerHTML = ds.map(function(x, i){
+            var ma = co[x.ma] ? '<a href="' + BASE + '/thi-truong/#ma=' + esc(x.ma) + '"><b>' + esc(x.ma) + '</b></a>' : '<b>' + esc(x.ma) + '</b>';
+            return '<tr><td class="num muted">' + (i + 1) + '</td><td>' + ma + '<span class="sub">' + esc(x.nganh) + ' · ' + esc(x.ten) + '</span></td>' +
+              '<td class="num">' + fmt(x.gia) + '</td><td class="num ' + cls(x.thay_doi) + '">' + pct(x.thay_doi) + '</td>' +
+              '<td class="num hide-sm">' + fmt(x.von_hoa / 1e12, 1) + '</td>' +
+              '<td class="num"><span class="wbar"><i style="width:' + Math.min(100, x.ty_trong / ro.thanh_phan[0].ty_trong * 100) + '%"></i></span>' + fmt(x.ty_trong, 2) + '%</td></tr>';
+          }).join('');
+          var nut = $('#dHoldToggle');
+          nut.hidden = ro.thanh_phan.length <= 15;
+          nut.textContent = full ? 'Thu gọn, chỉ xem 15 mã lớn nhất' : 'Xem toàn bộ ' + ro.thanh_phan.length + ' mã';
+        }
+        $('#dHoldToggle').onclick = function(){ full = !full; ve(); };
+        ve();
+      });
+      donut($('#dDonut'), $('#dSectors'), ro.nganh.slice(0, 10));
+      $('#dHoldCsv').onclick = function(){
+        var dong = ['STT,Ma,Ten,Nganh,Gia (dong),Thay doi (%),Von hoa (dong),Ty trong von hoa trong ro (%)'];
+        ro.thanh_phan.forEach(function(x, i){
+          dong.push([i + 1, x.ma, '"' + x.ten.replace(/"/g, '""') + '"', '"' + x.nganh + '"', x.gia, x.thay_doi, x.von_hoa, x.ty_trong].join(','));
+        });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob(['\ufeff' + dong.join('\n')], {type: 'text/csv;charset=utf-8'}));
+        a.download = q.ma + '_ro_' + q.tham_chieu + '_' + ro.cap_nhat + '.csv';
+        document.body.appendChild(a); a.click(); a.remove();
+      };
+    }).catch(function(){});
   }
 
   // mô phỏng đầu tư định kỳ: mua vào phiên đầu tiên mỗi tháng theo giá đóng cửa
