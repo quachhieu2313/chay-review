@@ -1046,3 +1046,5 @@ body.modal-open{overflow:hidden;}
 .scope-note{font-size:13px; color:var(--market-ink-soft); line-height:1.6; background:var(--market-surface); border:1px solid var(--market-border); border-radius:12px; padding:12px 16px; margin:8px 0 4px !important;}
 .scope-note[hidden]{display:none;}
 .scope-note b{color:var(--market-ink);}
+.holdings-grid .data-table .sub{max-width:190px;}
+.holdings-grid .data-table th, .holdings-grid .data-table td{padding-inline:9px;}
