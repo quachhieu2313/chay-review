@@ -1110,3 +1110,7 @@ body.modal-open{overflow:hidden;}
 .nn-top em{font-style:normal; font-family:"JetBrains Mono",monospace; text-align:right;}
 .nn-top .tl-bar{background:var(--surface-sunk);}
 @media (max-width:720px){ .nn-grid{grid-template-columns:1fr;} }
+
+.nn-wait{background:var(--surface-sunk); border-style:dashed;}
+.nn-empty{font-size:13px; color:var(--ink-soft); line-height:1.6; margin:0 !important;}
+.nn-empty b{color:var(--ink);}

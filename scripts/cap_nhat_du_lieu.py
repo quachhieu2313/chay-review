@@ -755,7 +755,7 @@ def cap_nhat_quy_nam_giu():
         return
     cty = nguon.thong_tin_cong_ty()
     quy_nn = []
-    for ham in (nguon.quy_vaneck_vnm, nguon.quy_globalx_vnam, nguon.quy_fubon_00885):
+    for ham in (nguon.quy_vaneck_vnm, nguon.quy_globalx_vnam, nguon.quy_fubon_00885, nguon.quy_vanguard_vwo, nguon.quy_vanguard_vt):
         try:
             quy_nn.append(ham())
         except Exception as e:
@@ -799,7 +799,7 @@ def cap_nhat_quy_nam_giu():
     ngay = [q["ngay"] for q in quy if q["ngay"]]
     moi = {
         "so_quy_mo": len(quy), "so_etf": len(etf),
-        "quy_nn_meta": [{"ma": q["ma"], "ten": q["ten"], "ngay": q["ngay"], "nguon": q["nguon"], "so_ma": len(q["top"]),
+        "quy_nn_meta": [{"ma": q["ma"], "ten": q["ten"], "ngay": q["ngay"], "nguon": q["nguon"], "so_ma": len(q["top"]), "tong_ma_quy": q.get("tong_ma_quy"),
                          "top": [{"ma": m, "pct": r(p, 2)} for m, p in sorted(q["top"], key=lambda t: -t[1])[:10]]} for q in quy_nn],
         "ngay_tu": min(ngay) if ngay else None, "ngay_den": max(ngay) if ngay else None,
         "co_phieu": ds,

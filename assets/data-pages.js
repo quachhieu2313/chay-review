@@ -1657,6 +1657,11 @@
     load('quy_nam_giu.json').then(function(d){
       var ds = d.co_phieu, sortKey = 'so_quy', filter = '', soDong = 30, meta = d.quy_nn_meta || [];
       $('#hNN').innerHTML = meta.map(function(q){
+        if(!q.so_ma){
+          return '<article class="nn-card nn-wait"><header><b>' + esc(q.ma) + '</b><span>' + esc(q.ten) + '</span></header>' +
+            '<p class="nn-meta">Danh mục ngày <b>' + ngayVN(q.ngay) + '</b>' + (q.tong_ma_quy ? ' · ' + fmt(q.tong_ma_quy) + ' cổ phiếu toàn cầu' : '') + ' · <a href="' + esc(q.nguon) + '" rel="noopener">Nguồn: trang chính thức</a></p>' +
+            '<p class="nn-empty"><b>Chưa có cổ phiếu Việt Nam.</b> Việt Nam chỉ vào chỉ số FTSE từ 21/09/2026 với trọng số khả đầu tư 10%, trong khi danh mục này công bố theo tháng và mới chốt ngày ' + ngayVN(q.ngay) + '. Các mã Việt Nam sẽ tự hiện ở kỳ cập nhật sau.</p></article>';
+        }
         return '<article class="nn-card"><header><b>' + esc(q.ma) + '</b><span>' + esc(q.ten) + '</span></header>' +
           '<p class="nn-meta">Danh mục ngày <b>' + ngayVN(q.ngay) + '</b> · ' + q.so_ma + ' cổ phiếu Việt Nam · <a href="' + esc(q.nguon) + '" rel="noopener">Nguồn: trang chính thức</a></p>' +
           '<ol class="clean nn-top">' + q.top.map(function(t){

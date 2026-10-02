@@ -201,6 +201,37 @@ def quy_fubon_00885():
             "nguon": "https://websys.fsit.com.tw/FubonETF/Trade/Assets.aspx?stkId=00885&lan=EN"}
 
 
+def _quy_vanguard(ma, ten, url):
+    """Quỹ ETF Vanguard bám chỉ số FTSE (GEIS): danh mục đầy đủ công bố hằng tháng. Chỉ giữ cổ phiếu Việt Nam (ISIN bắt đầu bằng VN)."""
+    H = {"User-Agent": UA, "Accept": "application/json", "Referer": "https://investor.vanguard.com/"}
+    vn, ngay, bat_dau, tong = [], None, 1, 0
+    while True:
+        d = _goi("GET", f"https://investor.vanguard.com/vmf/api/{ma}/portfolio-holding/stock.json", H,
+                 params={"start": bat_dau, "count": 500})
+        ngay = (d.get("asOfDate") or "")[:10] or ngay
+        tong = int(d.get("size") or 0)
+        ds = d.get("fund", {}).get("entity") if "fund" in d else d.get("entity")
+        for e in ds or []:
+            if str(e.get("isin", "")).startswith("VN"):
+                m = _ma_vn(str(e.get("ticker", "")).strip() + " VN")
+                if m:
+                    vn.append((m, float(e.get("percentWeight") or 0)))
+        bat_dau += 500
+        if not ds or bat_dau > tong:
+            break
+    return {"ma": ma, "ten": ten, "loai": "ETF_NN", "ngay": ngay, "top": vn, "nguon": url, "tong_ma_quy": tong}
+
+
+def quy_vanguard_vwo():
+    return _quy_vanguard("VWO", "Vanguard FTSE Emerging Markets ETF (VWO, Mỹ) - bám FTSE Emerging, thuộc GEIS",
+                         "https://investor.vanguard.com/investment-products/etfs/profile/vwo")
+
+
+def quy_vanguard_vt():
+    return _quy_vanguard("VT", "Vanguard Total World Stock ETF (VT, Mỹ) - bám FTSE Global All Cap, thuộc GEIS",
+                         "https://investor.vanguard.com/investment-products/etfs/profile/vt")
+
+
 FMARKET = "https://api.fmarket.vn/res/products"
 H_FM = {"User-Agent": UA, "Accept": "application/json", "Content-Type": "application/json",
         "Referer": "https://fmarket.vn/", "Origin": "https://fmarket.vn"}
