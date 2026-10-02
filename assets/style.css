@@ -1090,3 +1090,23 @@ body.modal-open{overflow:hidden;}
   .hd-list li{grid-template-columns:70px minmax(0,1fr) 54px;}
   .hd-list .tl-bar{display:none;}
 }
+
+/* quỹ ETF nước ngoài */
+.nn-box{margin:0 0 24px;}
+.nn-box h2{font-size:22px; font-weight:600;}
+.nn-sub{font-size:13.5px; color:var(--ink-soft); margin:6px 0 14px !important;}
+.nn-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.nn-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px;}
+.nn-card header{display:flex; flex-direction:column; gap:2px; margin-bottom:6px;}
+.nn-card header b{font-family:"JetBrains Mono",monospace; font-size:20px; color:var(--accent-strong);}
+.nn-card header span{font-size:13px; color:var(--ink-soft);}
+.nn-meta{font-size:12px; color:var(--muted); margin-bottom:10px !important; line-height:1.5;}
+.nn-meta a{color:var(--accent-strong); text-decoration:underline;}
+.nn-top li + li{margin-top:1px;}
+.nn-top button{all:unset; box-sizing:border-box; width:100%; display:grid; grid-template-columns:46px minmax(0,1fr) 56px; gap:10px; align-items:center; padding:5px 6px; border-radius:7px; cursor:pointer; font-size:12.5px;}
+.nn-top button:hover{background:var(--surface-sunk);}
+.nn-top button:focus-visible{outline:2px solid var(--focus);}
+.nn-top b{font-family:"JetBrains Mono",monospace;}
+.nn-top em{font-style:normal; font-family:"JetBrains Mono",monospace; text-align:right;}
+.nn-top .tl-bar{background:var(--surface-sunk);}
+@media (max-width:720px){ .nn-grid{grid-template-columns:1fr;} }

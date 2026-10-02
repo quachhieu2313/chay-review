@@ -1655,7 +1655,15 @@
   var holdPage = $('#holdPage');
   if(holdPage){
     load('quy_nam_giu.json').then(function(d){
-      var ds = d.co_phieu, sortKey = 'so_quy', filter = '', soDong = 30;
+      var ds = d.co_phieu, sortKey = 'so_quy', filter = '', soDong = 30, meta = d.quy_nn_meta || [];
+      $('#hNN').innerHTML = meta.map(function(q){
+        return '<article class="nn-card"><header><b>' + esc(q.ma) + '</b><span>' + esc(q.ten) + '</span></header>' +
+          '<p class="nn-meta">Danh mục ngày <b>' + ngayVN(q.ngay) + '</b> · ' + q.so_ma + ' cổ phiếu Việt Nam · <a href="' + esc(q.nguon) + '" rel="noopener">Nguồn: trang chính thức</a></p>' +
+          '<ol class="clean nn-top">' + q.top.map(function(t){
+            return '<li><button type="button" data-ma="' + esc(t.ma) + '"><b>' + esc(t.ma) + '</b><span class="tl-bar"><i class="acc-bg" style="width:' + (t.pct / q.top[0].pct * 100) + '%"></i></span><em>' + fmt(t.pct, 2) + '%</em></button></li>';
+          }).join('') + '</ol></article>';
+      }).join('') || '<p class="muted">Chưa lấy được danh mục quỹ nước ngoài.</p>';
+      $('#hNN').addEventListener('click', function(e){ var b = e.target.closest('[data-ma]'); if(b) mo(b.getAttribute('data-ma')); });
       $('#hQuyMo').textContent = d.so_quy_mo;
       $('#hEtf').textContent = d.so_etf;
       $('#hNgay').textContent = ngayVN(d.ngay_tu) + ' – ' + ngayVN(d.ngay_den);
@@ -1680,8 +1688,9 @@
             '<td class="num hide-sm"><span class="wbar"><i style="width:' + tl + '%"></i></span>' + fmt(tl, 0) + '%</td>' +
             '<td class="num">' + (x.pct_tb === null ? '–' : fmt(x.pct_tb, 2) + '%') + '</td>' +
             '<td class="num hide-sm">' + (x.pct_max === null ? '–' : fmt(x.pct_max, 1) + '%') + '</td>' +
-            '<td class="num">' + x.so_etf + '<small class="muted">/' + d.so_etf + '</small></td></tr>';
-        }).join('') || '<tr><td colspan="7" class="empty-row">Không tìm thấy mã phù hợp.</td></tr>';
+            '<td class="num">' + x.so_etf + '<small class="muted">/' + d.so_etf + '</small></td>' +
+            '<td class="num hide-sm">' + (x.so_quy_nn ? x.quy_nn.map(function(q){ return esc(q.ma) + ' ' + fmt(q.pct, 1) + '%'; }).join(' · ') : '<span class="muted">–</span>') + '</td></tr>';
+        }).join('') || '<tr><td colspan="8" class="empty-row">Không tìm thấy mã phù hợp.</td></tr>';
         var nut = $('#hMore');
         nut.hidden = list.length <= soDong;
         nut.textContent = 'Xem thêm (' + (list.length - soDong) + ' mã nữa)';
@@ -1717,6 +1726,12 @@
         $('#hdEtf').innerHTML = x.etf.map(function(m){
           return '<a class="chip" href="' + BASE + '/etf/chi-tiet/?ma=' + esc(m) + '">' + esc(m) + '</a>';
         }).join('') || '<span class="muted">Không có quỹ ETF nào giữ mã này.</span>';
+        $('#hdNNN').textContent = '(' + (x.so_quy_nn || 0) + ' quỹ, danh mục chính thức)';
+        var mn = x.quy_nn && x.quy_nn.length ? x.quy_nn[0].pct : 1;
+        $('#hdNN').innerHTML = (x.quy_nn || []).map(function(q){
+          return '<li><span class="hd-ma">' + esc(q.ma) + '</span><span class="hd-ten">' + esc(q.ten) + '</span>' +
+            '<span class="tl-bar"><i class="acc-bg" style="width:' + (q.pct / mn * 100) + '%"></i></span><b>' + fmt(q.pct, 2) + '%</b></li>';
+        }).join('') || '<li class="muted">Không có trong danh mục 2 quỹ nước ngoài này.</li>';
         ov.hidden = false;
         document.body.classList.add('modal-open');
         dlg.focus();

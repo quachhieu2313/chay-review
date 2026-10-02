@@ -754,6 +754,15 @@ def cap_nhat_quy_nam_giu():
     if not quy:
         return
     cty = nguon.thong_tin_cong_ty()
+    quy_nn = []
+    for ham in (nguon.quy_vaneck_vnm, nguon.quy_globalx_vnam):
+        try:
+            quy_nn.append(ham())
+        except Exception as e:
+            log(f"  ! quỹ nước ngoài {ham.__name__}: {str(e)[:100]}")
+    if not quy_nn:  # lỗi thì giữ danh sách cũ
+        cu_nn = doc_json(OUT / "quy_nam_giu.json", {}).get("quy_nn_meta", [])
+        log("Không lấy được quỹ nước ngoài, bỏ qua" if not cu_nn else "Giữ dữ liệu quỹ nước ngoài cũ")
     etf = [q for q in doc_json(OUT / "etf.json", {}).get("quy", []) if q.get("tham_chieu")]
     ro = {}
     for q in etf:
@@ -761,16 +770,19 @@ def cap_nhat_quy_nam_giu():
             d = doc_json(OUT / "ro_chi_so" / f"{q['tham_chieu']}.json", {})
             ro[q["tham_chieu"]] = {x["ma"] for x in d.get("thanh_phan", [])}
 
-    ma_ds = {m for q in quy for m, _ in q["top"]} | {m for v in ro.values() for m in v}
+    ma_ds = {m for q in quy for m, _ in q["top"]} | {m for v in ro.values() for m in v} | {m for q in quy_nn for m, _ in q["top"]}
     cp = {}
     for m in ma_ds:
-        cp[m] = {"ma": m, "ten": cty.get(m, (m, "Khác"))[0], "nganh": cty.get(m, (m, "Khác"))[1], "quy_mo": [], "etf": []}
+        cp[m] = {"ma": m, "ten": cty.get(m, (m, "Khác"))[0], "nganh": cty.get(m, (m, "Khác"))[1], "quy_mo": [], "etf": [], "quy_nn": []}
     for q in quy:
         for m, pc in q["top"]:
             cp[m]["quy_mo"].append({"ma": q["ma"], "ten": q["ten"], "loai": q["loai"], "pct": r(pc, 2)})
     for q in etf:
         for m in ro[q["tham_chieu"]]:
             cp[m]["etf"].append(q["ma"])
+    for q in quy_nn:
+        for m, pc in q["top"]:
+            cp[m]["quy_nn"].append({"ma": q["ma"], "ten": q["ten"], "pct": r(pc, 2)})
     ds = []
     for m, x in cp.items():
         x["quy_mo"].sort(key=lambda t: -t["pct"])
@@ -780,11 +792,15 @@ def cap_nhat_quy_nam_giu():
         x["pct_tb"] = r(sum(pcs) / n, 2) if n else None
         x["pct_max"] = max(pcs) if n else None
         x["so_etf"] = len(x["etf"])
+        x["quy_nn"].sort(key=lambda t: -t["pct"])
+        x["so_quy_nn"] = len(x["quy_nn"])
         ds.append(x)
     ds.sort(key=lambda x: (-x["so_quy"], -(x["pct_tb"] or 0)))
     ngay = [q["ngay"] for q in quy if q["ngay"]]
     moi = {
         "so_quy_mo": len(quy), "so_etf": len(etf),
+        "quy_nn_meta": [{"ma": q["ma"], "ten": q["ten"], "ngay": q["ngay"], "nguon": q["nguon"], "so_ma": len(q["top"]),
+                         "top": [{"ma": m, "pct": r(p, 2)} for m, p in sorted(q["top"], key=lambda t: -t[1])[:10]]} for q in quy_nn],
         "ngay_tu": min(ngay) if ngay else None, "ngay_den": max(ngay) if ngay else None,
         "co_phieu": ds,
     }

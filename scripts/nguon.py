@@ -5,7 +5,9 @@ dùng cho bảng giá của họ. Chỉ cần `requests` + `pandas`, không ph�
 
 Đơn vị: giá cổ phiếu/ETF tính bằng đồng, chỉ số tính bằng điểm, khối lượng tính bằng cổ phiếu.
 """
+import io
 import json
+import re
 import time
 
 import pandas as pd
@@ -119,6 +121,59 @@ def thanh_phan_ro(ma):
         d = _goi("GET", f"{KBS}/index/{MA_KBS[ma]}/stocks", H_KBS)
         return list((d or {}).get("data") or [])
     return ro_chi_so(ma)
+
+
+# ---------------------------------------------------------------- quỹ ETF nước ngoài (danh mục đầy đủ, chính thức)
+H_WEB = {"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9"}
+
+
+def _ma_vn(t):
+    """'VHM VN' -> 'VHM'; trả None nếu không phải mã cổ phiếu Việt Nam (tiền mặt, quyền mua...)."""
+    m = re.fullmatch(r"([A-Z0-9]{3,8}) VN", str(t).strip())
+    return m.group(1) if m and not re.search(r"\d.*[A-Z]$", m.group(1)) else None
+
+
+def quy_vaneck_vnm():
+    """VanEck Vietnam ETF (VNM, Mỹ): file danh mục hằng ngày trên vaneck.com."""
+    ss = requests.Session()
+    res = ss.get("https://www.vaneck.com/us/en/etf/equity/vnm/holdings/download/xlsx/", headers=H_WEB, timeout=40)
+    res.raise_for_status()
+    df = pd.read_excel(io.BytesIO(res.content), header=None, engine="openpyxl")
+    m_ngay = re.search(r"(\d{2}/\d{2}/\d{4})", " ".join(str(x) for x in df.iloc[0].tolist()))
+    if not m_ngay:
+        raise RuntimeError("không đọc được ngày danh mục VanEck")
+    ngay = pd.to_datetime(m_ngay.group(1), format="%m/%d/%Y").strftime("%Y-%m-%d")
+    hdr = df.index[df[1].astype(str).str.strip() == "Ticker"][0]
+    d = df.iloc[hdr + 1:].copy()
+    d.columns = [str(c) for c in df.iloc[hdr]]
+    top = []
+    for _, row in d.iterrows():
+        m = _ma_vn(row["Ticker"])
+        if m and str(row["Asset Class"]).strip() == "Stock":
+            top.append((m, float(str(row["% of Net Assets"]).replace("%", "").replace(",", ""))))
+    time.sleep(NGHI)
+    return {"ma": "VNM", "ten": "VanEck Vietnam ETF (VNM, Mỹ)", "loai": "ETF_NN", "ngay": ngay, "top": top,
+            "nguon": "https://www.vaneck.com/us/en/investments/vietnam-etf-vnm/holdings/"}
+
+
+def quy_globalx_vnam():
+    """Global X MSCI Vietnam ETF (VNAM, Mỹ): file CSV danh mục hằng ngày trên globalxetfs.com."""
+    page = _phien.get("https://www.globalxetfs.com/funds/vnam/", headers=H_WEB, timeout=40).text
+    link = re.search(r"https://assets\.globalxetfs\.com/funds/holdings/vnam_full-holdings_(\d{8})\.csv", page)
+    if not link:
+        raise RuntimeError("không thấy link danh mục VNAM")
+    res = _phien.get(link.group(0), headers=H_WEB, timeout=40)
+    res.raise_for_status()
+    ngay = pd.to_datetime(link.group(1), format="%Y%m%d").strftime("%Y-%m-%d")
+    df = pd.read_csv(io.StringIO(res.text), skiprows=2)
+    top = []
+    for _, row in df.iterrows():
+        m = _ma_vn(row["Ticker"])
+        if m:
+            top.append((m, float(row["% of Net Assets"])))
+    time.sleep(NGHI)
+    return {"ma": "VNAM", "ten": "Global X MSCI Vietnam ETF (VNAM, Mỹ)", "loai": "ETF_NN", "ngay": ngay, "top": top,
+            "nguon": "https://www.globalxetfs.com/funds/vnam/"}
 
 
 FMARKET = "https://api.fmarket.vn/res/products"
