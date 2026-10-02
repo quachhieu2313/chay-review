@@ -1382,7 +1382,6 @@
             var ma = co[x.ma] ? '<a href="' + BASE + '/thi-truong/#ma=' + esc(x.ma) + '"><b>' + esc(x.ma) + '</b></a>' : '<b>' + esc(x.ma) + '</b>';
             return '<tr><td class="num muted">' + (i + 1) + '</td><td>' + ma + '<span class="sub">' + esc(x.nganh) + ' · ' + esc(x.ten) + '</span></td>' +
               '<td class="num">' + fmt(x.gia) + '</td><td class="num ' + cls(x.thay_doi) + '">' + pct(x.thay_doi) + '</td>' +
-              '<td class="num hide-sm">' + fmt(x.von_hoa / 1e12, 1) + '</td>' +
               '<td class="num"><span class="wbar"><i style="width:' + Math.min(100, x.ty_trong / ro.thanh_phan[0].ty_trong * 100) + '%"></i></span>' + fmt(x.ty_trong, 2) + '%</td></tr>';
           }).join('');
           var nut = $('#dHoldToggle');
