@@ -755,7 +755,7 @@ def cap_nhat_quy_nam_giu():
         return
     cty = nguon.thong_tin_cong_ty()
     quy_nn = []
-    for ham in (nguon.quy_vaneck_vnm, nguon.quy_globalx_vnam, nguon.quy_fubon_00885, nguon.quy_vanguard_vwo, nguon.quy_vanguard_vt, nguon.quy_thien_hoang):
+    for ham in (nguon.quy_vaneck_vnm, nguon.quy_globalx_vnam, nguon.quy_kraneshares_kpho, nguon.quy_fubon_00885, nguon.quy_vanguard_vwo, nguon.quy_vanguard_vt, nguon.quy_thien_hoang):
         try:
             quy_nn.append(ham())
         except Exception as e:

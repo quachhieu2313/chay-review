@@ -176,6 +176,35 @@ def quy_globalx_vnam():
             "nguon": "https://www.globalxetfs.com/funds/vnam/"}
 
 
+def quy_kraneshares_kpho():
+    """KraneShares Dragon Capital Vietnam ETF (KPHO, Mỹ): file CSV danh mục hằng ngày trên kraneshares.com."""
+    page = _phien.get("https://kraneshares.com/etf/kpho/", headers=H_WEB, timeout=40).text
+    link = re.search(r"https://kraneshares\.com/csv/\d{2}_\d{2}_\d{4}_kpho_holdings\.csv", page)
+    if not link:
+        raise RuntimeError("không thấy link danh mục KPHO")
+    res = _phien.get(link.group(0), headers=H_WEB, timeout=40)
+    res.raise_for_status()
+    dong = res.text.splitlines()
+    ngay = re.search(r"As of (\d{4}-\d{2}-\d{2})", dong[0])
+    df = pd.read_csv(io.StringIO(chr(10).join(dong[1:])))
+    top, etf_pct = [], 0.0
+    for _, row in df.iterrows():
+        t = str(row["Ticker"]).strip()
+        pc = float(row["% of Net Assets"])
+        if re.fullmatch(r"[A-Z0-9]{3} VN", t) or re.fullmatch(r"[A-Z0-9]{3,4}", t):
+            top.append((t.split()[0], pc))
+        elif t.endswith(" VN"):  # chứng chỉ quỹ ETF nội (vd FUEVFVND), không phải cổ phiếu
+            etf_pct += pc
+    if not ngay or len(top) < 10:
+        raise RuntimeError(f"danh mục KPHO bất thường ({len(top)} mã)")
+    time.sleep(NGHI)
+    them = {"loai_quy": "ETF Mỹ do Dragon Capital chọn rổ, bám chỉ số tăng trưởng"}
+    if etf_pct:
+        them["loai_quy"] += f"; {etf_pct:.2f}% tài sản nằm trong chứng chỉ quỹ DCVFMVN Diamond ETF (không tính vào bảng cổ phiếu)"
+    return {"ma": "KPHO", "ten": "KraneShares Dragon Capital Vietnam ETF (KPHO, Mỹ)", "loai": "ETF_NN", "ngay": ngay.group(1), "top": top,
+            "them": them, "nguon": "https://kraneshares.com/etf/kpho/"}
+
+
 TEN_STOXX = [("VINGROUP", "VIC"), ("VINHOMES", "VHM"), ("SAIGON TREASURE", "STB"), ("SAIGON THUONG TIN", "STB"), ("HOA PHAT", "HPG"),
              ("SAI GON - HANOI", "SHB"), ("FPT", "FPT"), ("SSI", "SSI"), ("VIX", "VIX"), ("MASAN GROUP", "MSN"),
              ("VIETJET", "VJC"), ("GELEX", "GEX"), ("VIETNAM DAIRY", "VNM"), ("VPS", "VCK"), ("VPBANK", "VPB"), ("TECHCOM", "TCB")]
