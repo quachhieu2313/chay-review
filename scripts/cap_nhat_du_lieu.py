@@ -220,8 +220,14 @@ def cap_nhat_trong_ngay(cs):
 
 
 # ---------------------------------------------------------------- ETF
+def danh_ba_etf():
+    """Tên quỹ và chỉ số tham chiếu đã biết. Dùng khi nguồn trả tên bị hỏng (vd 'FUEVFVND - ETF')."""
+    return doc_json(ROOT / "scripts" / "etf_danh_ba.json", {})
+
+
 def cap_nhat_etf():
     etf = nguon.danh_sach_etf()
+    ba = danh_ba_etf()
     cu = {e["ma"]: e for e in doc_json(OUT / "etf.json", {}).get("quy", [])}
     phien = {}
     try:
@@ -232,8 +238,10 @@ def cap_nhat_etf():
     ds = []
     for ma, ten in etf:
         log(f"ETF {ma}")
+        if ten.strip().upper().endswith("- ETF") and ma in ba:
+            ten = ba[ma]["ten_day_du"]  # nguồn trả tên rút gọn, lấy tên đầy đủ đã lưu
         ten_hoa = ten.upper()
-        tc = next((v for k, v in THAM_CHIEU if k in ten_hoa), None)
+        tc = next((v for k, v in THAM_CHIEU if k in ten_hoa), None) or (ba.get(ma) or {}).get("tham_chieu")
         df = lich_su(ma)
         if df is None or len(df) < 2:
             if ma in cu:

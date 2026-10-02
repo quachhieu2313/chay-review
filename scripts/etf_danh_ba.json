@@ -1,0 +1,86 @@
+{
+ "E1VFVN30": {
+  "ten_day_du": "Quỹ ETF DCVFMVN30",
+  "tham_chieu": "VN30"
+ },
+ "FUEABVND": {
+  "ten_day_du": "Quỹ ETF ABFVN DIAMOND",
+  "tham_chieu": "VNDIAMOND"
+ },
+ "FUEBFVND": {
+  "ten_day_du": "Quỹ ETF BVFVN DIAMOND",
+  "tham_chieu": "VNDIAMOND"
+ },
+ "FUEDCMID": {
+  "ten_day_du": "Quỹ ETF DCVFMVNMIDCAP",
+  "tham_chieu": null
+ },
+ "FUEFCV50": {
+  "ten_day_du": "Quỹ ETF FPT CAPITAL VNX50",
+  "tham_chieu": "VNX50"
+ },
+ "FUEIP100": {
+  "ten_day_du": "Quỹ ETF IPA PARTNER VN100",
+  "tham_chieu": "VN100"
+ },
+ "FUEKIV30": {
+  "ten_day_du": "Quỹ ETF KIM GROWTH VN30",
+  "tham_chieu": "VN30"
+ },
+ "FUEKIVFS": {
+  "ten_day_du": "Quỹ ETF KIM GROWTH VNFINSELECT",
+  "tham_chieu": "VNFINSELECT"
+ },
+ "FUEKIVND": {
+  "ten_day_du": "Quỹ ETF KIM GROWTH VN DIAMOND",
+  "tham_chieu": "VNDIAMOND"
+ },
+ "FUEMAV30": {
+  "ten_day_du": "Quỹ ETF MAFM VN30",
+  "tham_chieu": "VN30"
+ },
+ "FUEMAVND": {
+  "ten_day_du": "Quỹ ETF MAFM VNDIAMOND",
+  "tham_chieu": "VNDIAMOND"
+ },
+ "FUEMITEC": {
+  "ten_day_du": "Quỹ ETF VINACAPITAL VNMITECH",
+  "tham_chieu": null
+ },
+ "FUEPHVNS": {
+  "ten_day_du": "Quỹ ETF PHFM VNSHINE",
+  "tham_chieu": null
+ },
+ "FUESSV30": {
+  "ten_day_du": "Quỹ ETF SSIAM VN30",
+  "tham_chieu": "VN30"
+ },
+ "FUESSV50": {
+  "ten_day_du": "Quỹ ETF SSIAM VNX50",
+  "tham_chieu": "VNX50"
+ },
+ "FUESSVFL": {
+  "ten_day_du": "Quỹ ETF SSIAM VNFIN LEAD",
+  "tham_chieu": "VNFINLEAD"
+ },
+ "FUETCC50": {
+  "ten_day_du": "Quỹ ETF TECHCOM CAPITAL VNX50",
+  "tham_chieu": "VNX50"
+ },
+ "FUETPVND": {
+  "ten_day_du": "Quỹ ETF VFCVN DIAMOND",
+  "tham_chieu": "VNDIAMOND"
+ },
+ "FUEVFVND": {
+  "ten_day_du": "Quỹ ETF DCVFMVN DIAMOND",
+  "tham_chieu": "VNDIAMOND"
+ },
+ "FUEVN100": {
+  "ten_day_du": "Quỹ ETF VINACAPITAL VN100",
+  "tham_chieu": "VN100"
+ },
+ "FUEVN50G": {
+  "ten_day_du": "Quỹ ETF VinaCapital VN50 Growth",
+  "tham_chieu": null
+ }
+}
