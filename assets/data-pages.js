@@ -839,7 +839,7 @@
   var mkt = $('#mktChart');
   if(mkt){
     var M = {cs: null, cp: null, rows: [], ro: 'VN30', current: 'VNINDEX', months: 3, sortKey: 'ma', dir: 1, filter: '', tab: 'all', top: 'tang', shown: [], cu: {}};
-    try{ var roLuu = localStorage.getItem('kcn-ro'); if(roLuu === 'VN100' || roLuu === 'FTSE') M.ro = roLuu; }catch(e){}
+    try{ var roLuu = localStorage.getItem('kcn-ro'); if(['VN100', 'FTSE27', 'FTSE6'].indexOf(roLuu) > -1) M.ro = roLuu; }catch(e){}
     function trongRo(){ return M.rows.filter(function(s){ return !s.ro || s.ro.indexOf(M.ro) > -1; }); }
     var modal = StockModal(function(){ return M.shown.length ? M.shown : M.rows; });
     var chart = LineChart(mkt, {label: 'Diễn biến chỉ số', area: true, yDigits: 0});
@@ -1044,9 +1044,10 @@
       M.ro = ro;
       try{ localStorage.setItem('kcn-ro', ro); }catch(e){}
       $$('#mktScope button').forEach(function(x){ x.setAttribute('aria-pressed', String(x.getAttribute('data-ro') === ro)); });
-      $$('.ro-ten').forEach(function(x){ x.textContent = ro === 'FTSE' ? 'FTSE All-World' : ro; });
+      var TEN_RO = {FTSE27: 'FTSE All-Cap', FTSE6: 'FTSE All-World'};
+      $$('.ro-ten').forEach(function(x){ x.textContent = TEN_RO[ro] || ro; });
       var gc = $('#mktScopeNote');
-      if(gc) gc.hidden = ro !== 'FTSE';
+      if(gc) gc.hidden = ro.indexOf('FTSE') !== 0;
     }
     datRo(M.ro);
     $$('#mktScope button').forEach(function(b){

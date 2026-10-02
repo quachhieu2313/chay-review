@@ -82,6 +82,11 @@ NHOM = {
 
 # 6 mã vào chỉ số FTSE All-World khi Việt Nam được FTSE Russell nâng hạng (hiệu lực 21/9/2026)
 FTSE_ALLWORLD = ["VCB", "VIC", "VHM", "BID", "HPG", "VPB"]
+# 27 mã vào FTSE Global All Cap: 3 Large Cap + 3 Mid Cap (6 mã trên) + 21 Small Cap
+FTSE_ALLCAP = FTSE_ALLWORLD + [
+    "FPT", "GEX", "HDB", "HCM", "MCH", "MSN", "NVL", "SHB", "STB", "SSB", "SSI", "TCX",
+    "VNM", "VCI", "VJC", "MSB", "VRE", "VPL", "VIX", "VND", "VCK",
+]
 
 PHI_MO_PHONG = 0.005  # phí quản lý giả định 0,5%/năm của quỹ mô phỏng
 NAV_KHOI_DAU = 10000.0
@@ -320,7 +325,8 @@ def ghi_danh_muc_ma():
 def cap_nhat_vn30_va_quy(chi_so):
     ro30 = nguon.ro_chi_so("VN30")
     ro100 = nguon.ro_chi_so("VN100")
-    ro = ro100 + [m for m in ro30 if m not in ro100]
+    ro = ro100 + [m for m in ro30 + FTSE_ALLCAP if m not in ro100]
+    ro = list(dict.fromkeys(ro))
     cty = nguon.thong_tin_cong_ty()
     ten = {k: v[0] for k, v in cty.items()}
     nganh = {k: v[1] for k, v in cty.items()}
@@ -355,7 +361,7 @@ def cap_nhat_vn30_va_quy(chi_so):
             "thay_doi": r((s.iloc[-1] / s.iloc[-2] - 1) * 100) if len(s) > 1 else 0,
             "khoi_luong": kl[ma],
             "spark": [r(x, 0) for x in s.tail(20)],
-            "ro": (["VN30"] if ma in ro30 else []) + (["VN100"] if ma in ro100 else []) + (["FTSE"] if ma in FTSE_ALLWORLD else []),
+            "ro": (["VN30"] if ma in ro30 else []) + (["VN100"] if ma in ro100 else []) + (["FTSE27"] if ma in FTSE_ALLCAP else []) + (["FTSE6"] if ma in FTSE_ALLWORLD else []),
             **thong_tin_phien(phien.get(ma, {}), float(s.iloc[-1])),
         })
     ngay_cuoi = max(s.index[-1] for s in gia.values()).strftime("%Y-%m-%d") if gia else None
@@ -821,6 +827,8 @@ Khối ngoại **{'mua' if nn_rong >= 0 else 'bán'} ròng {vn(abs(nn_rong) / 1e
 
 - **Mua ròng nhiều nhất:** {ds_ma(nn_mua, lambda t: f"{t[0]['ma']} ({vn(t[1] / 1e9, 1)} tỷ)")}.
 - **Bán ròng nhiều nhất:** {ds_ma(nn_ban, lambda t: f"{t[0]['ma']} ({vn(abs(t[1]) / 1e9, 1)} tỷ)")}.
+
+*Số liệu khối ngoại lấy từ bảng giá sau khi đóng cửa, có thể bao gồm các giao dịch thỏa thuận lớn nên có thể chênh so với số khớp lệnh.*
 
 ## Quỹ ETF
 
