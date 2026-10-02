@@ -1,0 +1,41 @@
+{
+ "ngay": "2026-10-01",
+ "nguon_trang": "https://etf.dws.com/en-lu/LU0322252924-vietnam-swap-ucits-etf-1c/",
+ "ten": "Xtrackers Vietnam Swap UCITS ETF 1C",
+ "isin": "LU0322252924",
+ "ra_mat": "2008-01-15",
+ "chi_so": "STOXX Vietnam Total Market Liquid Index (GTR, USD)",
+ "chi_so_tu_ngay": "2025-10-14",
+ "chi_so_truoc": "FTSE Vietnam Index",
+ "aum_trieu_eur": 309.62,
+ "nav_eur": 34.81,
+ "nav_usd": 39.22,
+ "ter_pct": 0.85,
+ "mo_ta_chi_so": "Vốn hoá free-float, hiệu chỉnh theo tỷ lệ quay vòng cổ phiếu, loại các công ty không đủ thanh khoản; cơ cấu 6 tháng/lần; mã lớn nhất bị giới hạn 15%.",
+ "thanh_phan_chi_so": {
+  "ngay": "2026-06-30",
+  "top": [
+   {
+    "ma": "VIC",
+    "pct": 28.07
+   },
+   {
+    "ma": "VHM",
+    "pct": 9.12
+   },
+   {
+    "ma": "STB",
+    "pct": 7.08
+   },
+   {
+    "ma": "HPG",
+    "pct": 6.8
+   },
+   {
+    "ma": "SHB",
+    "pct": 6.48
+   }
+  ],
+  "khac_pct": 42.46
+ }
+}

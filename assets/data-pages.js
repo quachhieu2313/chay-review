@@ -1668,6 +1668,29 @@
             return '<li><button type="button" data-ma="' + esc(t.ma) + '"><b>' + esc(t.ma) + '</b><span class="tl-bar"><i class="acc-bg" style="width:' + (t.pct / q.top[0].pct * 100) + '%"></i></span><em>' + fmt(t.pct, 2) + '%</em></button></li>';
           }).join('') + '</ol></article>';
       }).join('') || '<p class="muted">Chưa lấy được danh mục quỹ nước ngoài.</p>';
+      load('chi_so_tham_chieu.json').then(function(c){
+        var x = c.xtrackers; if(!x || !x.ten) return;
+        var st = c.stoxx, sw = c.ro_swap, tp = x.thanh_phan_chi_so;
+        var maxp = tp.top[0].pct;
+        $('#hXt').hidden = false;
+        $('#hXtBody').innerHTML =
+          '<article class="nn-card"><header><b>' + esc(x.ten) + '</b><span>ISIN ' + esc(x.isin) + ' · ra mắt ' + ngayVN(x.ra_mat) + '</span></header>' +
+          '<dl class="xt-facts">' +
+            '<div><dt>Quy mô quỹ</dt><dd>' + fmt(x.aum_trieu_eur, 2) + ' triệu EUR</dd></div>' +
+            '<div><dt>NAV</dt><dd>' + fmt(x.nav_usd, 2) + ' USD · ' + fmt(x.nav_eur, 2) + ' EUR</dd></div>' +
+            '<div><dt>Phí (TER)</dt><dd>' + fmt(x.ter_pct, 2) + '%/năm</dd></div>' +
+            '<div><dt>Bám chỉ số</dt><dd>STOXX Vietnam Total Market Liquid</dd></div>' +
+          '</dl><p class="nn-meta">Số liệu DWS chốt <b>' + ngayVN(x.ngay) + '</b> (cập nhật thủ công) · từ ' + ngayVN(x.chi_so_tu_ngay) + ' đổi chỉ số bám từ <b>' + esc(x.chi_so_truoc) + '</b> sang STOXX · <a href="' + esc(x.nguon_trang) + '" rel="noopener">Nguồn: DWS</a></p>' +
+          (sw ? '<p class="xt-swap"><b>Danh mục thật của quỹ (rổ thế chấp swap):</b> ' + sw.so_ma + ' cổ phiếu, ' + fmt(sw.tong_my_pct, 0) + '% là cổ phiếu Mỹ, lớn nhất ' +
+            sw.top.slice(0, 3).map(function(t){ return esc(t.ten) + ' ' + fmt(t.pct, 1) + '%'; }).join(', ') + '.</p>' : '') + '</article>' +
+          '<article class="nn-card"><header><b>Thành phần chỉ số STOXX Vietnam TML</b><span>Mã trong chỉ số mà quỹ mô phỏng</span></header>' +
+          '<p class="nn-meta">Tỷ trọng top 5 theo DWS ngày <b>' + ngayVN(tp.ngay) + '</b>' + (st ? ' · mức chỉ số hiện tại <b>' + fmt(st.gia_tri, 1) + '</b> điểm (STOXX)' : '') + ' · <a href="https://stoxx.com/index/stcvnll/" rel="noopener">Nguồn: STOXX</a></p>' +
+          '<ol class="clean nn-top">' + tp.top.map(function(t){
+            return '<li><button type="button" data-ma="' + esc(t.ma) + '"><b>' + esc(t.ma) + '</b><span class="tl-bar"><i class="acc-bg" style="width:' + (t.pct / maxp * 100) + '%"></i></span><em>' + fmt(t.pct, 2) + '%</em></button></li>';
+          }).join('') + '</ol>' +
+          '<p class="nn-meta" style="margin-top:8px;">Các mã còn lại chiếm ' + fmt(tp.khac_pct, 2) + '%.' + (st ? ' Thứ tự top 10 hiện tại theo STOXX: ' + st.top.map(function(t){ return esc(t.ma || t.ten); }).join(' › ') + '.' : '') + '</p>' +
+          '<p class="nn-meta xt-warn">Lưu ý: DWS ghi chỉ số giới hạn mã lớn nhất ở 15% nhưng bảng thành phần lại ghi VIC 28,07% (ngày 30/06/2026), nên tỷ trọng top 5 có thể chưa phản ánh đúng sau lần cơ cấu gần nhất. Hãy đối chiếu với STOXX trước khi dùng.</p></article>';
+      }).catch(function(){});
       $('#hNN').addEventListener('click', function(e){ var b = e.target.closest('[data-ma]'); if(b) mo(b.getAttribute('data-ma')); });
       $('#hQuyMo').textContent = d.so_quy_mo;
       $('#hEtf').textContent = d.so_etf;

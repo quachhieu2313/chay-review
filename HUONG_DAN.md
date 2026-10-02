@@ -94,6 +94,12 @@ Không nên chạy dày hơn 10 phút: GitHub Pages chỉ build lại web khoả
 
 Sửa file `_config.yml` (các dòng `title`, `tagline`, `description`, `slogan`).
 
+## Số liệu cập nhật thủ công
+
+- `scripts/ro_chi_so_he_so.json`: số cổ phiếu free-float và hệ số trần của 6 rổ chỉ số (nguồn FiinQuant). Lấy lại sau mỗi kỳ cơ cấu chỉ số (tháng 1, tháng 7).
+- `scripts/xtrackers_vietnam.json`: quy mô quỹ, NAV, tỷ trọng top 5 của Xtrackers Vietnam Swap (chép từ etf.dws.com). Cập nhật khi cần số mới.
+- `scripts/etf_danh_ba.json`: tên quỹ và chỉ số tham chiếu của các ETF trong nước. Thêm dòng khi có quỹ ETF mới niêm yết.
+
 ## Bật các dịch vụ bên ngoài (chỉ cần điền vào `_config.yml`)
 
 | Dòng trong `_config.yml` | Tác dụng | Lấy ở đâu |

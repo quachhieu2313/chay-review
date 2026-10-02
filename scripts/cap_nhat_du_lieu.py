@@ -811,6 +811,25 @@ def cap_nhat_quy_nam_giu():
     log(f"Quỹ nắm giữ: {len(quy)} quỹ mở, {len(etf)} quỹ ETF, {len(ds)} mã")
 
 
+def cap_nhat_chi_so_tham_chieu():
+    """Thông tin chỉ số STOXX Vietnam và quỹ Xtrackers mô phỏng chỉ số này (swap)."""
+    xt = doc_json(ROOT / "scripts" / "xtrackers_vietnam.json", {})
+    out = {"xtrackers": xt, "stoxx": None, "ro_swap": None}
+    cu = doc_json(OUT / "chi_so_tham_chieu.json", {})
+    for khoa, ham in (("stoxx", nguon.stoxx_vietnam), ("ro_swap", nguon.dws_ro_swap)):
+        try:
+            out[khoa] = ham()
+        except Exception as e:
+            log(f"  ! {khoa}: {str(e)[:100]}")
+            out[khoa] = cu.get(khoa)
+    cu_cmp = {k: v for k, v in cu.items() if k != "cap_nhat_luc"}
+    if cu_cmp != out:
+        out["cap_nhat_luc"] = gio_vn()
+        out["cap_nhat"] = date_vn()
+        ghi_json(OUT / "chi_so_tham_chieu.json", out)
+    log("Chỉ số tham chiếu STOXX/Xtrackers: xong")
+
+
 def date_vn():
     return datetime.now(timezone(timedelta(hours=7))).strftime("%Y-%m-%d")
 
@@ -946,6 +965,7 @@ def main():
         ghi_danh_muc_ma()
         cap_nhat_ro_etf()
         cap_nhat_quy_nam_giu()
+        cap_nhat_chi_so_tham_chieu()
         cap_nhat_trong_ngay(chi_so)
         viet_ban_tin()
     if DA_GHI:

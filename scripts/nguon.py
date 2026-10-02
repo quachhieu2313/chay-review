@@ -176,6 +176,47 @@ def quy_globalx_vnam():
             "nguon": "https://www.globalxetfs.com/funds/vnam/"}
 
 
+TEN_STOXX = [("VINGROUP", "VIC"), ("VINHOMES", "VHM"), ("SAIGON TREASURE", "STB"), ("SAIGON THUONG TIN", "STB"), ("HOA PHAT", "HPG"),
+             ("SAI GON - HANOI", "SHB"), ("FPT", "FPT"), ("SSI", "SSI"), ("VIX", "VIX"), ("MASAN GROUP", "MSN"),
+             ("VIETJET", "VJC"), ("GELEX", "GEX"), ("VIETNAM DAIRY", "VNM"), ("VPS", "VCK"), ("VPBANK", "VPB"), ("TECHCOM", "TCB")]
+
+
+def stoxx_vietnam():
+    """STOXX Vietnam Total Market Liquid (STCVNLL): mức chỉ số và top 10 thành phần (không có tỷ trọng) từ stoxx.com."""
+    html = _phien.get("https://stoxx.com/index/stcvnll/", headers=H_WEB, timeout=40).text
+    txt = re.sub(r"<script.*?</script>|<style.*?</style>", " ", html, flags=re.S)
+    txt = re.sub(r"<[^>]+>", " | ", txt)
+    txt = re.sub(r"\s+", " ", txt)
+    txt = re.sub(r"(\| ?)+", "| ", txt)
+    gia_tri = re.search(r"Last Value \| ([\d,\.]+) \|", txt)
+    top10 = re.search(r"Top 10 Components(.*?)Zoom", txt)
+    if not gia_tri or not top10:
+        raise RuntimeError("không đọc được trang STOXX")
+    ten = [t.strip() for t in top10.group(1).split("|") if t.strip() and t.strip() != "VN"]
+    top = []
+    for t in ten:
+        ma = next((m for k, m in TEN_STOXX if k in t.upper()), None)
+        top.append({"ten": t, "ma": ma})
+    time.sleep(NGHI)
+    return {"gia_tri": float(gia_tri.group(1).replace(",", "")), "top": top, "nguon": "https://stoxx.com/index/stcvnll/"}
+
+
+def dws_ro_swap():
+    """Rổ cổ phiếu thế chấp của Xtrackers Vietnam Swap (quỹ swap nên danh mục thật là cổ phiếu ngoài Việt Nam)."""
+    url = "https://etf.dws.com/api/pdp/en-lu/etf/LU0322252924-vietnam-swap-ucits-etf-1c/holdings"
+    d = _goi("GET", url, {"User-Agent": UA, "Accept": "application/json", "client-id": "passive-frontend",
+                          "Referer": "https://etf.dws.com/en-lu/LU0322252924-vietnam-swap-ucits-etf-1c/"})
+    rows = (d.get("tables") or [{}])[0].get("values") or []
+    ds = []
+    for r_ in rows:
+        try:
+            ds.append({"ten": r_["column_0"]["value"], "pct": round(float(r_["column_1"]["sortValue"]), 3), "nuoc": r_["column_3"]["value"]})
+        except Exception:
+            continue
+    ds.sort(key=lambda x: -x["pct"])
+    return {"so_ma": len(ds), "top": ds[:5], "tong_my_pct": round(sum(x["pct"] for x in ds if x["nuoc"] == "United States"), 1)}
+
+
 def quy_fubon_00885():
     """Fubon FTSE Vietnam ETF (00885, Đài Loan): bảng danh mục hằng ngày trên website Fubon Asset Management."""
     url = "https://websys.fsit.com.tw/FubonETF/Trade/Assets.aspx?stkId=00885&lan=EN"
