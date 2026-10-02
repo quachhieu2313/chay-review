@@ -1796,9 +1796,109 @@
   }
 
   // =====================================================================
+  // TRANG RADAR DÒNG TIỀN (phan-tich.html)
+  // =====================================================================
+  var ptPage = $('#ptPage');
+  if(ptPage){
+    load('phan_tich.json').then(function(d){
+      $('#ptNgay').textContent = moc(d.cap_nhat, d.cap_nhat_luc);
+      var nutMa = function(m, ten){ return '<b>' + esc(m) + '</b>' + (ten ? '<span class="sub">' + esc(ten) + '</span>' : ''); };
+      var dau = function(n){ return n > 0 ? '+' : n < 0 ? '−' : ''; };
+
+      // ---- 1. Radar FTSE (tính ngay trên trình duyệt)
+      var ft = d.ftse, oVon = $('#ptVon'), oDot = $('#ptDot'), oFx = $('#ptFx'), oTg = $('#ptTg');
+      oVon.value = ft.von_ty_usd; oDot.value = ft.dot_dau_pct; oFx.value = ft.fx; oTg.value = 20;
+      var tongFF = ft.ds.reduce(function(s, x){ return s + x.ff_gt; }, 0);
+      function veFtse(){
+        var von = Math.max(0, parseFloat(oVon.value) || 0), dot = Math.min(100, Math.max(0, parseFloat(oDot.value) || 0)),
+            fx = parseFloat(oFx.value) || ft.fx, tg = Math.min(100, Math.max(1, parseFloat(oTg.value) || 20));
+        var tong = von * 1e9 * fx * dot / 100;
+        var rows = ft.ds.map(function(x){
+          var w = x.ff_gt / tongFF, cau = tong * w;
+          return {x: x, w: w, cau: cau, pff: cau / x.ff_gt * 100, ngay: x.adv ? cau / (x.adv * tg / 100) : null};
+        });
+        rows.sort(function(a, b){ return (b.ngay || 0) - (a.ngay || 0); });
+        var nong = rows.filter(function(r){ return r.ngay !== null && r.ngay > 5; }).length;
+        var top = rows[0];
+        $('#ptTiles').innerHTML =
+          '<div class="pt-tile"><small>Tổng cầu mua đợt đầu</small><b>' + fmt(tong / 1e12, 1) + ' nghìn tỷ đồng</b></div>' +
+          '<div class="pt-tile"><small>Mã khó hấp thụ nhất</small><b>' + (top ? esc(top.x.ma) + ' · ' + fmt(top.ngay, 1) + ' phiên' : '–') + '</b></div>' +
+          '<div class="pt-tile"><small>Số mã cần hơn 5 phiên</small><b>' + nong + '/' + rows.length + '</b></div>';
+        $('#ptFtBody').innerHTML = rows.map(function(r){
+          return '<tr class="hold-row' + (r.ngay > 5 ? ' pt-nong' : '') + '" tabindex="0" data-ma="' + esc(r.x.ma) + '"><td><b>' + esc(r.x.ma) + '</b>' + (r.x.nhom6 ? '<span class="pt-tag">FTSE All-World</span>' : '') + '<span class="sub">' + esc(r.x.nganh) + ' · ' + esc(r.x.ten) + '</span></td>' +
+            '<td class="num">' + fmt(r.w * 100, 1) + '%</td>' +
+            '<td class="num">' + fmt(r.cau / 1e9, 0) + '</td>' +
+            '<td class="num hide-sm">' + fmt(r.pff, 2) + '%</td>' +
+            '<td class="num hide-sm">' + (r.x.adv ? fmt(r.x.adv / 1e9, 0) : '–') + '</td>' +
+            '<td class="num">' + (r.ngay === null ? '–' : fmt(r.ngay, 1)) + '</td></tr>';
+        }).join('');
+        $('#ptFtNote').innerHTML = 'Giả định: tỷ trọng = vốn hoá free-float' + (ft.ngay_he_so ? ' (chốt ' + ngayVN(ft.ngay_he_so) + ')' : '') + ' của 27 mã, chưa tính giới hạn sở hữu nước ngoài và điều chỉnh riêng của FTSE. Mặc định 2,5 tỷ USD là mức Vanguard được tin tức nêu, chia 4 đợt từ 09/2026 đến 09/2027 nên đợt đầu 25%. Mua hết trong đúng một phiên là không thực tế; "số phiên cần" cho biết lượng cần mua lớn gấp bao nhiêu lần phần thanh khoản thị trường có thể nhường.';
+      }
+      [oVon, oDot, oFx, oTg].forEach(function(o){ o.addEventListener('input', veFtse); });
+      veFtse();
+
+      // ---- 2. Dòng tiền quỹ ETF ngoại
+      var nn = d.dong_tien_nn;
+      if(!nn.ds.length){
+        $('#ptNnBody').innerHTML = '<div class="pt-empty"><b>Đang tích luỹ lịch sử.</b> Kim Chỉ Nam lưu danh mục của các quỹ ngoại mỗi khi họ công bố bản mới' + (nn.tu_ngay ? ' (đã lưu từ ' + ngayVN(nn.tu_ngay) + ')' : '') + '. Mua bán ròng sẽ hiện ra từ lần có bản công bố thứ hai: hằng ngày với VanEck, Global X, KraneShares và Fubon, hằng tháng với Vanguard. Khi Vanguard VWO/VT lần đầu có cổ phiếu Việt Nam, các mã đó sẽ hiện ngay ở đây với nhãn "mua mới".</div>';
+      } else {
+        $('#ptNnBody').innerHTML = '<div class="table-card"><div class="table-scroll"><table class="data-table hold-table"><thead><tr><th scope="col">Cổ phiếu</th><th scope="col" class="num">Mua/bán ròng <small class="muted">(cổ phiếu)</small></th><th scope="col" class="num">Giá trị <small class="muted">(tỷ đồng)</small></th><th scope="col" class="hide-sm">Quỹ thực hiện</th></tr></thead><tbody>' +
+          nn.ds.map(function(x){
+            return '<tr class="hold-row" tabindex="0" data-ma="' + esc(x.ma) + '"><td>' + nutMa(x.ma, x.ten) + '</td>' +
+              '<td class="num ' + cls(x.chenh_cp) + '">' + dau(x.chenh_cp) + fmt(Math.abs(x.chenh_cp)) + '</td>' +
+              '<td class="num ' + cls(x.chenh_gt) + '">' + dau(x.chenh_gt) + fmt(Math.abs(x.chenh_gt) / 1e9, 2) + '</td>' +
+              '<td class="hide-sm pt-quy">' + x.quy.map(function(q){
+                return esc(q.ma) + ' ' + dau(q.chenh_cp) + fmt(Math.abs(q.chenh_cp)) + (q.moi ? '<span class="pt-tag">mua mới</span>' : q.thoat ? '<span class="pt-tag">bán hết</span>' : '') + ' <small>(' + ngayVN(q.tu).slice(0, 5) + '→' + ngayVN(q.den).slice(0, 5) + ')</small>';
+              }).join(' · ') + '</td></tr>';
+          }).join('') + '</tbody></table></div></div><p class="table-note">Giá trị tính theo giá hiện tại. Đã lưu ' + nn.so_lan_chup + ' lần công bố' + (nn.tu_ngay ? ' từ ' + ngayVN(nn.tu_ngay) : '') + '.</p>';
+      }
+
+      // ---- 3. Quỹ mở nội
+      var mo = d.dong_tien_mo;
+      if(!mo.ds.length){
+        $('#ptMoBody').innerHTML = '<div class="pt-empty"><b>Đang tích luỹ lịch sử.</b> Quỹ mở chỉ đổi danh mục theo kỳ (thường hằng tháng). Khi một quỹ công bố danh mục mới, Kim Chỉ Nam so với kỳ trước và hiện mã tăng/giảm tại đây.</div>';
+      } else {
+        $('#ptMoBody').innerHTML = '<div class="table-card"><div class="table-scroll"><table class="data-table hold-table"><thead><tr><th scope="col">Cổ phiếu</th><th scope="col" class="num">Điểm</th><th scope="col" class="num">Mua mới / Tăng</th><th scope="col" class="num">Bán hết / Giảm</th></tr></thead><tbody>' +
+          mo.ds.map(function(x){
+            return '<tr class="hold-row" tabindex="0" data-ma="' + esc(x.ma) + '"><td>' + nutMa(x.ma, x.ten) + '</td><td class="num ' + cls(x.diem) + '"><b>' + dau(x.diem) + Math.abs(x.diem) + '</b></td>' +
+              '<td class="num">' + x.moi + ' / ' + x.tang + '</td><td class="num">' + x.thoat + ' / ' + x.giam + '</td></tr>';
+          }).join('') + '</tbody></table></div></div><p class="table-note">Dựa trên ' + mo.so_quy + ' quỹ đã có từ hai kỳ công bố trở lên.</p>';
+      }
+
+      // ---- 4. Lệch pha nội - ngoại
+      var lpKey = 'ngoai';
+      function veLp(){
+        var ds = d.lech_pha.slice().sort(function(a, b){ return lpKey === 'ngoai' ? b.nn_tru_noi - a.nn_tru_noi : a.nn_tru_noi - b.nn_tru_noi; }).slice(0, 15);
+        $('#ptLpBody').innerHTML = ds.map(function(x){
+          return '<tr class="hold-row" tabindex="0" data-ma="' + esc(x.ma) + '"><td>' + nutMa(x.ma, x.ten) + '</td>' +
+            '<td class="num">' + fmt(x.vn100, 2) + '%</td><td class="num">' + fmt(x.noi_tb, 2) + '%</td><td class="num">' + fmt(x.ngoai_tb, 2) + '%</td>' +
+            '<td class="num hide-sm">' + x.so_noi + '</td><td class="num hide-sm">' + x.so_ngoai + '</td></tr>';
+        }).join('');
+      }
+      $('#ptLpSort').addEventListener('click', function(e){
+        var b = e.target.closest('button'); if(!b) return;
+        lpKey = b.getAttribute('data-k');
+        $$('#ptLpSort button').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        veLp();
+      });
+      veLp();
+
+      var moMa = function(e){
+        var el = e.target.closest('tr[data-ma]'); if(!el) return;
+        if(e.type === 'keydown' && e.key !== 'Enter') return;
+        var ma = el.getAttribute('data-ma'), o = $('[data-market-url]');
+        if(window.KCN_moPopup) window.KCN_moPopup(ma);
+        else if(o) location.href = o.getAttribute('data-market-url') + '#ma=' + encodeURIComponent(ma);
+      };
+      ptPage.addEventListener('click', moMa);
+      ptPage.addEventListener('keydown', moMa);
+    }).catch(function(){ fail(ptPage); });
+  }
+
+  // =====================================================================
   // TỰ TẢI LẠI KHI CÓ DỮ LIỆU MỚI (2 phút kiểm tra một lần, chỉ khi tab đang được xem)
   // =====================================================================
-  var dungDuLieu = document.querySelector('#mktChart, #etfTable, #etfDetail, #fundPage, #homeFund, #homeEtf, #holdPage');
+  var dungDuLieu = document.querySelector('#mktChart, #etfTable, #etfDetail, #fundPage, #homeFund, #homeEtf, #holdPage, #ptPage');
   if(dungDuLieu){
     var toast = null;
     function banDangThaoTac(){

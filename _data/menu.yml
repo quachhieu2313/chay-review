@@ -6,6 +6,9 @@
 - id: quy-nam-giu
   ten: Quỹ nắm giữ
   link: /quy-nam-giu/
+- id: phan-tich
+  ten: Radar dòng tiền
+  link: /phan-tich/
 - id: quy-mo-phong
   ten: Quỹ mô phỏng
   link: /quy-mo-phong/

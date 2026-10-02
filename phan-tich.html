@@ -1,0 +1,87 @@
+---
+layout: default
+title: Radar dòng tiền quỹ
+description: Phân tích chỉ có ở Kim Chỉ Nam - áp lực mua thụ động khi FTSE nâng hạng Việt Nam, dòng tiền mua bán ròng của quỹ ETF nước ngoài và quỹ mở, và chỗ quỹ nội với quỹ ngoại đang lệch pha.
+nav: phan-tich
+permalink: /phan-tich/
+image: /assets/img/og-etf.png
+---
+<section class="page-head wrap">
+  <p class="eyebrow">Radar dòng tiền</p>
+  <h1>Tiền thụ động và tiền quỹ đang chảy vào mã nào</h1>
+  <p>Những con số này không có sẵn ở đâu: Kim Chỉ Nam ghép danh mục của quỹ trong và ngoài nước với giá, free-float và thanh khoản, rồi lưu lại lịch sử mỗi ngày để tính ai đang mua, ai đang bán.</p>
+</section>
+
+<div class="wrap" id="ptPage">
+  <div class="hold-warn" role="note">
+    <b>Cách đọc.</b> Đây là mô hình ước tính dựa trên số liệu công khai, <b>không phải</b> số liệu chính thức của FTSE hay của quỹ, và không phải khuyến nghị đầu tư. Các giả định nằm ngay trong từng mục và bạn tự chỉnh được.
+    Dữ liệu cập nhật <b id="ptNgay">…</b>.
+  </div>
+
+  <section class="nn-box" aria-labelledby="ptFt">
+    <h2 id="ptFt">Radar FTSE: tiền thụ động sẽ dồn vào mã nào, và thị trường hấp thụ được không</h2>
+    <p class="nn-sub">Khi Việt Nam vào nhóm thị trường mới nổi của FTSE (từ 21/09/2026), các quỹ bám chỉ số này buộc phải mua 27 cổ phiếu đủ điều kiện. Công cụ chia số tiền giả định theo <b>vốn hoá free-float</b> rồi so với thanh khoản trung bình 20 phiên của từng mã, để thấy mã nào <b>thiếu hàng</b> so với lượng cần mua.</p>
+    <div class="pt-inputs">
+      <label>Vốn thụ động đổ vào Việt Nam <span>(tỷ USD)</span><input type="number" id="ptVon" min="0" step="0.1" inputmode="decimal"></label>
+      <label>Tỷ lệ mua trong đợt đầu <span>(%)</span><input type="number" id="ptDot" min="1" max="100" step="5" inputmode="decimal"></label>
+      <label>Tỷ giá <span>(VND/USD)</span><input type="number" id="ptFx" min="20000" step="50" inputmode="decimal"></label>
+      <label>Tỷ lệ tham gia thanh khoản <span>(% giá trị giao dịch)</span><input type="number" id="ptTg" min="1" max="100" step="1" inputmode="decimal"></label>
+    </div>
+    <div class="pt-tiles" id="ptTiles"></div>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="data-table hold-table">
+          <thead><tr>
+            <th scope="col">Cổ phiếu</th>
+            <th scope="col" class="num">Tỷ trọng ước tính</th>
+            <th scope="col" class="num">Cần mua <small class="muted">(tỷ đồng)</small></th>
+            <th scope="col" class="num hide-sm">% free-float</th>
+            <th scope="col" class="num hide-sm">Thanh khoản/phiên <small class="muted">(tỷ đồng)</small></th>
+            <th scope="col" class="num">Số phiên cần</th>
+          </tr></thead>
+          <tbody id="ptFtBody"><tr><td colspan="6" class="empty-row">Đang tải dữ liệu…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="table-note" id="ptFtNote"></p>
+  </section>
+
+  <section class="nn-box" aria-labelledby="ptNn">
+    <h2 id="ptNn">Quỹ ETF nước ngoài đang mua hay bán ròng</h2>
+    <p class="nn-sub">So số cổ phiếu mà VanEck VNM, Global X VNAM, KraneShares KPHO, Fubon 00885 và Vanguard (khi có mã Việt Nam) nắm giữ giữa hai lần công bố liên tiếp. Đây là <b>khối lượng mua bán ròng thật</b>, không lẫn biến động giá.</p>
+    <div id="ptNnBody"></div>
+  </section>
+
+  <section class="nn-box" aria-labelledby="ptMo">
+    <h2 id="ptMo">Quỹ mở trong nước đang tăng hay giảm tỷ trọng</h2>
+    <p class="nn-sub">Mã vào hoặc ra khỏi top 10, và mã đổi tỷ trọng từ 0,3 điểm % trở lên, giữa hai kỳ công bố gần nhất của từng quỹ. Điểm = số quỹ tăng/mua mới trừ số quỹ giảm/bán hết.</p>
+    <div id="ptMoBody"></div>
+  </section>
+
+  <section class="nn-box" aria-labelledby="ptLp">
+    <h2 id="ptLp">Lệch pha giữa quỹ nội và quỹ ngoại</h2>
+    <p class="nn-sub">Tỷ trọng trung bình của các quỹ mở cổ phiếu trong nước và của các quỹ ETF nước ngoài công bố đầy đủ, so với tỷ trọng trong VN100. Mã mà một bên nắm nhiều còn bên kia gần như không có là nơi hai dòng tiền bất đồng.</p>
+    <div class="toolbar">
+      <div class="seg" id="ptLpSort" role="group" aria-label="Sắp xếp">
+        <button type="button" data-k="ngoai" aria-pressed="true">Ngoại chuộng hơn nội</button>
+        <button type="button" data-k="noi" aria-pressed="false">Nội chuộng hơn ngoại</button>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="data-table hold-table">
+          <thead><tr>
+            <th scope="col">Cổ phiếu</th>
+            <th scope="col" class="num">VN100</th>
+            <th scope="col" class="num">Quỹ nội TB</th>
+            <th scope="col" class="num">Quỹ ngoại TB</th>
+            <th scope="col" class="num hide-sm">Số quỹ nội</th>
+            <th scope="col" class="num hide-sm">Số quỹ ngoại</th>
+          </tr></thead>
+          <tbody id="ptLpBody"><tr><td colspan="6" class="empty-row">Đang tải dữ liệu…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="table-note">Quỹ mở chỉ công bố top 10 mã nên tỷ trọng quỹ nội bị thấp hơn thực tế; hãy so thứ hạng giữa các mã thay vì so tuyệt đối với VN100.</p>
+  </section>
+</div>

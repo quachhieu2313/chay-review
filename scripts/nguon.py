@@ -146,13 +146,14 @@ def quy_vaneck_vnm():
     hdr = df.index[df[1].astype(str).str.strip() == "Ticker"][0]
     d = df.iloc[hdr + 1:].copy()
     d.columns = [str(c) for c in df.iloc[hdr]]
-    top = []
+    top, so_cp = [], {}
     for _, row in d.iterrows():
         m = _ma_vn(row["Ticker"])
         if m and str(row["Asset Class"]).strip() == "Stock":
             top.append((m, float(str(row["% of Net Assets"]).replace("%", "").replace(",", ""))))
+            so_cp[m] = float(str(row["Shares"]).replace(",", ""))
     time.sleep(NGHI)
-    return {"ma": "VNM", "ten": "VanEck Vietnam ETF (VNM, Mỹ)", "loai": "ETF_NN", "ngay": ngay, "top": top,
+    return {"ma": "VNM", "ten": "VanEck Vietnam ETF (VNM, Mỹ)", "loai": "ETF_NN", "ngay": ngay, "top": top, "so_cp": so_cp,
             "nguon": "https://www.vaneck.com/us/en/investments/vietnam-etf-vnm/holdings/"}
 
 
@@ -166,13 +167,14 @@ def quy_globalx_vnam():
     res.raise_for_status()
     ngay = pd.to_datetime(link.group(1), format="%Y%m%d").strftime("%Y-%m-%d")
     df = pd.read_csv(io.StringIO(res.text), skiprows=2)
-    top = []
+    top, so_cp = [], {}
     for _, row in df.iterrows():
         m = _ma_vn(row["Ticker"])
         if m:
             top.append((m, float(row["% of Net Assets"])))
+            so_cp[m] = float(str(row["Shares Held"]).replace(",", ""))
     time.sleep(NGHI)
-    return {"ma": "VNAM", "ten": "Global X MSCI Vietnam ETF (VNAM, Mỹ)", "loai": "ETF_NN", "ngay": ngay, "top": top,
+    return {"ma": "VNAM", "ten": "Global X MSCI Vietnam ETF (VNAM, Mỹ)", "loai": "ETF_NN", "ngay": ngay, "top": top, "so_cp": so_cp,
             "nguon": "https://www.globalxetfs.com/funds/vnam/"}
 
 
@@ -187,12 +189,13 @@ def quy_kraneshares_kpho():
     dong = res.text.splitlines()
     ngay = re.search(r"As of (\d{4}-\d{2}-\d{2})", dong[0])
     df = pd.read_csv(io.StringIO(chr(10).join(dong[1:])))
-    top, etf_pct = [], 0.0
+    top, etf_pct, so_cp = [], 0.0, {}
     for _, row in df.iterrows():
         t = str(row["Ticker"]).strip()
         pc = float(row["% of Net Assets"])
         if re.fullmatch(r"[A-Z0-9]{3} VN", t) or re.fullmatch(r"[A-Z0-9]{3,4}", t):
             top.append((t.split()[0], pc))
+            so_cp[t.split()[0]] = float(str(row["Shares Held"]).replace(",", ""))
         elif t.endswith(" VN"):  # chứng chỉ quỹ ETF nội (vd FUEVFVND), không phải cổ phiếu
             etf_pct += pc
     if not ngay or len(top) < 10:
@@ -201,7 +204,7 @@ def quy_kraneshares_kpho():
     them = {"loai_quy": "ETF Mỹ do Dragon Capital chọn rổ, bám chỉ số tăng trưởng"}
     if etf_pct:
         them["loai_quy"] += f"; {etf_pct:.2f}".replace(".", ",") + "% tài sản nằm trong chứng chỉ quỹ DCVFMVN Diamond ETF (không tính vào bảng cổ phiếu)"
-    return {"ma": "KPHO", "ten": "KraneShares Dragon Capital Vietnam ETF (KPHO, Mỹ)", "loai": "ETF_NN", "ngay": ngay.group(1), "top": top,
+    return {"ma": "KPHO", "ten": "KraneShares Dragon Capital Vietnam ETF (KPHO, Mỹ)", "loai": "ETF_NN", "ngay": ngay.group(1), "top": top, "so_cp": so_cp,
             "them": them, "nguon": "https://kraneshares.com/etf/kpho/"}
 
 
@@ -326,7 +329,7 @@ def quy_thien_hoang():
         pass
     time.sleep(NGHI)
     return {"ma": "008763", "ten": "Thiên Hoằng Việt Nam (天弘越南 QDII, Trung Quốc)", "loai": "QUY_NN", "ngay": ngay.group(1),
-            "top": [(m, p) for m, p, _, _ in top], "chi_tiet": [{"ma": m, "pct": p, "so_cp": sl, "gia_tri_ndt": gt} for m, p, sl, gt in top],
+            "top": [(m, p) for m, p, _, _ in top], "so_cp": {m: sl for m, _, sl, _ in top}, "chi_tiet": [{"ma": m, "pct": p, "so_cp": sl, "gia_tri_ndt": gt} for m, p, sl, gt in top],
             "them": them, "nguon": "https://fundf10.eastmoney.com/ccmx_008763.html"}
 
 
@@ -340,25 +343,26 @@ def quy_fubon_00885():
     ngay = re.search(r"Date:\s*(\d{4}/\d{2}/\d{2})", html)
     if not ngay:
         raise RuntimeError("không đọc được ngày danh mục Fubon")
-    top = []
+    top, so_cp = [], {}
     for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", html, flags=re.S):
         c = [re.sub(r"<[^>]+>", "", x).strip() for x in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, flags=re.S)]
         if len(c) == 5:
             m = _ma_vn(c[0])
             if m:
                 top.append((m, float(c[4].replace(",", ""))))
+                so_cp[m] = float(c[2].replace(",", ""))
     if len(top) < 20:
         raise RuntimeError(f"danh mục Fubon quá ít mã ({len(top)})")
     time.sleep(NGHI)
     return {"ma": "00885", "ten": "Fubon FTSE Vietnam ETF (00885, Đài Loan)", "loai": "ETF_NN",
-            "ngay": ngay.group(1).replace("/", "-"), "top": top,
+            "ngay": ngay.group(1).replace("/", "-"), "top": top, "so_cp": so_cp,
             "nguon": "https://websys.fsit.com.tw/FubonETF/Trade/Assets.aspx?stkId=00885&lan=EN"}
 
 
 def _quy_vanguard(ma, ten, url):
     """Quỹ ETF Vanguard bám chỉ số FTSE (GEIS): danh mục đầy đủ công bố hằng tháng. Chỉ giữ cổ phiếu Việt Nam (ISIN bắt đầu bằng VN)."""
     H = {"User-Agent": UA, "Accept": "application/json", "Referer": "https://investor.vanguard.com/"}
-    vn, ngay, bat_dau, tong = [], None, 1, 0
+    vn, so_cp, ngay, bat_dau, tong = [], {}, None, 1, 0
     while True:
         d = _goi("GET", f"https://investor.vanguard.com/vmf/api/{ma}/portfolio-holding/stock.json", H,
                  params={"start": bat_dau, "count": 500})
@@ -370,10 +374,11 @@ def _quy_vanguard(ma, ten, url):
                 m = _ma_vn(str(e.get("ticker", "")).strip() + " VN")
                 if m:
                     vn.append((m, float(e.get("percentWeight") or 0)))
+                    so_cp[m] = float(e.get("sharesHeld") or 0)
         bat_dau += 500
         if not ds or bat_dau > tong:
             break
-    return {"ma": ma, "ten": ten, "loai": "ETF_NN", "ngay": ngay, "top": vn, "nguon": url, "tong_ma_quy": tong}
+    return {"ma": ma, "ten": ten, "loai": "ETF_NN", "ngay": ngay, "top": vn, "so_cp": so_cp, "nguon": url, "tong_ma_quy": tong}
 
 
 def quy_vanguard_vwo():

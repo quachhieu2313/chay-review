@@ -1125,3 +1125,19 @@ body.modal-open{overflow:hidden;}
 
 .nn-extra{background:var(--surface-sunk); border-radius:8px; padding:8px 10px; color:var(--ink-soft) !important;}
 .nn-extra b{color:var(--ink);}
+
+/* Radar dòng tiền */
+.pt-inputs{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin:0 0 16px;}
+.pt-inputs label{display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:600; color:var(--ink);}
+.pt-inputs label span{font-weight:400; color:var(--muted); font-size:12px;}
+.pt-inputs input{border:1px solid var(--border); background:var(--surface); color:var(--ink); border-radius:10px; padding:10px 12px; font-size:15px; font-family:inherit; width:100%; min-height:44px;}
+.pt-inputs input:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
+.pt-tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:0 0 16px;}
+.pt-tile{background:var(--surface-sunk); border-radius:12px; padding:14px 16px;}
+.pt-tile small{display:block; font-size:12px; color:var(--muted);}
+.pt-tile b{display:block; font-size:20px; margin-top:4px;}
+.pt-empty{background:var(--surface-sunk); border-radius:12px; padding:16px 18px; font-size:13.5px; line-height:1.6; color:var(--ink-soft);}
+.pt-quy{font-size:12px; color:var(--ink-soft);}
+.pt-tag{display:inline-block; border-radius:6px; padding:1px 6px; font-size:11px; font-weight:700; background:var(--accent-tint); color:var(--accent-ink); margin-left:4px;}
+.pt-nang{font-weight:700;}
+.hold-row.pt-nong td:last-child{color:var(--critical); font-weight:700;}

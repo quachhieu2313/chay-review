@@ -39,6 +39,7 @@ except Exception:
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import nguon  # noqa: E402
+import phan_tich  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets" / "data"
@@ -809,6 +810,12 @@ def cap_nhat_quy_nam_giu():
         moi["cap_nhat_luc"] = gio_vn()
         ghi_json(OUT / "quy_nam_giu.json", moi)
     log(f"Quỹ nắm giữ: {len(quy)} quỹ mở, {len(etf)} quỹ ETF, {len(ds)} mã")
+    try:
+        gia = {c["ma"]: c["gia"] for c in doc_json(OUT / "co_phieu.json", {}).get("co_phieu", []) if c.get("gia")}
+        kq = phan_tich.tinh(quy, quy_nn, gia, cty, ghi_json, date_vn(), gio_vn())
+        log(f"Phân tích độc quyền: {kq}")
+    except Exception as e:
+        log(f"  ! phân tích độc quyền: {str(e)[:150]}")
 
 
 def cap_nhat_chi_so_tham_chieu():
