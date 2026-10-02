@@ -883,3 +883,12 @@ body.modal-open{overflow:hidden;}
 .sm-skel{height:12px; border-radius:6px; background:linear-gradient(90deg,#111F4D,#1A2B66,#111F4D); background-size:200% 100%; animation:smSkel 1.2s ease-in-out infinite; margin:6px 0;}
 @keyframes smSkel{0%{background-position:100% 0;} 100%{background-position:-100% 0;}}
 @media (prefers-reduced-motion:reduce){ .sm-spin, .sm-skel{animation:none;} }
+
+/* thông báo có dữ liệu mới */
+.kcn-toast{
+  position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:200;
+  display:flex; align-items:center; gap:14px; padding:10px 12px 10px 18px; border-radius:14px;
+  background:#14245A; color:#F1F4FB; box-shadow:0 14px 34px -10px rgba(0,0,0,.45); font-size:14px; max-width:calc(100% - 32px);
+}
+.kcn-toast[hidden]{display:none;}
+.kcn-toast button{border:none; border-radius:10px; padding:8px 14px; background:var(--lime); color:var(--on-lime); font-weight:700; cursor:pointer;}

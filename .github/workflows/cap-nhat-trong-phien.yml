@@ -1,13 +1,10 @@
 # Cập nhật nhanh trong giờ giao dịch: chỉ lấy bảng giá hiện tại (~30 giây/lần).
-# Lịch theo giờ UTC (giờ Việt Nam trừ 7): 9:07, 9:17 ... 14:57 và 15:07 (tránh phút tròn, GitHub hay bỏ lịch lúc đông).
-# GitHub có thể chạy trễ vài phút so với lịch khi hệ thống đông.
 # Không chạy dày hơn: GitHub Pages chỉ build lại web khoảng 10 lần mỗi giờ.
 name: Cập nhật giá trong phiên
 
 on:
-  schedule:
-    - cron: "7-59/10 2-7 * * 1-5"
-    - cron: "7 8 * * 1-5"
+  # Không dùng lịch "schedule" của GitHub: thực tế bị trễ hàng giờ hoặc bỏ qua.
+  # Lịch 10 phút/lần do cron-job.org gọi API workflow_dispatch (xem HUONG_DAN.md).
   workflow_dispatch:
 
 permissions:
@@ -45,6 +42,9 @@ jobs:
             echo "Giá không đổi, không cần cập nhật."
           else
             git commit -m "Cập nhật giá trong phiên $(TZ=Asia/Ho_Chi_Minh date +%H:%M\ %d/%m/%Y)"
-            git pull --rebase
-            git push
+            # nếu có lượt chạy khác vừa đẩy lên: ghép lại, ưu tiên dữ liệu của lượt này (mới hơn), thử tối đa 3 lần
+            for i in 1 2 3; do
+              git pull --rebase -X theirs && git push && break
+              echo "Đẩy lên chưa được, thử lại lần $i"; sleep 5
+            done
           fi

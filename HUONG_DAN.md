@@ -72,10 +72,14 @@ Sửa file `_data/menu.yml`: đổi `ten` để đổi chữ hiển thị, đổ
 
 ### Số liệu thị trường, ETF, quỹ mô phỏng
 
-Không cần sửa tay. Script `scripts/cap_nhat_du_lieu.py` lấy dữ liệu từ bảng giá công khai của Vietcap (VCI) và KBS (mã nguồn trong `scripts/nguon.py`) rồi ghi vào thư mục `assets/data/`. GitHub Actions tự chạy script này theo hai lịch, thứ Hai đến thứ Sáu:
+Không cần sửa tay. Script `scripts/cap_nhat_du_lieu.py` lấy dữ liệu từ bảng giá công khai của Vietcap (VCI) và KBS (mã nguồn trong `scripts/nguon.py`) rồi ghi vào thư mục `assets/data/`. GitHub Actions chạy script này, được **cron-job.org** gọi theo lịch (lịch "schedule" của GitHub chạy trễ hàng giờ nên không dùng):
 
-- **Trong phiên (9:00–15:10), khoảng 10 phút một lần:** chỉ lấy bảng giá hiện tại, khoảng 30 giây mỗi lần (`--trong-phien`).
-- **16:30:** chạy đầy đủ, tải lại toàn bộ lịch sử và chốt giá đóng cửa.
+- **Cronjob 1, `cap-nhat-trong-phien.yml`: 9:00–14:50 thứ Hai đến thứ Sáu, mỗi 10 phút.** Chỉ lấy bảng giá hiện tại, khoảng 30 giây (`--trong-phien`).
+- **Cronjob 2, `cap-nhat-du-lieu.yml`: 16:40 thứ Hai đến thứ Sáu, một lần.** Chạy đầy đủ: tải lại lịch sử, chốt giá đóng cửa, tính lại NAV quỹ mô phỏng và chỉ số rủi ro.
+
+Cả hai cronjob gọi `POST https://api.github.com/repos/quachhieu2313/chay-review/actions/workflows/<tên file>/dispatches` với header `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28` và body `{"ref":"main"}`. Token là fine-grained token, chỉ cấp cho repo này, quyền Actions: Read and write.
+
+Mỗi lần có dữ liệu mới, script ghi `assets/data/phien.json`; trang web đang mở kiểm tra file này 2 phút một lần và tự tải lại.
 
 Không nên chạy dày hơn 10 phút: GitHub Pages chỉ build lại web khoảng 10 lần mỗi giờ.
 

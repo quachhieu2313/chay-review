@@ -42,9 +42,20 @@
   }
   function css(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
   var cache = {};
+  // ---------- phiên bản dữ liệu: phien.json ghi thời điểm cập nhật gần nhất.
+  // Mọi file dữ liệu tải kèm ?v=<thời điểm> nên không bao giờ dính bản cũ trong bộ đệm.
+  function docPhien(){
+    return fetch(BASE + '/assets/data/phien.json?t=' + Date.now(), {cache:'no-store'})
+      .then(function(r){ return r.ok ? r.json() : {}; })
+      .then(function(p){ return p && p.luc ? p.luc : ''; })
+      .catch(function(){ return ''; });
+  }
+  var phienHienTai = docPhien();
   function load(path){
     if(!cache[path]){
-      cache[path] = fetch(BASE + '/assets/data/' + path, {cache:'no-cache'}).then(function(r){
+      cache[path] = phienHienTai.then(function(v){
+        return fetch(BASE + '/assets/data/' + path + '?v=' + encodeURIComponent(v || Date.now()), {cache:'no-cache'});
+      }).then(function(r){
         if(!r.ok) throw new Error(path + ' ' + r.status);
         return r.json();
       }).catch(function(e){ delete cache[path]; throw e; });
@@ -1164,5 +1175,49 @@
       }).join('');
       $('#homeEtfDate').textContent = moc(data.cap_nhat, data.cap_nhat_luc);
     }).catch(function(){ fail(homeEtf); });
+  }
+  // =====================================================================
+  // TỰ TẢI LẠI KHI CÓ DỮ LIỆU MỚI (2 phút kiểm tra một lần, chỉ khi tab đang được xem)
+  // =====================================================================
+  var dungDuLieu = document.querySelector('#mktChart, #etfTable, #etfDetail, #fundPage, #homeFund, #homeEtf');
+  if(dungDuLieu){
+    var toast = null;
+    function banDangThaoTac(){
+      var ov = document.getElementById('smOverlay');
+      var a = document.activeElement;
+      return (ov && !ov.hidden) || (a && (a.tagName === 'INPUT' || a.tagName === 'SELECT' || a.tagName === 'TEXTAREA'));
+    }
+    function taiLai(){
+      try{ sessionStorage.setItem('kcn-cuon', String(window.scrollY)); }catch(e){}
+      location.reload();
+    }
+    function baoCoDuLieuMoi(luc){
+      if(!toast){
+        toast = document.createElement('div');
+        toast.className = 'kcn-toast';
+        toast.setAttribute('role', 'status');
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = '<span>Có dữ liệu mới lúc ' + esc(luc.slice(11)) + '</span><button type="button">Cập nhật</button>';
+      toast.querySelector('button').onclick = taiLai;
+      toast.hidden = false;
+    }
+    function kiemTra(){
+      if(document.visibilityState !== 'visible') return;
+      Promise.all([phienHienTai, docPhien()]).then(function(v){
+        if(!v[1] || v[1] === v[0]) return;
+        if(banDangThaoTac()) baoCoDuLieuMoi(v[1]); else taiLai();
+      });
+    }
+    setInterval(kiemTra, 120000);
+    document.addEventListener('visibilitychange', kiemTra);
+    // khôi phục vị trí cuộn sau khi tự tải lại
+    try{
+      var cuon = sessionStorage.getItem('kcn-cuon');
+      if(cuon !== null){
+        sessionStorage.removeItem('kcn-cuon');
+        window.addEventListener('load', function(){ setTimeout(function(){ window.scrollTo(0, Number(cuon)); }, 300); });
+      }
+    }catch(e){}
   }
 })();

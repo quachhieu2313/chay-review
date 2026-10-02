@@ -4,7 +4,7 @@ name: Cập nhật dữ liệu thị trường
 
 on:
   schedule:
-    - cron: "37 9 * * 1-5"   # 16:37 giờ Việt Nam, thứ Hai đến thứ Sáu
+    - cron: "37 9 * * 1-5"   # dự phòng 16:37 (GitHub hay chạy trễ); lịch chính do cron-job.org gọi lúc 16:40
   workflow_dispatch:
 
 permissions:
@@ -42,6 +42,9 @@ jobs:
             echo "Không có dữ liệu mới."
           else
             git commit -m "Cập nhật dữ liệu thị trường $(TZ=Asia/Ho_Chi_Minh date +%d/%m/%Y)"
-            git pull --rebase
-            git push
+            # nếu có lượt chạy khác vừa đẩy lên: ghép lại, ưu tiên dữ liệu của lượt này (mới hơn), thử tối đa 3 lần
+            for i in 1 2 3; do
+              git pull --rebase -X theirs && git push && break
+              echo "Đẩy lên chưa được, thử lại lần $i"; sleep 5
+            done
           fi

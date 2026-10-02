@@ -99,7 +99,12 @@ def doc_json(path, mac_dinh):
         return mac_dinh
 
 
+DA_GHI = False  # có file dữ liệu nào thay đổi trong lần chạy này không
+
+
 def ghi_json(path, data):
+    global DA_GHI
+    DA_GHI = True
     path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
 
@@ -554,6 +559,10 @@ def main():
         chi_so = cap_nhat_chi_so()
         cap_nhat_etf()
         cap_nhat_vn30_va_quy(chi_so)
+    if DA_GHI:
+        # file nhỏ để trang web đang mở biết có dữ liệu mới mà tự tải lại
+        bay_gio = datetime.now(timezone(timedelta(hours=7)))
+        ghi_json(OUT / "phien.json", {"luc": bay_gio.strftime("%Y-%m-%d %H:%M")})
     log("Xong.")
 
 
