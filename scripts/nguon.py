@@ -200,7 +200,7 @@ def quy_kraneshares_kpho():
     time.sleep(NGHI)
     them = {"loai_quy": "ETF Mỹ do Dragon Capital chọn rổ, bám chỉ số tăng trưởng"}
     if etf_pct:
-        them["loai_quy"] += f"; {etf_pct:.2f}% tài sản nằm trong chứng chỉ quỹ DCVFMVN Diamond ETF (không tính vào bảng cổ phiếu)"
+        them["loai_quy"] += f"; {etf_pct:.2f}".replace(".", ",") + "% tài sản nằm trong chứng chỉ quỹ DCVFMVN Diamond ETF (không tính vào bảng cổ phiếu)"
     return {"ma": "KPHO", "ten": "KraneShares Dragon Capital Vietnam ETF (KPHO, Mỹ)", "loai": "ETF_NN", "ngay": ngay.group(1), "top": top,
             "them": them, "nguon": "https://kraneshares.com/etf/kpho/"}
 
