@@ -1666,7 +1666,7 @@
         if(th){
           var qm = th.quy_mo_ty_ndt || [], cuoi = qm[qm.length - 1], dau = qm[qm.length - 2];
           extra = '<p class="nn-meta nn-extra">' + esc(th.loai_quy) + '. ' + (cuoi ? 'Quy mô <b>' + fmt(cuoi.gia_tri, 2) + ' tỷ NDT</b> (' + ngayVN(cuoi.ngay) + (dau ? ', quý trước ' + fmt(dau.gia_tri, 2) : '') + ')' : '') +
-            (th.co_phieu_pct ? ' · cổ phiếu chiếm ' + fmt(th.co_phieu_pct, 1) + '% tài sản, tiền mặt ' + fmt(th.tien_mat_pct, 1) + '%' : '') + (th.chi_top ? '. Chỉ công bố <b>top ' + th.chi_top + '</b> mã theo quý.' : '.') + '</p>';
+            (th.co_phieu_pct ? ' · cổ phiếu chiếm ' + fmt(th.co_phieu_pct, 1) + '% tài sản, tiền mặt ' + fmt(th.tien_mat_pct, 1) + '%' : '') + (th.chi_top ? '. Chỉ công bố <b>top ' + th.chi_top + '</b> mã mỗi kỳ báo cáo.' : '.') + '</p>';
         }
         return '<article class="nn-card"><header><b>' + esc(q.ma) + '</b><span>' + esc(q.ten) + '</span></header>' +
           '<p class="nn-meta">Danh mục ngày <b>' + ngayVN(q.ngay) + '</b> · ' + q.so_ma + (th && th.chi_top ? ' cổ phiếu Việt Nam (top ' + th.chi_top + ')' : ' cổ phiếu Việt Nam') + ' · <a href="' + esc(q.nguon) + '" rel="noopener">Nguồn: trang chính thức</a></p>' + extra +

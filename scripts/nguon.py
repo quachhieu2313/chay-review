@@ -205,6 +205,49 @@ def quy_kraneshares_kpho():
             "them": them, "nguon": "https://kraneshares.com/etf/kpho/"}
 
 
+TEN_VEIL = {"vingroup": "VIC", "vinhomes": "VHM", "mobile world": "MWG", "bidv": "BID", "vietcombank": "VCB", "vp bank": "VPB",
+            "vpbank": "VPB", "techcombank": "TCB", "vietinbank": "CTG", "hoa phat group": "HPG", "hoa phat": "HPG", "asia com. bank": "ACB",
+            "acb": "ACB", "fpt corp": "FPT", "fpt": "FPT", "masan group": "MSN", "mb bank": "MBB", "mbbank": "MBB", "ssi securities": "SSI",
+            "vinamilk": "VNM", "stb": "STB", "sacombank": "STB", "hdbank": "HDB", "tpbank": "TPB", "vietjet": "VJC", "vix securities": "VIX"}
+
+
+def quy_veil():
+    """Vietnam Enterprise Investments (VEIL, London): top 10 trong factsheet PDF hằng tháng của Dragon Capital."""
+    from pypdf import PdfReader
+    page = _phien.get("https://www.veil.uk/the-fund/", headers=H_WEB, timeout=40).text
+    ds = sorted(set(re.findall(r"https://[^\"' ]*VEIL_Factsheet_(\d{6})\.pdf", page)))
+    if not ds:
+        raise RuntimeError("không thấy factsheet VEIL")
+    url = re.search(r"https://[^\"' ]*VEIL_Factsheet_" + ds[-1] + r"\.pdf", page).group(0)
+    pdf = _phien.get(url, headers=H_WEB, timeout=60)
+    pdf.raise_for_status()
+    txt = "\n".join((p.extract_text() or "") for p in PdfReader(io.BytesIO(pdf.content)).pages)
+    mo = re.search(r"Top Ten Holdings(.*?)(?:T \+84|https://www\.veil\.uk|\Z)", txt, flags=re.S)
+    top = []
+    for dong in (mo.group(1).splitlines() if mo else []):
+        m = re.match(r"(.+?)\s+(?:Real Estate|Consumer \w+|Financials[^\d]*|Materials|Industrials|Technology|Information Technology|Energy|Utilities|Health Care|Communication[^\d]*)\s+(\d+\.\d)\s+\$", dong.strip())
+        if m:
+            ten = m.group(1).strip().lower()
+            ma = TEN_VEIL.get(ten)
+            if not ma:
+                raise RuntimeError(f"VEIL: chưa biết mã của '{m.group(1)}'")
+            top.append((ma, float(m.group(2))))
+    ngay = re.search(r"(?:Data as of|as of)\s+(\d{1,2}\s+[A-Za-z]+\s+\d{4})", txt)
+    if len(top) < 8 or not ngay:
+        raise RuntimeError(f"factsheet VEIL bất thường ({len(top)} mã)")
+    tna = re.search(r"Total Net Assets\s+US\$\s*([\d\.]+)bn", txt)
+    cl = re.search(r"Premium / Discount\s+(-?[\d\.]+)%", txt) or re.search(r"(-?[\d\.]+)%\s*\(GBP\)", txt)
+    loai = "Quỹ đóng niêm yết London (FTSE 250) của Dragon Capital"
+    if tna:
+        loai += f"; tổng tài sản ròng {tna.group(1).replace('.', ',')} tỷ USD"
+    if cl:
+        loai += f"; giá cổ phiếu {cl.group(1).replace('.', ',').replace('-', 'chiết khấu ')}% so với NAV" if cl.group(1).startswith("-") else ""
+    time.sleep(NGHI)
+    return {"ma": "VEIL", "ten": "Vietnam Enterprise Investments (VEIL, Luân Đôn)", "loai": "QUY_NN",
+            "ngay": pd.to_datetime(ngay.group(1), format="%d %B %Y").strftime("%Y-%m-%d"), "top": top,
+            "them": {"loai_quy": loai, "chi_top": 10}, "nguon": url}
+
+
 TEN_STOXX = [("VINGROUP", "VIC"), ("VINHOMES", "VHM"), ("SAIGON TREASURE", "STB"), ("SAIGON THUONG TIN", "STB"), ("HOA PHAT", "HPG"),
              ("SAI GON - HANOI", "SHB"), ("FPT", "FPT"), ("SSI", "SSI"), ("VIX", "VIX"), ("MASAN GROUP", "MSN"),
              ("VIETJET", "VJC"), ("GELEX", "GEX"), ("VIETNAM DAIRY", "VNM"), ("VPS", "VCK"), ("VPBANK", "VPB"), ("TECHCOM", "TCB")]
