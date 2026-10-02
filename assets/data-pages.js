@@ -1895,10 +1895,62 @@
     }).catch(function(){ fail(ptPage); });
   }
 
+  // ---- Cảnh báo và tổng hợp tuần trên trang Radar, và trang Dữ liệu & API
+  if(ptPage){
+    load('canh_bao.json').then(function(c){
+      var ds = (c.ds || []).slice(0, 10);
+      $('#ptCbBody').innerHTML = ds.length ? ds.map(function(x){
+        var k = x.loai === 'ban_manh' ? ' pt-cb-ban' : x.loai === 'vn_lan_dau' ? ' pt-cb-vn' : '';
+        return '<div class="pt-cb' + k + '"><b>' + esc(x.tieu_de) + '</b>' + esc(x.noi_dung) + ' <small>· ' + ngayVN(x.ngay) + '</small></div>';
+      }).join('') : '<div class="pt-empty"><b>Chưa có cảnh báo nào.</b> Hệ thống đang theo dõi và sẽ ghi lại tại đây khi quỹ ETF ngoại mua hoặc bán ròng một mã từ 20 tỷ đồng, hoặc khi VWO/VT lần đầu nắm giữ cổ phiếu Việt Nam.</div>';
+    }).catch(function(){ $('#ptCbBody').innerHTML = '<div class="pt-empty">Chưa tải được cảnh báo.</div>'; });
+
+    load('tong_hop_tuan.json').then(function(t){
+      if(!t || !t.mua) return;
+      $('#ptTuan').hidden = false;
+      $('#ptTuanSub').innerHTML = 'Từ <b>' + ngayVN(t.tu) + '</b> đến <b>' + ngayVN(t.den) + '</b>, tính theo chênh lệch số cổ phiếu quỹ ETF ngoại nắm giữ và quy theo giá hiện tại.';
+      $('#ptTuanTiles').innerHTML =
+        '<div class="pt-tile"><small>Mua ròng</small><b class="up">' + fmt(t.tong_mua / 1e9, 1) + ' tỷ đồng</b></div>' +
+        '<div class="pt-tile"><small>Bán ròng</small><b class="down">' + fmt(Math.abs(t.tong_ban) / 1e9, 1) + ' tỷ đồng</b></div>' +
+        '<div class="pt-tile"><small>Quỹ mở nội vừa cập nhật</small><b>' + t.so_quy_mo_moi + ' quỹ</b></div>';
+      var bang = function(ds, ten){
+        return '<article class="nn-card"><header><b>' + ten + '</b></header><ol class="clean nn-top">' + (ds.length ? ds.map(function(x){
+          return '<li><button type="button" data-ma="' + esc(x.ma) + '"><b>' + esc(x.ma) + '</b><span class="sub">' + esc(x.quy.join(', ')) + '</span><em class="' + cls(x.gt) + '">' + (x.gt > 0 ? '+' : '−') + fmt(Math.abs(x.gt) / 1e9, 1) + ' tỷ</em></button></li>';
+        }).join('') : '<li class="muted">Không có.</li>') + '</ol></article>';
+      };
+      $('#ptTuanBody').innerHTML = bang(t.mua, 'Mua ròng nhiều nhất') + bang(t.ban, 'Bán ròng nhiều nhất');
+      $('#ptTuanBody').addEventListener('click', function(e){
+        var b = e.target.closest('button[data-ma]'); if(!b) return;
+        var ma = b.getAttribute('data-ma'), o = $('[data-market-url]');
+        if(window.KCN_moPopup) window.KCN_moPopup(ma);
+        else if(o) location.href = o.getAttribute('data-market-url') + '#ma=' + encodeURIComponent(ma);
+      });
+      $('#ptCopy').addEventListener('click', function(){
+        var xong = function(ok){ $('#ptCopyMsg').textContent = ok ? 'Đã sao chép.' : 'Không sao chép được, hãy bôi đen và sao chép thủ công.'; };
+        if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t.van_ban).then(function(){ xong(true); }, function(){ xong(false); }); }
+        else xong(false);
+      });
+    }).catch(function(){});
+  }
+
+  var dlPage = $('#dlPage');
+  if(dlPage){
+    load('muc_luc_du_lieu.json').then(function(m){
+      $('#dlTu').textContent = m.ngay_bat_dau ? ngayVN(m.ngay_bat_dau) : '–';
+      $('#dlBody').innerHTML = m.datasets.map(function(x){
+        var url = BASE + '/assets/data/' + x.tep;
+        return '<tr><td><b>' + esc(x.tep.replace('xuat/', '')) + '</b><span class="sub">' + esc(x.mo_ta) + '</span></td>' +
+          '<td class="num">' + (x.so_dong !== undefined ? fmt(x.so_dong) : '–') + '</td>' +
+          '<td class="hide-sm pt-quy">' + (x.cot ? esc(x.cot.join(', ')) : '–') + '</td>' +
+          '<td><a class="dl-btn" href="' + esc(url) + '"' + (x.dinh_dang === 'csv' ? ' download' : '') + '>' + esc(x.dinh_dang.toUpperCase()) + '</a></td></tr>';
+      }).join('');
+    }).catch(function(){ fail(dlPage); });
+  }
+
   // =====================================================================
   // TỰ TẢI LẠI KHI CÓ DỮ LIỆU MỚI (2 phút kiểm tra một lần, chỉ khi tab đang được xem)
   // =====================================================================
-  var dungDuLieu = document.querySelector('#mktChart, #etfTable, #etfDetail, #fundPage, #homeFund, #homeEtf, #holdPage, #ptPage');
+  var dungDuLieu = document.querySelector('#mktChart, #etfTable, #etfDetail, #fundPage, #homeFund, #homeEtf, #holdPage, #ptPage, #dlPage');
   if(dungDuLieu){
     var toast = null;
     function banDangThaoTac(){

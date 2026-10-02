@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  issues: write   # đăng cảnh báo dòng tiền quỹ thành Issue để GitHub báo về email/điện thoại
 
 concurrency:
   group: cap-nhat-du-lieu
@@ -48,3 +49,11 @@ jobs:
               echo "Đẩy lên chưa được, thử lại lần $i"; sleep 5
             done
           fi
+
+      - name: Gửi cảnh báo
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python scripts/gui_canh_bao.py

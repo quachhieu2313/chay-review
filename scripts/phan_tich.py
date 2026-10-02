@@ -9,6 +9,10 @@ bằng cách ghép nhiều nguồn và lưu lịch sử tích luỹ theo ngày.
 import json
 from pathlib import Path
 
+import canh_bao
+import tong_hop_tuan
+import xuat_du_lieu
+
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets" / "data"
 GIU_TOI_DA = 150  # số lần chụp lưu lại cho mỗi quỹ
@@ -170,4 +174,14 @@ def tinh(quy_mo, quy_nn, gia, cty, ghi_json, ngay_hom_nay, gio):
         moi["cap_nhat"] = ngay_hom_nay
         moi["cap_nhat_luc"] = gio
         ghi_json(OUT / "phan_tich.json", moi)
-    return {"mua_ban_nn": len(dong_nn), "chu_dong": len(ds_cd), "lech": len(lech), "ftse": len(ftse)}
+
+    # cảnh báo, tổng hợp tuần và xuất dữ liệu: lỗi ở đây không được làm hỏng phần còn lại
+    kq = {"mua_ban_nn": len(dong_nn), "chu_dong": len(ds_cd), "lech": len(lech), "ftse": len(ftse)}
+    for ten, ham in (("canh_bao", lambda: canh_bao.xu_ly(ls, dong_nn, ghi_json, ngay_hom_nay, gio)),
+                     ("tong_hop_tuan", lambda: bool(tong_hop_tuan.xu_ly(ls, gia, cty, ghi_json, ngay_hom_nay, gio))),
+                     ("xuat", lambda: xuat_du_lieu.xuat(ls, _doc(OUT / "canh_bao.json", {"ds": []})["ds"], ghi_json, ngay_hom_nay, gio))):
+        try:
+            kq[ten] = ham()
+        except Exception as e:
+            print(f"  ! {ten}: {str(e)[:150]}")
+    return kq

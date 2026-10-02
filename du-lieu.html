@@ -1,0 +1,40 @@
+---
+layout: default
+title: Dữ liệu và API
+description: Tải về lịch sử danh mục quỹ ETF ngoại và quỹ mở Việt Nam do Kim Chỉ Nam tích luỹ hằng ngày, dạng CSV và JSON, dùng được cho Excel, Python và các công cụ phân tích.
+nav: du-lieu
+permalink: /du-lieu/
+image: /assets/img/og-etf.png
+---
+<section class="page-head wrap">
+  <p class="eyebrow">Dữ liệu &amp; API</p>
+  <h1>Lịch sử dòng tiền quỹ, tải về dùng ngay</h1>
+  <p>Kim Chỉ Nam lưu lại danh mục của các quỹ mỗi khi họ công bố bản mới. Phần lịch sử này không có sẵn ở nguồn gốc (các quỹ chỉ đăng bản mới nhất), và bắt đầu từ <b id="dlTu">…</b>. Mọi file đều tải miễn phí, không cần đăng ký.</p>
+</section>
+
+<div class="wrap" id="dlPage">
+  <div class="hold-warn" role="note">
+    <b>Lưu ý sử dụng.</b> Danh mục gốc do nhà phát hành quỹ (VanEck, Global X, KraneShares, Fubon, Vanguard, Dragon Capital, Thiên Hoằng) và Fmarket công bố; quyền thuộc về họ. Kim Chỉ Nam chỉ tổng hợp, lưu lịch sử và tính toán. Số liệu có thể chậm hoặc sai sót, không phải khuyến nghị đầu tư. Khi dùng lại, vui lòng ghi nguồn "Kim Chỉ Nam".
+  </div>
+
+  <section class="nn-box" aria-labelledby="dlT">
+    <h2 id="dlT">Các bộ dữ liệu</h2>
+    <div class="table-card"><div class="table-scroll">
+      <table class="data-table hold-table">
+        <thead><tr><th scope="col">Bộ dữ liệu</th><th scope="col" class="num">Số dòng</th><th scope="col" class="hide-sm">Các cột</th><th scope="col">Tải về</th></tr></thead>
+        <tbody id="dlBody"><tr><td colspan="4" class="empty-row">Đang tải danh mục dữ liệu…</td></tr></tbody>
+      </table>
+    </div></div>
+    <p class="table-note">Mọi file nằm dưới <code>{{ '/assets/data/' | absolute_url }}</code> và mở cho mọi trang web gọi trực tiếp (CORS). File CSV mã hoá UTF-8 có BOM nên Excel mở được tiếng Việt.</p>
+  </section>
+
+  <section class="nn-box" aria-labelledby="dlC">
+    <h2 id="dlC">Dùng trong Python</h2>
+    <pre class="code-block"><code>import pandas as pd
+BASE = "{{ '/assets/data/' | absolute_url }}"
+cp = pd.read_csv(BASE + "xuat/lich_su_quy_ngoai.csv")          # số cổ phiếu từng quỹ nắm giữ theo ngày
+rong = (cp.pivot_table(index="ngay_cong_bo", columns="ma_co_phieu", values="so_co_phieu", aggfunc="sum")
+          .diff())                                               # mua/bán ròng theo ngày, từng mã
+print(rong.tail())</code></pre>
+  </section>
+</div>
