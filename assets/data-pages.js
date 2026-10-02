@@ -595,6 +595,18 @@
         return '<div><span>' + x[0] + '</span><b class="' + cls(x[1]) + '">' + pct(x[1], 1) + '</b></div>';
       }).join('');
 
+      var tieuDe = $('#smFund').previousElementSibling.firstChild;
+      if(d.loai === 'etf'){
+        tieuDe.textContent = 'Thông tin quỹ ';
+        $('#smKy').textContent = '';
+        $('#smFund').innerHTML =
+          '<div><dt>Loại</dt><dd>Quỹ ETF</dd></div>' +
+          '<div><dt>CCQ đang lưu hành</dt><dd>' + (d.co_phieu_niem_yet ? fmt(d.co_phieu_niem_yet) : '–') + '</dd></div>' +
+          '<div><dt>Giá trị theo giá thị trường</dt><dd>' + (d.co_phieu_niem_yet ? fmt(c * d.co_phieu_niem_yet / 1e9, 0) + ' tỷ' : '–') + '</dd></div>' +
+          '<div><dt></dt><dd><a class="sm-link" href="' + BASE + '/etf/chi-tiet/?ma=' + esc(d.ma) + '">Xem trang chi tiết quỹ →</a></dd></div>';
+        return;
+      }
+      tieuDe.textContent = 'Chỉ số cơ bản ';
       var cb = d.co_ban || {};
       $('#smKy').textContent = cb.ky ? '(quý ' + cb.ky.replace(' Q', '/Q').split('/').reverse().join('/') + ')' : '';
       var von = d.co_phieu_niem_yet ? c * d.co_phieu_niem_yet : null;
@@ -628,10 +640,11 @@
       data = null;
       chartBox.innerHTML = '<div class="sm-loading"><span class="sm-spin"></span>Đang tải biểu đồ ' + esc(maCk) + '…</div>';
       legend.textContent = '';
-      $('#smPrice').textContent = row ? fmt(row.gia) : '–';
+      var coGia = row && row.gia !== null && row.gia !== undefined;
+      $('#smPrice').textContent = coGia ? fmt(row.gia) : '–';
       var chg0 = $('#smChg');
-      chg0.className = 'sm-chg ' + (row ? cls(row.thay_doi) : '');
-      chg0.textContent = row ? pct(row.thay_doi) : '';
+      chg0.className = 'sm-chg ' + (coGia ? cls(row.thay_doi) : '');
+      chg0.textContent = coGia ? pct(row.thay_doi) : '';
       $('#smTime').textContent = '';
       ['#smSession', '#smFund'].forEach(function(id){ $(id).innerHTML = '<div class="sm-skel"></div><div class="sm-skel"></div><div class="sm-skel"></div>'; });
       $('#smWeek52').innerHTML = '<div class="sm-skel"></div>';
@@ -826,13 +839,26 @@
       });
       table();
       // mở thẳng popup khi link có dạng /thi-truong/#ma=FPT
+      function moMa(m0){
+        m0 = String(m0).toUpperCase();
+        return load('danh_muc_ma.json').catch(function(){ return []; }).then(function(dm){
+          var r0 = rows.filter(function(x){ return x.ma === m0; })[0];
+          var e0 = dm.filter(function(x){ return x.ma === m0; })[0];
+          if(r0) modal.open(m0, r0);
+          else if(e0) modal.open(m0, {ten: e0.ten, nganh: e0.nhom, gia: null, thay_doi: null});
+        });
+      }
+      window.KCN_moPopup = moMa;
       var h = location.hash.match(/ma=([A-Z0-9]+)/i);
       if(h){
-        var m0 = h[1].toUpperCase(), r0 = rows.filter(function(x){ return x.ma === m0; })[0];
         var cbm = location.hash.match(/cb=([a-z0-9,]*)/i);
         if(cbm) modal.setActive(cbm[1] ? cbm[1].toLowerCase().split(',') : []);
-        if(r0) modal.open(m0, r0);
+        moMa(h[1]);
       }
+      window.addEventListener('hashchange', function(){
+        var h2 = location.hash.match(/ma=([A-Z0-9]+)/i);
+        if(h2 && $('#smCode').textContent !== h2[1].toUpperCase()) moMa(h2[1]);
+      });
     }).catch(function(){ fail(mkt); });
   }
 
@@ -1176,6 +1202,78 @@
       $('#homeEtfDate').textContent = moc(data.cap_nhat, data.cap_nhat_luc);
     }).catch(function(){ fail(homeEtf); });
   }
+  // =====================================================================
+  // Ô TÌM KIẾM: gợi ý mã, chọn là mở popup chi tiết
+  // =====================================================================
+  var oTim = $('#siteSearch'), dsGoiY = $('#searchList');
+  if(oTim && dsGoiY){
+    var danhMuc = null, goiY = [], chon = -1;
+    function boDau(x){
+      return String(x).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toUpperCase();
+    }
+    function napDanhMuc(){
+      if(!danhMuc) danhMuc = load('danh_muc_ma.json').then(function(d){
+        return d.map(function(x){ x.khoa = boDau(x.ten); return x; });
+      }).catch(function(){ danhMuc = null; return []; });
+      return danhMuc;
+    }
+    function dong(){ dsGoiY.hidden = true; oTim.setAttribute('aria-expanded', 'false'); chon = -1; }
+    function ve(){
+      dsGoiY.innerHTML = goiY.length ? goiY.map(function(x, i){
+        return '<li role="option" id="goiy-' + i + '" aria-selected="' + (i === chon) + '" data-ma="' + esc(x.ma) + '">' +
+          '<b>' + esc(x.ma) + '</b><span>' + esc(x.ten) + '</span><em>' + (x.loai === 'etf' ? 'ETF' : esc(x.nhom)) + '</em></li>';
+      }).join('') : '<li class="search-empty">Chưa có dữ liệu mã này. Hiện hỗ trợ rổ VN30 và các quỹ ETF.</li>';
+      dsGoiY.hidden = false;
+      oTim.setAttribute('aria-expanded', 'true');
+      if(chon > -1) oTim.setAttribute('aria-activedescendant', 'goiy-' + chon); else oTim.removeAttribute('aria-activedescendant');
+    }
+    function moMa(ma){
+      dong();
+      oTim.blur();
+      var khung = $('#searchWrap'); if(khung) khung.classList.remove('open');
+      if(window.KCN_moPopup) window.KCN_moPopup(ma);
+      else location.href = oTim.getAttribute('data-market-url') + '#ma=' + encodeURIComponent(ma);
+    }
+    oTim.addEventListener('focus', napDanhMuc);
+    oTim.addEventListener('input', function(){
+      var q = boDau(oTim.value.trim());
+      if(!q){ dong(); return; }
+      napDanhMuc().then(function(d){
+        var dau = d.filter(function(x){ return x.ma.indexOf(q) === 0; });
+        var khac = d.filter(function(x){ return x.ma.indexOf(q) !== 0 && (x.ma.indexOf(q) > -1 || x.khoa.indexOf(q) > -1); });
+        goiY = dau.concat(khac).slice(0, 8);
+        chon = goiY.length ? 0 : -1;
+        ve();
+      });
+    });
+    oTim.addEventListener('keydown', function(e){
+      if(e.key === 'ArrowDown' && !dsGoiY.hidden){ e.preventDefault(); chon = Math.min(goiY.length - 1, chon + 1); ve(); }
+      else if(e.key === 'ArrowUp' && !dsGoiY.hidden){ e.preventDefault(); chon = Math.max(0, chon - 1); ve(); }
+      else if(e.key === 'Escape'){ dong(); }
+      else if(e.key === 'Enter'){
+        e.preventDefault();
+        var q = boDau(oTim.value.trim());
+        if(goiY[chon] && !dsGoiY.hidden) moMa(goiY[chon].ma);
+        else if(q) napDanhMuc().then(function(d){ if(d.some(function(x){ return x.ma === q; })) moMa(q); });
+      }
+    });
+    dsGoiY.addEventListener('mousedown', function(e){
+      var li = e.target.closest('li[data-ma]');
+      if(li){ e.preventDefault(); moMa(li.getAttribute('data-ma')); }
+    });
+    oTim.addEventListener('blur', function(){ setTimeout(dong, 150); });
+
+    // nút kính lúp trên điện thoại
+    var nutTim = $('#searchToggle'), khungTim = $('#searchWrap');
+    if(nutTim && khungTim){
+      nutTim.addEventListener('click', function(){
+        var mo = khungTim.classList.toggle('open');
+        nutTim.setAttribute('aria-expanded', String(mo));
+        if(mo) setTimeout(function(){ oTim.focus(); }, 50);
+      });
+    }
+  }
+
   // =====================================================================
   // TỰ TẢI LẠI KHI CÓ DỮ LIỆU MỚI (2 phút kiểm tra một lần, chỉ khi tab đang được xem)
   // =====================================================================

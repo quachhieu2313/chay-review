@@ -8,7 +8,8 @@ rồi ghi ra các file JSON trong assets/data/:
   co_phieu.json      bảng theo dõi cổ phiếu rổ VN30 (trang Thị trường)
   etf.json           danh sách ETF + hiệu suất (trang ETF)
   etf/<MÃ>.json      lịch sử giá từng ETF (trang chi tiết ETF)
-  cp/<MÃ>.json       nến OHLCV + chỉ số cơ bản từng mã VN30 (popup ở trang Thị trường)
+  cp/<MÃ>.json       nến OHLCV (+ chỉ số cơ bản với cổ phiếu) từng mã VN30 và ETF (popup chi tiết mã)
+  danh_muc_ma.json   danh sách mã có popup, dùng cho ô tìm kiếm
   quy_mo_phong.json  quỹ mô phỏng KCN VN30 (trang Quỹ mô phỏng)
 
 Hai chế độ:
@@ -175,6 +176,12 @@ def cap_nhat_chi_so():
 def cap_nhat_etf():
     etf = nguon.danh_sach_etf()
     cu = {e["ma"]: e for e in doc_json(OUT / "etf.json", {}).get("quy", [])}
+    phien = {}
+    try:
+        for row in nguon.bang_gia([m for m, _ in etf]):
+            phien[row["listing_symbol"]] = row
+    except Exception as e:
+        log(f"  ! bảng giá ETF: {str(e)[:100]}")
     ds = []
     for ma, ten in etf:
         log(f"ETF {ma}")
@@ -187,6 +194,7 @@ def cap_nhat_etf():
             continue
         d, c = df["time"].tolist(), [r(x, 0) for x in df["close"]]
         ghi_json(OUT / "etf" / f"{ma}.json", {"ma": ma, "d": d, "c": c})
+        ghi_nen(ma, ten, "Quỹ ETF", "etf", df, phien.get(ma, {}), None)
         gtgd = (df["close"] * df["volume"]).tail(20).mean()
         bd, sg = rui_ro(c)
         ds.append({
@@ -206,6 +214,44 @@ def cap_nhat_etf():
         })
     ghi_json(OUT / "etf.json", {"cap_nhat": max((x["ngay"] for x in ds), default=None), "cap_nhat_luc": gio_vn(), "quy": ds})
     return ds
+
+
+# ---------------------------------------------------------------- file nến cho popup
+def ghi_nen(ma, ten, nganh, loai, df, ph, co_ban):
+    cu = doc_json(OUT / "cp" / f"{ma}.json", {})
+
+    def so(k):
+        v = ph.get(k)
+        return None if v is None or pd.isna(v) else float(v)
+
+    ghi_json(OUT / "cp" / f"{ma}.json", {
+        "ma": ma,
+        "ten": ten,
+        "nganh": nganh,
+        "loai": loai,
+        "san": "HOSE",
+        "co_phieu_niem_yet": so("listing_listed_share") or cu.get("co_phieu_niem_yet"),
+        "tran": so("listing_ceiling"),
+        "san_gia": so("listing_floor"),
+        "tham_chieu": so("listing_ref_price"),
+        "cap_nhat_luc": gio_vn(),
+        "co_ban": co_ban if co_ban is not None else cu.get("co_ban"),
+        "d": df["time"].tolist(),
+        "o": [r(x, 0) for x in df["open"]],
+        "h": [r(x, 0) for x in df["high"]],
+        "l": [r(x, 0) for x in df["low"]],
+        "c": [r(x, 0) for x in df["close"]],
+        "v": [int(x) for x in df["volume"]],
+    })
+
+
+def ghi_danh_muc_ma():
+    """Danh sách mã có popup (cho ô tìm kiếm): đọc từ co_phieu.json và etf.json."""
+    cp = doc_json(OUT / "co_phieu.json", {}).get("co_phieu", [])
+    etf = doc_json(OUT / "etf.json", {}).get("quy", [])
+    ds = [{"ma": x["ma"], "ten": x["ten"], "loai": "cp", "nhom": x.get("nganh", "")} for x in cp]
+    ds += [{"ma": x["ma"], "ten": x.get("ten_day_du") or x["ten"], "loai": "etf", "nhom": "Quỹ ETF"} for x in etf]
+    ghi_json(OUT / "danh_muc_ma.json", sorted(ds, key=lambda x: x["ma"]))
 
 
 # ---------------------------------------------------------------- VN30 + quỹ mô phỏng
@@ -232,32 +278,7 @@ def cap_nhat_vn30_va_quy(chi_so):
             continue
         gia[ma] = pd.Series(df["close"].astype(float).values, index=pd.to_datetime(df["time"]))
         kl[ma] = int(df["volume"].iloc[-1])
-        cu = doc_json(OUT / "cp" / f"{ma}.json", {})
-        cb = chi_so_co_ban(ma) or cu.get("co_ban")
-        ph = phien.get(ma, {})
-
-        def so(k):
-            v = ph.get(k)
-            return None if v is None or pd.isna(v) else float(v)
-
-        ghi_json(OUT / "cp" / f"{ma}.json", {
-            "ma": ma,
-            "ten": ten.get(ma, ma),
-            "nganh": nganh.get(ma, "Khác"),
-            "san": "HOSE",
-            "co_phieu_niem_yet": so("listing_listed_share") or cu.get("co_phieu_niem_yet"),
-            "tran": so("listing_ceiling"),
-            "san_gia": so("listing_floor"),
-            "tham_chieu": so("listing_ref_price"),
-            "cap_nhat_luc": gio_vn(),
-            "co_ban": cb,
-            "d": df["time"].tolist(),
-            "o": [r(x, 0) for x in df["open"]],
-            "h": [r(x, 0) for x in df["high"]],
-            "l": [r(x, 0) for x in df["low"]],
-            "c": [r(x, 0) for x in df["close"]],
-            "v": [int(x) for x in df["volume"]],
-        })
+        ghi_nen(ma, ten.get(ma, ma), nganh.get(ma, "Khác"), "cp", df, phien.get(ma, {}), chi_so_co_ban(ma))
 
     # ----- bảng theo dõi trang Thị trường
     co_phieu = []
@@ -454,10 +475,10 @@ def trong_phien():
     cp["cap_nhat"] = ngay
     log("co_phieu.json", "đổi" if luu(OUT / "co_phieu.json", cu, cp) else "không đổi")
 
-    # ----- nến hôm nay của từng mã VN30
-    for x in cp["co_phieu"]:
-        n = nen_hom_nay.get(x["ma"])
-        path = OUT / "cp" / f"{x['ma']}.json"
+    # ----- nến hôm nay của từng mã (VN30 và ETF)
+    for ma_nen in [x["ma"] for x in cp["co_phieu"]] + [q["ma"] for q in etf["quy"]]:
+        n = nen_hom_nay.get(ma_nen)
+        path = OUT / "cp" / f"{ma_nen}.json"
         h = doc_json(path, None)
         if not n or not h:
             continue
@@ -559,6 +580,7 @@ def main():
         chi_so = cap_nhat_chi_so()
         cap_nhat_etf()
         cap_nhat_vn30_va_quy(chi_so)
+        ghi_danh_muc_ma()
     if DA_GHI:
         # file nhỏ để trang web đang mở biết có dữ liệu mới mà tự tải lại
         bay_gio = datetime.now(timezone(timedelta(hours=7)))

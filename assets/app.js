@@ -254,21 +254,4 @@
     compute();
   }
 
-  // =====================================================================
-  // Ô TÌM KIẾM Ở ĐẦU TRANG
-  // Enter: mã ETF -> trang chi tiết ETF; mã khác -> trang Thị trường (lọc sẵn).
-  // Trên trang Thị trường, data-pages.js lọc bảng ngay khi gõ.
-  // =====================================================================
-  var search = $('#siteSearch');
-  if(search){
-    search.addEventListener('keydown', function(e){
-      var v = search.value.trim().toUpperCase();
-      if(e.key !== 'Enter' || !v) return;
-      if(/^(FUE[A-Z0-9]+|E1VFVN30)$/.test(v)){
-        location.href = search.getAttribute('data-etf-url') + '?ma=' + encodeURIComponent(v);
-      }else if(!document.getElementById('wlBody')){
-        location.href = search.getAttribute('data-market-url') + '?q=' + encodeURIComponent(v);
-      }
-    });
-  }
 })();
