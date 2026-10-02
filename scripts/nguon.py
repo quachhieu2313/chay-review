@@ -176,6 +176,31 @@ def quy_globalx_vnam():
             "nguon": "https://www.globalxetfs.com/funds/vnam/"}
 
 
+def quy_fubon_00885():
+    """Fubon FTSE Vietnam ETF (00885, Đài Loan): bảng danh mục hằng ngày trên website Fubon Asset Management."""
+    url = "https://websys.fsit.com.tw/FubonETF/Trade/Assets.aspx?stkId=00885&lan=EN"
+    html = _phien.get(url, headers=H_WEB, timeout=40).text
+    ma_quy = re.search(r'hidStkId"[^>]*value="([^"]*)"', html)
+    if not ma_quy or ma_quy.group(1) != "00885":
+        raise RuntimeError("trang Fubon không trả về quỹ 00885")  # tránh nhầm sang danh mục của quỹ khác
+    ngay = re.search(r"Date:\s*(\d{4}/\d{2}/\d{2})", html)
+    if not ngay:
+        raise RuntimeError("không đọc được ngày danh mục Fubon")
+    top = []
+    for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", html, flags=re.S):
+        c = [re.sub(r"<[^>]+>", "", x).strip() for x in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, flags=re.S)]
+        if len(c) == 5:
+            m = _ma_vn(c[0])
+            if m:
+                top.append((m, float(c[4].replace(",", ""))))
+    if len(top) < 20:
+        raise RuntimeError(f"danh mục Fubon quá ít mã ({len(top)})")
+    time.sleep(NGHI)
+    return {"ma": "00885", "ten": "Fubon FTSE Vietnam ETF (00885, Đài Loan)", "loai": "ETF_NN",
+            "ngay": ngay.group(1).replace("/", "-"), "top": top,
+            "nguon": "https://websys.fsit.com.tw/FubonETF/Trade/Assets.aspx?stkId=00885&lan=EN"}
+
+
 FMARKET = "https://api.fmarket.vn/res/products"
 H_FM = {"User-Agent": UA, "Accept": "application/json", "Content-Type": "application/json",
         "Referer": "https://fmarket.vn/", "Origin": "https://fmarket.vn"}

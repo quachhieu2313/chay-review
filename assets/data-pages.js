@@ -1726,12 +1726,12 @@
         $('#hdEtf').innerHTML = x.etf.map(function(m){
           return '<a class="chip" href="' + BASE + '/etf/chi-tiet/?ma=' + esc(m) + '">' + esc(m) + '</a>';
         }).join('') || '<span class="muted">Không có quỹ ETF nào giữ mã này.</span>';
-        $('#hdNNN').textContent = '(' + (x.so_quy_nn || 0) + ' quỹ, danh mục chính thức)';
+        $('#hdNNN').textContent = '(' + (x.so_quy_nn || 0) + ' quỹ nước ngoài, danh mục chính thức)';
         var mn = x.quy_nn && x.quy_nn.length ? x.quy_nn[0].pct : 1;
         $('#hdNN').innerHTML = (x.quy_nn || []).map(function(q){
           return '<li><span class="hd-ma">' + esc(q.ma) + '</span><span class="hd-ten">' + esc(q.ten) + '</span>' +
             '<span class="tl-bar"><i class="acc-bg" style="width:' + (q.pct / mn * 100) + '%"></i></span><b>' + fmt(q.pct, 2) + '%</b></li>';
-        }).join('') || '<li class="muted">Không có trong danh mục 2 quỹ nước ngoài này.</li>';
+        }).join('') || '<li class="muted">Không có trong danh mục các quỹ ETF nước ngoài đang theo dõi.</li>';
         ov.hidden = false;
         document.body.classList.add('modal-open');
         dlg.focus();

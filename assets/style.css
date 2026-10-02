@@ -1095,7 +1095,7 @@ body.modal-open{overflow:hidden;}
 .nn-box{margin:0 0 24px;}
 .nn-box h2{font-size:22px; font-weight:600;}
 .nn-sub{font-size:13.5px; color:var(--ink-soft); margin:6px 0 14px !important;}
-.nn-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.nn-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px;}
 .nn-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px;}
 .nn-card header{display:flex; flex-direction:column; gap:2px; margin-bottom:6px;}
 .nn-card header b{font-family:"JetBrains Mono",monospace; font-size:20px; color:var(--accent-strong);}
