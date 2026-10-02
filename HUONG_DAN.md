@@ -135,3 +135,12 @@ Xem chi tiết lỗi tại tab **Actions** của repo trên GitHub.
 
 - Màu sắc, kiểu chữ, bố cục: `assets/style.css` (bảng màu nằm ở đầu file).
 - Tính năng chạy được: `assets/app.js` (menu, giao diện tối, bảng mục tiêu, máy tính lãi kép) và `assets/data-pages.js` (ETF, quỹ mô phỏng, thị trường, biểu đồ).
+
+## Cảnh báo dòng tiền quỹ
+
+Mỗi lần chạy "Cập nhật dữ liệu thị trường", hệ thống so danh mục quỹ ETF ngoại với lần công bố trước. Khi có quỹ mua/bán ròng một mã từ 20 tỷ đồng, hoặc quỹ (như VWO/VT) lần đầu có cổ phiếu Việt Nam, nó:
+- ghi vào `assets/data/canh_bao.json` và `canh_bao.atom` (hiện ở trang Radar dòng tiền, có RSS);
+- đăng một **Issue** có nhãn `canh-bao` trong kho mã. GitHub sẽ gửi email/thông báo ứng dụng cho bạn (kiểm tra Settings > Notifications);
+- gửi **Telegram** nếu bạn tạo hai secret trong Settings > Secrets and variables > Actions: `TELEGRAM_BOT_TOKEN` (tạo bot qua @BotFather) và `TELEGRAM_CHAT_ID` (gửi một tin cho bot rồi mở `https://api.telegram.org/bot<TOKEN>/getUpdates` để lấy `chat.id`).
+
+Đổi ngưỡng: sửa `NGUONG_DONG` trong `scripts/canh_bao.py`. Tổng hợp tuần tự thành bài trong Bản tin vào chiều thứ Sáu; dữ liệu tải về ở trang `/du-lieu/`.
