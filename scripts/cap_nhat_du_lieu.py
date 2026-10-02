@@ -660,16 +660,22 @@ def trong_phien():
 
 # ---------------------------------------------------------------- danh mục ước tính của các quỹ ETF
 def cap_nhat_ro_etf():
-    """Thành phần rổ chỉ số mà các quỹ ETF bám theo, kèm tỷ trọng ước tính theo vốn hoá niêm yết.
+    """Thành phần rổ chỉ số mà các quỹ ETF bám theo, kèm tỷ trọng trong rổ.
 
-    Đây KHÔNG phải danh mục chính thức của quỹ: chỉ số thật dùng vốn hoá tự do chuyển nhượng và có
-    trần tỷ trọng, nên tỷ trọng thật khác. Chỉ dùng để biết quỹ nắm giữ những mã nào."""
+    Tỷ trọng = giá x số cổ phiếu free-float x hệ số trần của chỉ số (scripts/ro_chi_so_he_so.json, lấy từ
+    FiinQuantX, cần cập nhật tay sau mỗi kỳ cơ cấu chỉ số). Rổ nào chưa có trong file đó thì ước tính theo
+    vốn hoá niêm yết (ty_trong_nguon = "von_hoa", kém chính xác hơn).
+    Đây KHÔNG phải danh mục chính thức của quỹ: quỹ có thể lệch do mô phỏng, sai số bám đuổi."""
     (OUT / "ro_chi_so").mkdir(parents=True, exist_ok=True)
     etf = doc_json(OUT / "etf.json", {}).get("quy", [])
     ds_ro = sorted({q["tham_chieu"] for q in etf if q.get("tham_chieu")})
     cty = nguon.thong_tin_cong_ty()
+    snap = doc_json(ROOT / "scripts" / "ro_chi_so_he_so.json", {})
     thanh_phan = {}
     for ro in ds_ro:
+        if ro in snap.get("thanh_phan", {}):
+            thanh_phan[ro] = list(snap["thanh_phan"][ro])
+            continue
         try:
             thanh_phan[ro] = nguon.thanh_phan_ro(ro)
         except Exception as e:
@@ -710,9 +716,17 @@ def cap_nhat_ro_etf():
                 "thay_doi": r((p / ref - 1) * 100) if ref else None,
                 "von_hoa": r(p * cp, 0),
             })
-        tong = sum(x["von_hoa"] for x in muc) or 1
-        for x in muc:
-            x["ty_trong"] = r(x["von_hoa"] / tong * 100, 2)
+        co_he_so = ro in snap.get("thanh_phan", {})
+        if co_he_so:
+            ff, hs = snap["free_float"], snap["he_so"].get(ro, {})
+            gt = {x["ma"]: x["gia"] * ff[x["ma"]] * hs.get(x["ma"], 1) for x in muc if x["ma"] in ff}
+            tong = sum(gt.values()) or 1
+            for x in muc:
+                x["ty_trong"] = r(gt.get(x["ma"], 0) / tong * 100, 2)
+        else:
+            tong = sum(x["von_hoa"] for x in muc) or 1
+            for x in muc:
+                x["ty_trong"] = r(x["von_hoa"] / tong * 100, 2)
         muc.sort(key=lambda x: -x["ty_trong"])
         nganh = {}
         for x in muc:
@@ -722,6 +736,8 @@ def cap_nhat_ro_etf():
             "cap_nhat": date_vn(),
             "cap_nhat_luc": gio_vn(),
             "so_ma": len(muc),
+            "ty_trong_nguon": "free_float" if co_he_so else "von_hoa",
+            "ngay_he_so": snap.get("ngay") if co_he_so else None,
             "thanh_phan": muc,
             "nganh": sorted(({"nganh": k, "ty_trong": r(v, 2)} for k, v in nganh.items()), key=lambda x: -x["ty_trong"]),
         })

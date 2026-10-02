@@ -1374,6 +1374,11 @@
       box.hidden = false;
       var ten = {VN30: 'VN30', VN100: 'VN100', VNDIAMOND: 'VN Diamond', VNFINLEAD: 'VNFIN Lead', VNFINSELECT: 'VNFIN Select', VNX50: 'VNX50'}[q.tham_chieu] || q.tham_chieu;
       $('#dHoldSub').textContent = q.ma + ' bám theo chỉ số ' + ten + ' gồm ' + ro.so_ma + ' cổ phiếu. Giá cập nhật ' + moc(ro.cap_nhat, ro.cap_nhat_luc) + '.';
+      var nh = $('#dHoldNgay');
+      if(nh) nh.textContent = ro.ngay_he_so ? ngayVN(ro.ngay_he_so) : 'chưa có';
+      if(ro.ty_trong_nguon !== 'free_float'){
+        $('#dHoldSub').textContent += ' Rổ này chưa có số free-float nên tỷ trọng chỉ ước tính theo vốn hoá niêm yết.';
+      }
       var full = false;
       load('danh_muc_ma.json').catch(function(){ return []; }).then(function(dm){
         var co = {}; dm.forEach(function(x){ co[x.ma] = 1; });
@@ -1394,7 +1399,7 @@
       });
       donut($('#dDonut'), $('#dSectors'), ro.nganh.slice(0, 10));
       $('#dHoldCsv').onclick = function(){
-        var dong = ['STT,Ma,Ten,Nganh,Gia (dong),Thay doi (%),Von hoa (dong),Ty trong von hoa trong ro (%)'];
+        var dong = ['STT,Ma,Ten,Nganh,Gia (dong),Thay doi (%),Von hoa (dong),Ty trong trong ro (%)'];
         ro.thanh_phan.forEach(function(x, i){
           dong.push([i + 1, x.ma, '"' + x.ten.replace(/"/g, '""') + '"', '"' + x.nganh + '"', x.gia, x.thay_doi, x.von_hoa, x.ty_trong].join(','));
         });

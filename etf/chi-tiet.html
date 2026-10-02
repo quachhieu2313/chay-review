@@ -86,9 +86,10 @@ image: /assets/img/og-etf.png
       </button>
     </div>
     <div class="hold-warn" role="note">
-      <b>Đây là rổ chỉ số quỹ bám theo, không phải danh mục chính thức.</b>
-      Quỹ ETF mua các cổ phiếu trong rổ chỉ số tham chiếu, nhưng tỷ trọng thật phụ thuộc vốn hoá tự do chuyển nhượng, trần tỷ trọng và cách mô phỏng của quỹ.
-      Cột "Tỷ trọng vốn hoá" dưới đây chỉ là <b>vốn hoá niêm yết của từng mã chia cho tổng rổ</b>, chưa điều chỉnh các yếu tố đó nên thường lệch so với thực tế (mã vốn hoá lớn bị phóng đại).
+      <b>Đây là rổ chỉ số quỹ bám theo, không phải danh mục chính thức của quỹ.</b>
+      Tỷ trọng tính theo công thức của chỉ số: <b>giá × số cổ phiếu free-float × hệ số trần tỷ trọng</b>
+      (số free-float và hệ số lấy từ FiinQuant, chốt ngày <span id="dHoldNgay">…</span>; giá cập nhật hằng ngày).
+      Danh mục thật của quỹ có thể lệch đôi chút do cách mô phỏng, tiền mặt và sai số bám đuổi; số free-float, hệ số cũng đổi sau mỗi kỳ cơ cấu chỉ số.
     </div>
     <div class="holdings-grid">
       <div class="table-scroll">
@@ -96,14 +97,14 @@ image: /assets/img/og-etf.png
           <thead><tr>
             <th scope="col" class="num">#</th><th scope="col">Cổ phiếu</th>
             <th scope="col" class="num">Giá (đ)</th><th scope="col" class="num">Hôm nay</th>
-            <th scope="col" class="num">Tỷ trọng vốn hoá</th>
+            <th scope="col" class="num">Tỷ trọng trong rổ</th>
           </tr></thead>
           <tbody id="dHoldBody"></tbody>
         </table>
         <button class="btn btn-ghost" type="button" id="dHoldToggle" style="margin-top:14px;" hidden></button>
       </div>
       <div class="sector-box">
-        <h3>Theo ngành (vốn hoá)</h3>
+        <h3>Theo ngành</h3>
         <div class="donut" id="dDonut"></div>
         <ul class="clean legend" id="dSectors"></ul>
       </div>
