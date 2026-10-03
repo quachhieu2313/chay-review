@@ -1,15 +1,15 @@
 ---
 layout: default
-title: Cổ phiếu được quỹ nắm giữ
-description: Cổ phiếu được các quỹ mở và quỹ ETF Việt Nam nắm giữ nhiều nhất - số quỹ nắm giữ, tỷ trọng trên NAV và danh sách quỹ đang giữ từng mã.
+title: Quỹ nắm giữ & dòng tiền
+description: Theo dõi danh mục quỹ, thay đổi nắm giữ đã xác nhận và kịch bản dòng vốn FTSE với giả định, công thức và ngày dữ liệu rõ ràng.
 nav: quy-nam-giu
 permalink: /quy-nam-giu/
 image: /assets/img/og-etf.png
 ---
 <section class="page-head wrap">
   <p class="eyebrow">Quỹ nắm giữ</p>
-  <h1>Các quỹ đang mua những cổ phiếu nào</h1>
-  <p>Tổng hợp từ danh mục của <b id="hQuyMo">…</b> quỹ mở cổ phiếu/cân bằng và <b id="hEtf">…</b> quỹ ETF. Bấm vào một mã để xem quỹ nào đang giữ và với tỷ trọng bao nhiêu.</p>
+  <h1>Quỹ đang nắm giữ cổ phiếu nào, dòng tiền đổi ra sao?</h1>
+  <p>Tổng hợp danh mục của <b id="hQuyMo">…</b> quỹ mở cổ phiếu/cân bằng và <b id="hEtf">…</b> quỹ ETF; tách riêng số liệu đã quan sát khỏi mô hình giả định.</p>
 </section>
 
 <div class="wrap" id="holdPage">
@@ -17,13 +17,95 @@ image: /assets/img/og-etf.png
     <b>Cách đọc số liệu.</b>
     <b>Quỹ mở:</b> lấy từ danh mục <b>top 10 mã</b> mà từng quỹ công bố (nguồn Fmarket), chốt ngày <span id="hNgay">…</span>, nên mã nằm ngoài top 10 của một quỹ không được tính và số liệu có thể chậm vài tuần.
     <b>Quỹ ETF:</b> ước tính theo thành phần rổ chỉ số quỹ bám theo, không phải danh mục chính thức.
-    <b>Quỹ ETF nước ngoài:</b> danh mục đầy đủ do chính nhà phát hành công bố hằng ngày (VanEck, Global X, Fubon) và quỹ Thiên Hoằng của Trung Quốc (top 20 theo quý).
+    <b>Quỹ ETF nước ngoài:</b> VanEck, Global X, KraneShares và Fubon công bố danh mục; Vanguard công bố theo tháng. VEIL chỉ công bố top 10, Thiên Hoằng công bố top 20 theo quý.
     Chưa có quy mô quỹ nên kết quả đếm theo <b>số quỹ</b> và <b>% NAV trung bình</b>, không phải theo số tiền. Chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.
   </div>
 
+  <details class="method-disclosure">
+    <summary>Công thức, nguồn dữ liệu và cách tự kiểm chứng</summary>
+    <div class="method-body">
+      <p><b>Công thức xác nhận phép tính, không tự xác nhận dữ liệu đầu vào.</b> Đối chiếu ngày chốt và mã với nguồn công bố gốc; danh mục có thể chỉ là top 10/top 20, cập nhật trễ, hoặc dùng tỷ trọng chỉ số thay cho lượng nắm giữ thật.</p>
+      <div class="method-scroll">
+        <table class="data-table method-table">
+          <thead><tr><th scope="col">Chỉ số</th><th scope="col">Cách tính</th><th scope="col">Nguồn &amp; giới hạn</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Số quỹ mở nắm giữ</th><td>Đếm mỗi quỹ một lần nếu mã xuất hiện trong danh mục top 10 quỹ đó.</td><td><a href="https://fmarket.vn/">Fmarket</a>. Mã ngoài top 10 không được tính; số quỹ mẫu không đồng nghĩa toàn thị trường.</td></tr>
+            <tr><th scope="row">% quỹ mở</th><td>Số quỹ mở có mã trong top 10 ÷ tổng số quỹ mở có danh mục hợp lệ × 100.</td><td>Mẫu số là số quỹ được lấy thành công trong kỳ cập nhật, không phải mọi quỹ đang hoạt động.</td></tr>
+            <tr><th scope="row">% NAV trung bình / cao nhất</th><td>Trung bình cộng = tổng tỷ trọng NAV được công bố của các quỹ có mã ÷ số quỹ đó. Cao nhất = tỷ trọng lớn nhất trong nhóm.</td><td>Tính trên các bản ghi top 10 có mã; không đưa quỹ không có mã vào mức 0 và không gia quyền theo quy mô tài sản. Tỷ trọng nguồn được làm tròn 2 chữ số.</td></tr>
+            <tr><th scope="row">Số ETF nội nắm giữ</th><td>Đếm ETF có mã trong rổ chỉ số tham chiếu của ETF.</td><td>Đây là proxy theo chỉ số, không phải holdings/creation basket chính thức; rổ có thể dùng free-float và hệ số giới hạn, hoặc vốn hóa thường nếu thiếu hệ số.</td></tr>
+            <tr><th scope="row">Danh mục và % của quỹ ngoại</th><td>Mã và tỷ trọng lấy từ lần công bố được ghi ngày trên thẻ; không suy ra giao dịch từ một ảnh chụp.</td><td>Dùng nguồn phát hành quỹ liên kết trên thẻ. Dữ liệu giới hạn top 10/top 20 được ghi rõ; Vanguard công bố theo tháng.</td></tr>
+            <tr><th scope="row">Thay đổi ETF ngoại</th><td>Δ số cổ phiếu = số kỳ mới − số kỳ trước; giá trị tham khảo = Δ số cổ phiếu × giá cổ phiếu hiện tại; mua/bán ròng tổng hợp = cộng Δ của các quỹ có dữ liệu đủ.</td><td>Cần tối thiểu 2 lần công bố có số lượng. Chia/tách, chuyển đổi đơn vị, lệch ngày chốt và giao dịch ngoài kỳ có thể làm thay đổi kết quả; giá trị hiện tại không phải giá trị khớp lịch sử.</td></tr>
+            <tr><th scope="row">Thay đổi top 10 quỹ mở</th><td>Mã mới vào top 10: +1; rời top 10: −1; tỷ trọng tăng từ 0,30 điểm %: +1; giảm từ 0,30 điểm %: −1. Điểm mã = tổng điểm các quỹ.</td><td>So hai kỳ gần nhất của từng quỹ; chỉ theo dõi top 10, không phải luồng tiền hay số cổ phiếu thực mua.</td></tr>
+            <tr><th scope="row">Lệch pha nội–ngoại</th><td>Chênh lệch = tỷ trọng bình quân nhóm ETF ngoại − tỷ trọng bình quân nhóm quỹ mở nội; thiếu mã trong top công bố được xem là 0 trong từng danh mục.</td><td>So hai mẫu quỹ với độ phủ khác nhau. Chênh lệch là mức phân bổ tại ngày công bố, không chứng minh nguyên nhân hoặc giao dịch mới.</td></tr>
+            <tr><th scope="row">Kịch bản FTSE</th><td>Vốn hóa free-float mã = giá × số cổ phiếu free-float. Tỷ trọng mô hình = vốn hóa mã ÷ tổng vốn hóa 27 mã. Cầu mã = vốn giả định × tỷ lệ đợt × tỷ trọng. Phiên tương đương = cầu mã ÷ (GTGD bình quân 20 phiên × tỷ lệ tham gia).</td><td>Kịch bản đơn giản hóa, không phải tỷ trọng/lệnh của FTSE hay quỹ. Chưa tính hệ số giới hạn riêng của FTSE, điều chỉnh chỉ số, giới hạn sở hữu nước ngoài, thời điểm giải ngân, tác động giá và sai số nguồn free-float.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="method-check"><b>Kiểm tra tự động:</b> <span id="hFormulaAudit">Đang đối chiếu các phép tổng hợp…</span> Phép kiểm tra này chỉ xác nhận tính nhất quán của phép tính với JSON đang tải, không kiểm toán độc lập số liệu tại nguồn.</p>
+      <p class="hi-sources">Nguồn đối chiếu: <a href="https://fmarket.vn/">Fmarket</a> · nguồn phát hành từng ETF qua liên kết trên thẻ · phương pháp radar và giả định FTSE tại <a href="{{ '/phan-tich/' | relative_url }}">Radar dòng tiền</a> · <a href="{{ '/assets/data/quy_nam_giu.json' | relative_url }}">dữ liệu danh mục</a>.</p>
+    </div>
+  </details>
+
+  <section class="nn-box hold-insights" aria-labelledby="hInsightTitle">
+    <div class="hi-heading">
+      <div>
+        <p class="eyebrow">Quan sát · đối chiếu · kịch bản</p>
+        <h2 id="hInsightTitle">Tín hiệu dòng tiền và điều cần theo dõi</h2>
+      </div>
+      <div class="hi-meta"><span class="hi-confidence">Kịch bản FTSE: độ tin cậy thấp</span><p class="hi-fresh" id="hInsightFresh">Đang tải ngày cập nhật…</p></div>
+    </div>
+    <p class="nn-sub">Chênh lệch danh mục cho biết số lượng nắm giữ tăng/giảm giữa hai lần công bố, không xác nhận lệnh giao dịch hay động cơ của quỹ. Phần FTSE bên dưới là kịch bản có điều kiện, không phải dự báo chắc chắn.</p>
+
+    <div class="hi-grid">
+      <article class="nn-card hi-card">
+        <h3>Thay đổi danh mục đã quan sát</h3>
+        <p class="hi-method">So số cổ phiếu giữa hai lần công bố; quỹ mở chỉ so top 10 và ngưỡng đổi tỷ trọng từ 0,3 điểm %.</p>
+        <div id="hInsightFlows"><div class="pt-empty">Đang tải lịch sử danh mục…</div></div>
+      </article>
+      <article class="nn-card hi-card">
+        <h3>Tín hiệu khác biệt giữa quỹ</h3>
+        <p class="hi-method">So tỷ trọng trung bình quỹ nội và quỹ ngoại với nhau. Đây là khác biệt quan sát được, không chứng minh lý do mua/bán.</p>
+        <div id="hInsightGaps"><div class="pt-empty">Đang tải số liệu so sánh…</div></div>
+      </article>
+    </div>
+
+    <article class="nn-card hi-scenario">
+      <div class="hi-card-head">
+        <div>
+          <h3>Kịch bản dòng vốn thụ động FTSE</h3>
+          <p class="hi-method">Trong 27 mã FTSE27, hiển thị 5 mã có số phiên tương đương cao nhất theo giả định; đây không phải danh sách lệnh mua đã xác nhận.</p>
+        </div>
+        <a class="btn btn-ghost" href="{{ '/phan-tich/' | relative_url }}">Mở Radar &amp; phương pháp</a>
+      </div>
+      <div class="pt-inputs hi-inputs">
+        <label>Vốn giả định <span>(tỷ USD)</span><input type="number" id="hScenarioFund" min="0" step="0.1" inputmode="decimal"></label>
+        <label>Tỷ lệ vốn của một đợt giả định <span>(%)</span><input type="number" id="hScenarioTranche" min="0" max="100" step="5" inputmode="decimal"></label>
+        <label>Tỷ giá <span>(VND/USD)</span><input type="number" id="hScenarioFx" min="1" step="50" inputmode="decimal"></label>
+        <label>Tỷ lệ tham gia thanh khoản <span>(%)</span><input type="number" id="hScenarioParticipation" min="1" max="100" step="1" value="20" inputmode="decimal"></label>
+      </div>
+      <div class="pt-tiles hi-tiles" id="hScenarioTiles"></div>
+      <div class="table-card">
+        <div class="table-scroll">
+          <table class="data-table hold-table">
+            <thead><tr>
+              <th scope="col">Mã</th>
+              <th scope="col" class="num">Tỷ trọng mô hình</th>
+              <th scope="col" class="num">Cầu ước tính <small class="muted">(tỷ đồng)</small></th>
+              <th scope="col" class="num">Thanh khoản TB <small class="muted">(tỷ đồng/phiên)</small></th>
+              <th scope="col" class="num">Phiên tương đương*</th>
+            </tr></thead>
+            <tbody id="hScenarioBody"><tr><td colspan="5" class="empty-row">Đang tính kịch bản…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <p class="hi-caveat" id="hScenarioMethod">Đang tải giả định và nguồn dữ liệu…</p>
+      <p class="hi-sources">Đối chiếu <a href="{{ '/phan-tich/' | relative_url }}">phương pháp và Radar dòng tiền</a> · <a href="{{ '/assets/data/phan_tich.json' | relative_url }}">tải dữ liệu phân tích thô</a> · <a href="{{ '/du-lieu/' | relative_url }}">từ điển dữ liệu</a>.</p>
+    </article>
+  </section>
+
   <section class="nn-box" aria-labelledby="nnT">
-    <h2 id="nnT">Quỹ ETF nước ngoài đang mua cổ phiếu Việt Nam</h2>
-    <p class="nn-sub">Danh mục <b>đầy đủ và chính thức</b> do nhà phát hành quỹ công bố mỗi ngày, lấy trực tiếp từ website của họ. Fubon bám chỉ số <b>FTSE Vietnam 30</b>.</p>
+    <h2 id="nnT">Danh mục cổ phiếu Việt Nam của quỹ ETF nước ngoài</h2>
+    <p class="nn-sub">Danh mục được lấy từ nguồn công bố của từng quỹ; ngày và phạm vi dữ liệu ghi trên mỗi thẻ. Một danh mục cho biết quỹ đang nắm giữ gì, không tự chứng minh quỹ vừa mua các mã đó. Fubon bám chỉ số <b>FTSE Vietnam 30</b>.</p>
     <div class="nn-grid" id="hNN"></div>
   </section>
 

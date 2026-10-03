@@ -1,0 +1,80 @@
+---
+layout: default
+title: Cổ Phiếu Khuyến Nghị
+description: Bộ lọc thử nghiệm cổ phiếu Việt Nam theo xu hướng giá, tài chính, định giá, danh mục quỹ và rủi ro. Công thức, nguồn và giới hạn được công khai.
+nav: co-phieu-khuyen-nghi
+permalink: /co-phieu-khuyen-nghi/
+---
+<section class="page-head wrap">
+  <p class="eyebrow">Bộ lọc định lượng · Thử nghiệm</p>
+  <h1>Cổ Phiếu Khuyến Nghị</h1>
+  <p>Xếp hạng cổ phiếu theo tín hiệu 3 và 6 tháng, kết hợp xu hướng giá, chỉ số tài chính, định giá, dữ liệu quỹ và rủi ro. Mỗi mã có điểm thành phần, ngày dữ liệu và cảnh báo để bạn tự kiểm tra.</p>
+</section>
+
+<section class="wrap rec-page" id="recPage">
+  <div class="rec-disclaimer" role="note">
+    <b>Điểm tổng hợp chưa được backtest toàn bộ.</b> Backtest bên dưới chỉ kiểm tra động lượng giá quá khứ, không bao gồm chỉ số tài chính hay dữ liệu quỹ lịch sử. Đây là bộ lọc tham khảo, không phải dự báo chắc chắn hoặc khuyến nghị cá nhân hóa.
+  </div>
+
+  <section class="card panel" aria-labelledby="recTitle">
+    <div class="panel-head rec-head">
+      <div>
+        <p class="eyebrow">Xếp hạng theo điểm</p>
+        <h2 id="recTitle">Mã nổi bật theo bộ lọc</h2>
+        <p class="panel-sub" id="recMeta">Đang tải dữ liệu…</p>
+      </div>
+      <div class="rec-controls">
+        <div class="seg" id="recHorizon" role="group" aria-label="Thời hạn xếp hạng">
+          <button type="button" data-horizon="3m" aria-pressed="true">3 tháng</button>
+          <button type="button" data-horizon="6m" aria-pressed="false">6 tháng</button>
+        </div>
+        <div class="seg" id="recSide" role="group" aria-label="Nhóm xếp hạng">
+          <button type="button" data-side="mua" aria-pressed="true">Top 10 mua</button>
+          <button type="button" data-side="ban" aria-pressed="false">Top 10 bán / giảm</button>
+        </div>
+      </div>
+    </div>
+    <div id="recSummary" class="rec-summary"></div>
+    <div class="table-scroll" id="recTable">
+      <div class="empty-state">Đang tải xếp hạng…</div>
+    </div>
+    <p class="table-note">Điểm là thứ hạng tương đối trong nhóm cổ phiếu VN100 hiện tại, không phải xác suất sinh lời. Nhấn “Yếu tố” để xem điểm đóng góp và cảnh báo từng mã.</p>
+  </section>
+
+  <section class="card panel" aria-labelledby="recBacktestTitle">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Kiểm tra lịch sử</p>
+        <h2 id="recBacktestTitle">Backtest tham chiếu: động lượng giá</h2>
+        <p class="panel-sub">Tại mỗi mốc cách nhau 21 phiên, chọn 10 mã có lợi nhuận giá cao/thấp nhất trong 3 hoặc 6 tháng trước; nắm giữ bằng nhau trong thời gian tương ứng. Kết quả là lợi nhuận giá trung bình mỗi kỳ nắm giữ; các kỳ có thể chồng lấn.</p>
+      </div>
+    </div>
+    <div id="recBacktest" class="rec-backtest">
+      <div class="empty-state">Đang tải kết quả backtest…</div>
+    </div>
+  </section>
+
+  <section class="note-card rec-method">
+    <h2>Công thức, nguồn và giới hạn</h2>
+    <p>Điểm của từng yếu tố là bách phân vị 0–100 trong nhóm so sánh; định giá và tài chính ưu tiên so sánh cùng ngành khi có ít nhất 5 mã. Điểm tổng hợp = Σ (điểm yếu tố × trọng số) ÷ Σ trọng số có dữ liệu; chỉ xếp hạng khi độ bao phủ trọng số đạt 65% trở lên.</p>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th scope="col">Yếu tố</th><th scope="col" class="num">Trọng số</th><th scope="col">Cách tính</th><th scope="col">Nguồn</th></tr></thead>
+        <tbody>
+          <tr><td>Động lượng</td><td class="num">30%</td><td>75% thứ hạng lợi nhuận giá 63/126 phiên + 25% vị trí giá so với MA50/MA200.</td><td><a href="https://trading.vietcap.com.vn/" rel="noopener">VCI · giá đóng cửa</a></td></tr>
+          <tr><td>Chất lượng</td><td class="num">25%</td><td>Trung bình thứ hạng ROE cùng ngành, biên lợi nhuận ròng cùng ngành và EPS dương.</td><td><a href="https://www.kbsec.com.vn/" rel="noopener">KBS · kỳ tài chính gần nhất</a></td></tr>
+          <tr><td>Dữ liệu quỹ</td><td class="num">20%</td><td>Trung bình thứ hạng số quỹ, số ETF và tỷ trọng NAV bình quân được công bố nắm giữ mã.</td><td>Danh mục quỹ đã thu thập</td></tr>
+          <tr><td>Định giá</td><td class="num">15%</td><td>Trung bình thứ hạng P/E và P/B thấp hơn trong cùng ngành; P/E = giá/EPS, P/B = giá/BVPS.</td><td>Giá VCI + EPS/BVPS KBS</td></tr>
+          <tr><td>Rủi ro</td><td class="num">10%</td><td>Trung bình thứ hạng thấp hơn về biến động năm hóa và mức sụt giảm tối đa 1 năm.</td><td>VCI · lịch sử giá 252 phiên</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul>
+      <li>Thiếu một yếu tố thì trọng số các yếu tố còn dữ liệu được chuẩn hóa lại; chỉ xếp hạng khi độ bao phủ trọng số đạt ít nhất 65%.</li>
+      <li>Backtest là danh mục đều trọng số, tái lập mỗi 21 phiên; kết quả hiển thị là trung bình lợi nhuận giá mỗi kỳ, các kỳ nắm giữ có thể chồng lấn. So với VN-Index, chưa tính cổ tức, phí, thuế, trượt giá. Chỉ dùng VN100 hiện tại nên có thiên lệch sống sót.</li>
+      <li>Dữ liệu quỹ có độ trễ và độ bao phủ không đồng đều; tỷ trọng bình quân chỉ tính trên danh mục đã công bố (một số quỹ chỉ công bố top holdings), số quỹ nắm giữ không có nghĩa là vừa mua. KBS chỉ có chỉ số tài chính quý gần nhất nên điểm tổng hợp chưa thể kiểm định theo lịch sử mà không gây thiên lệch dữ liệu tương lai.</li>
+      <li>Xếp hạng điểm thấp chỉ là tín hiệu yếu tương đối để xem xét, không phải khuyến nghị bán khống. Hiệu suất quá khứ không đảm bảo kết quả tương lai.</li>
+    </ul>
+    <p class="muted-text">Nguồn đầu vào được ghi cùng thời điểm cập nhật trên trang. Dữ liệu có thể thiếu, trễ hoặc sai; hãy đối chiếu báo cáo gốc và tự đánh giá khẩu vị rủi ro trước mọi quyết định.</p>
+  </section>
+</section>

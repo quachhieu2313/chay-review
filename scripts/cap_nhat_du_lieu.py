@@ -964,6 +964,7 @@ Ba quỹ ETF có thanh khoản bình quân cao nhất: {ds_ma(etf_top, lambda q:
 
 
 def main():
+    global DA_GHI
     if "--trong-phien" in sys.argv:
         trong_phien()
     else:
@@ -976,6 +977,8 @@ def main():
         cap_nhat_chi_so_tham_chieu()
         cap_nhat_trong_ngay(chi_so)
         viet_ban_tin()
+        from khuyen_nghi import cap_nhat as cap_nhat_khuyen_nghi
+        DA_GHI = cap_nhat_khuyen_nghi() or DA_GHI
     if DA_GHI:
         # file nhỏ để trang web đang mở biết có dữ liệu mới mà tự tải lại
         bay_gio = datetime.now(timezone(timedelta(hours=7)))
