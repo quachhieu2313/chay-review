@@ -1656,7 +1656,7 @@
   if(holdPage){
     load('quy_nam_giu.json').then(function(d){
       var ds = d.co_phieu, sortKey = 'so_quy', filter = '', soDong = 30, meta = (d.quy_nn_meta || []).slice();
-      var thienHoang = meta.findIndex(function(q){ return q.ma === '008763'; });
+      var thienHoang = meta.findIndex(function(q){ return q.ma === 'Tianhong' || q.ma === '008763'; });
       var vwo = meta.findIndex(function(q){ return q.ma === 'VWO'; });
       if(thienHoang > vwo && vwo > -1) meta.splice(vwo, 0, meta.splice(thienHoang, 1)[0]);
       $('#hNN').innerHTML = meta.map(function(q){

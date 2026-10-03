@@ -16,7 +16,7 @@ import xuat_du_lieu
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets" / "data"
 GIU_TOI_DA = 150  # số lần chụp lưu lại cho mỗi quỹ
-QUY_DAY_DU = {"VNM", "VNAM", "KPHO", "00885", "VWO", "VT"}  # quỹ công bố đầy đủ danh mục: mới tính được mua/bán ròng
+QUY_DAY_DU = {"VNM", "VNAM", "KPHO", "Fubon", "VWO", "VT"}  # quỹ công bố đầy đủ danh mục: mới tính được mua/bán ròng
 FX_MAC_DINH = 26300
 VON_MAC_DINH_TY_USD = 2.5   # theo công bố của Vanguard (tin vietnam.vn), người dùng chỉnh được
 DOT_DAU_PCT = 25            # FTSE chia 4 đợt từ 09/2026 đến 09/2027
