@@ -181,7 +181,7 @@ nav.primary a:hover, nav.primary a[aria-current="page"]{color:var(--ink); border
 
 /* ===== hero ===== */
 .hero{padding-block:60px 64px;}
-.hero-grid{display:grid; grid-template-columns:1fr 1fr; gap:52px; align-items:center;}
+.hero-grid{display:grid; grid-template-columns:minmax(0,1fr); gap:52px; align-items:center; max-width:850px;}
 .hero h1{font-size:clamp(36px, 5.2vw, 58px); line-height:1.06; font-weight:600; margin-top:14px;}
 .hero h1 em{font-style:italic; color:var(--accent-strong); font-weight:500;}
 .hero-sub{margin-top:20px; font-size:17px; line-height:1.6; color:var(--ink-soft); max-width:500px;}
@@ -648,8 +648,7 @@ footer.site{padding-block:56px calc(36px + env(safe-area-inset-bottom,0px)); bor
 .ret-table td{font-family:"JetBrains Mono",monospace; font-size:13px;}
 .ret-table .muted-row th, .ret-table .muted-row td{color:var(--muted); font-weight:500;}
 
-/* đầu trang quỹ */
-.sim-banner{background:var(--lime); color:var(--on-lime); font-size:13.5px; padding:10px 0; line-height:1.5;}
+/* đầu trang quỹ ETF */
 .fund-hero{display:flex; justify-content:space-between; align-items:flex-end; gap:28px; flex-wrap:wrap; padding-block:36px 26px;}
 .fund-hero h1{font-size:clamp(28px,4vw,42px); font-weight:600; line-height:1.12; margin-top:12px; max-width:720px;}
 .ticker-chip{
@@ -714,18 +713,6 @@ footer.site{padding-block:56px calc(36px + env(safe-area-inset-bottom,0px)); bor
 
 /* trang chủ */
 .hero-etf{background:linear-gradient(180deg, var(--accent-tint), var(--bg) 85%);}
-.fund-card{padding:24px; display:block; transition:transform .2s, box-shadow .2s;}
-.fund-card:hover{transform:translateY(-3px);}
-.fund-card-top{display:flex; justify-content:space-between; align-items:center;}
-.fund-card-link{font-size:13px; font-weight:700; color:var(--accent-strong);}
-.fund-card h2{font-size:22px; font-weight:600; margin-top:14px;}
-.fund-card-nav{display:flex; justify-content:space-between; align-items:flex-end; margin-top:16px;}
-.fund-card-nav b{display:block; font-family:"Fraunces",serif; font-size:38px; font-weight:600; line-height:1.1;}
-.fund-card-spark{margin-top:12px; height:70px;}
-.fund-card-spark svg{width:100%; height:70px;}
-.fund-card-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px; padding-top:14px; border-top:1px solid var(--border);}
-.fund-card-stats span{display:block; font-size:11.5px; color:var(--muted);}
-.fund-card-stats b{font-family:"JetBrains Mono",monospace; font-size:15px;}
 .etf-minis{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
 .etf-mini{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; display:flex; flex-direction:column; gap:8px; transition:border-color .15s, transform .15s;}
 .etf-mini:hover{border-color:var(--accent); transform:translateY(-2px);}

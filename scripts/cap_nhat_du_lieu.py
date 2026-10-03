@@ -13,7 +13,6 @@ rồi ghi ra các file JSON trong assets/data/:
   cp/<MÃ>.json       nến OHLCV (+ chỉ số cơ bản với cổ phiếu) từng mã VN30 và ETF (popup chi tiết mã)
   danh_muc_ma.json   danh sách mã có popup, dùng cho ô tìm kiếm
   quy_nam_giu.json   cổ phiếu được các quỹ mở (Fmarket) và quỹ ETF nắm giữ nhiều nhất (trang Quỹ nắm giữ)
-  quy_mo_phong.json  quỹ mô phỏng KCN VN30 (trang Quỹ mô phỏng)
 
 Hai chế độ:
   python scripts/cap_nhat_du_lieu.py               đầy đủ: tải lại toàn bộ lịch sử (~2 phút), chạy sau giờ đóng cửa
@@ -89,11 +88,6 @@ FTSE_ALLCAP = FTSE_ALLWORLD + [
     "FPT", "GEX", "HDB", "HCM", "MCH", "MSN", "NVL", "SHB", "STB", "SSB", "SSI", "TCX",
     "VNM", "VCI", "VJC", "MSB", "VRE", "VPL", "VIX", "VND", "VCK",
 ]
-
-PHI_MO_PHONG = 0.005  # phí quản lý giả định 0,5%/năm của quỹ mô phỏng
-NAV_KHOI_DAU = 10000.0
-NGAY_KHOI_DAU = "2021-01-04"
-
 
 def log(*a):
     print(*a, flush=True)
@@ -331,8 +325,8 @@ def ghi_danh_muc_ma():
     ghi_json(OUT / "danh_muc_ma.json", sorted(ds, key=lambda x: x["ma"]))
 
 
-# ---------------------------------------------------------------- VN30 + quỹ mô phỏng
-def cap_nhat_vn30_va_quy(chi_so):
+# ---------------------------------------------------------------- cổ phiếu VN30/VN100
+def cap_nhat_vn30():
     ro30 = nguon.ro_chi_so("VN30")
     ro100 = nguon.ro_chi_so("VN100")
     ro = ro100 + [m for m in ro30 + FTSE_ALLCAP if m not in ro100]
@@ -377,103 +371,6 @@ def cap_nhat_vn30_va_quy(chi_so):
     ngay_cuoi = max(s.index[-1] for s in gia.values()).strftime("%Y-%m-%d") if gia else None
     ghi_json(OUT / "co_phieu.json", {"cap_nhat": ngay_cuoi, "cap_nhat_luc": gio_vn(), "ro": "VN100", "co_phieu": co_phieu})
 
-    # ----- quỹ mô phỏng: chia đều tỷ trọng các mã VN30 hiện tại, tái cân bằng đầu mỗi quý
-    bang = pd.DataFrame({m: gia[m] for m in ro30 if m in gia}).sort_index()
-    bang = bang[bang.index >= NGAY_KHOI_DAU].ffill()
-    if bang.empty:
-        return
-    ngay = bang.index
-    tai_can_bang = {ngay[0]}
-    for i in range(1, len(ngay)):
-        if ngay[i].quarter != ngay[i - 1].quarter:
-            tai_can_bang.add(ngay[i])
-
-    gia_tri = NAV_KHOI_DAU
-    so_luong = None
-    nav = []
-    he_so_phi = 1 - PHI_MO_PHONG / 252
-    lan_can_bang = []
-    for t in ngay:
-        hang = bang.loc[t]
-        if so_luong is not None:
-            gia_tri = float((so_luong * hang).sum()) * he_so_phi
-            so_luong = so_luong * he_so_phi
-        if t in tai_can_bang:
-            co_gia = hang.dropna()
-            so_luong = (gia_tri / len(co_gia)) / co_gia
-            so_luong = so_luong.reindex(bang.columns).fillna(0)
-            lan_can_bang.append(t.strftime("%Y-%m-%d"))
-        nav.append(gia_tri)
-
-    d = [x.strftime("%Y-%m-%d") for x in ngay]
-    nav = [r(x, 2) for x in nav]
-    hang_cuoi = bang.iloc[-1]
-    gt = (so_luong * hang_cuoi)
-    tong = gt.sum()
-    danh_muc = []
-    for ma in bang.columns:
-        if gt[ma] <= 0:
-            continue
-        s = gia[ma]
-        danh_muc.append({
-            "ma": ma,
-            "ten": ten.get(ma, ma),
-            "nganh": nganh.get(ma, "Khác"),
-            "ty_trong": r(gt[ma] / tong * 100, 2),
-            "gia": r(s.iloc[-1], 0),
-            "thay_doi": r((s.iloc[-1] / s.iloc[-2] - 1) * 100) if len(s) > 1 else 0,
-        })
-    danh_muc.sort(key=lambda x: -x["ty_trong"])
-    theo_nganh = {}
-    for x in danh_muc:
-        theo_nganh[x["nganh"]] = theo_nganh.get(x["nganh"], 0) + x["ty_trong"]
-    nganh_list = sorted(({"nganh": k, "ty_trong": r(v, 2)} for k, v in theo_nganh.items()), key=lambda x: -x["ty_trong"])
-
-    # beta và sai lệch so với VN30
-    beta = sai_lech = None
-    if "VN30" in chi_so:
-        vn30 = pd.Series(chi_so["VN30"]["c"], index=chi_so["VN30"]["d"])
-        q = pd.Series(nav, index=d)
-        hop = pd.concat([q, vn30], axis=1, join="inner").tail(253).pct_change().dropna()
-        if len(hop) > 20:
-            cov = hop.cov().iloc[0, 1]
-            beta = cov / hop.iloc[:, 1].var()
-            sai_lech = (hop.iloc[:, 0] - hop.iloc[:, 1]).std() * math.sqrt(252) * 100
-
-    bd, sg = rui_ro(nav)
-    nam_tu_dau = (len(nav) - 1) / 252
-    ghi_json(OUT / "quy_mo_phong.json", {
-        "ten": "Quỹ mô phỏng Kim Chỉ Nam VN30 Bình Quyền",
-        "ma": "KCN30",
-        "cap_nhat": d[-1],
-        "ngay_khoi_dau": d[0],
-        "nav_khoi_dau": NAV_KHOI_DAU,
-        "phi": PHI_MO_PHONG * 100,
-        "so_ma": len(danh_muc),
-        "tai_can_bang_gan_nhat": lan_can_bang[-1],
-        "d": d,
-        "nav": nav,
-        "loi_nhuan": loi_nhuan(d, nav),
-        "tu_dau": r((nav[-1] / nav[0] - 1) * 100),
-        "tu_dau_nam": r(((nav[-1] / nav[0]) ** (1 / nam_tu_dau) - 1) * 100) if nam_tu_dau > 0 else None,
-        "bien_dong_1y": bd,
-        "sut_giam_1y": sg,
-        "sut_giam_tu_dau": rui_ro(nav, n=len(nav))[1],
-        "beta_1y": r(beta),
-        "sai_lech_1y": r(sai_lech),
-        "cap_nhat_luc": gio_vn(),
-        # mốc để chế độ trong phiên tính NAV tạm tính: tỷ trọng và giá tại phiên gần nhất
-        "nen": {
-            "ngay": d[-1],
-            "nav": nav[-1],
-            "ty_trong": {ma: round(float(gt[ma] / tong), 6) for ma in bang.columns if gt[ma] > 0},
-            "gia": {ma: float(hang_cuoi[ma]) for ma in bang.columns if gt[ma] > 0},
-        },
-        "danh_muc": danh_muc,
-        "nganh": nganh_list,
-    })
-
-
 # ---------------------------------------------------------------- chế độ trong phiên
 def dat_diem(d, c, ngay, gia_tri):
     """Ghi giá của ngày `ngay`: thay điểm cuối nếu đã có ngày đó, ngược lại thêm điểm mới."""
@@ -488,8 +385,7 @@ def trong_phien():
     etf = doc_json(OUT / "etf.json", None)
     cp = doc_json(OUT / "co_phieu.json", None)
     cs = doc_chi_so()
-    quy = doc_json(OUT / "quy_mo_phong.json", None)
-    if not (etf and cp and cs and quy):
+    if not (etf and cp and cs):
         log("Chưa có dữ liệu nền, hãy chạy chế độ đầy đủ trước.")
         return
 
@@ -617,47 +513,6 @@ def trong_phien():
             ghi_json(OUT / "chi_so" / f"{ma}.json", cs[ma])
             log(f"chi_so/{ma}.json đổi")
     cap_nhat_trong_ngay(cs)
-
-    # ----- quỹ mô phỏng: NAV tạm tính từ tỷ trọng và giá ở phiên trước
-    nen = quy.get("nen")
-    if nen and nen["ngay"] < ngay:
-        cu = json.loads(json.dumps(quy))
-        tong_w, tong = 0.0, 0.0
-        moi_w = {}
-        for ma, w in nen["ty_trong"].items():
-            g = gia.get(ma)
-            p0 = nen["gia"].get(ma)
-            if not g or not p0:
-                continue
-            tong_w += w
-            tong += w * g[0] / p0
-            moi_w[ma] = w * g[0] / p0
-        if tong_w > 0:
-            nav_moi = nen["nav"] * (tong / tong_w) * (1 - PHI_MO_PHONG / 252)
-            dat_diem(quy["d"], quy["nav"], ngay, r(nav_moi, 2))
-            tong_moi = sum(moi_w.values())
-            for x in quy["danh_muc"]:
-                g = gia.get(x["ma"])
-                if not g:
-                    continue
-                x["gia"] = r(g[0], 0)
-                if g[1]:
-                    x["thay_doi"] = r((g[0] / g[1] - 1) * 100)
-                if x["ma"] in moi_w:
-                    x["ty_trong"] = r(moi_w[x["ma"]] / tong_moi * 100, 2)
-            quy["danh_muc"].sort(key=lambda x: -x["ty_trong"])
-            theo_nganh = {}
-            for x in quy["danh_muc"]:
-                theo_nganh[x["nganh"]] = theo_nganh.get(x["nganh"], 0) + x["ty_trong"]
-            quy["nganh"] = sorted(({"nganh": k, "ty_trong": r(v, 2)} for k, v in theo_nganh.items()), key=lambda x: -x["ty_trong"])
-            n = quy["nav"]
-            quy["cap_nhat"] = ngay
-            quy["loi_nhuan"] = loi_nhuan(quy["d"], n)
-            quy["tu_dau"] = r((n[-1] / n[0] - 1) * 100)
-            nam = (len(n) - 1) / 252
-            quy["tu_dau_nam"] = r(((n[-1] / n[0]) ** (1 / nam) - 1) * 100) if nam > 0 else None
-            log("quy_mo_phong.json", "đổi" if luu(OUT / "quy_mo_phong.json", cu, quy) else "không đổi")
-
 
 # ---------------------------------------------------------------- danh mục ước tính của các quỹ ETF
 def cap_nhat_ro_etf():
@@ -866,7 +721,6 @@ def viet_ban_tin():
         return
     cp = doc_json(OUT / "co_phieu.json", {}).get("co_phieu", [])
     etf = doc_json(OUT / "etf.json", {}).get("quy", [])
-    quy = doc_json(OUT / "quy_mo_phong.json", {})
     ngay_vn = bay_gio.strftime("%d/%m/%Y")
 
     def doi(s):
@@ -905,12 +759,6 @@ def viet_ban_tin():
     tieu_de = f"Bản tin thị trường {ngay_vn}: VN-Index {xu_huong} {vn(abs(dv))} điểm"
     mo_ta = (f"VN-Index {xu_huong} {vn(abs(pv))}% về {vn(v)} điểm; nhóm VN100 có {tang} mã tăng, {giam} mã giảm; "
              f"khối ngoại {'mua' if nn_rong >= 0 else 'bán'} ròng {vn(abs(nn_rong) / 1e9, 1)} tỷ đồng ở nhóm VN100.")
-    nav = quy.get("nav") or []
-    dong_quy = ""
-    if nav and len(nav) > 1:
-        dong_quy = (f"\n## Quỹ mô phỏng KCN30\n\nNAV mô phỏng đạt **{vn(nav[-1])} đồng/đơn vị**, "
-                    f"{dau((nav[-1] / nav[-2] - 1) * 100)}% trong phiên, {dau(quy.get('tu_dau'), 1)}% từ ngày khởi đầu. "
-                    f"[Xem chi tiết quỹ]({{{{ '/quy-mo-phong/' | relative_url }}}}).\n")
     noi_dung = f"""---
 title: "{tieu_de}"
 description: "{mo_ta}"
@@ -952,7 +800,6 @@ Khối ngoại **{'mua' if nn_rong >= 0 else 'bán'} ròng {vn(abs(nn_rong) / 1e
 ## Quỹ ETF
 
 Ba quỹ ETF có thanh khoản bình quân cao nhất: {ds_ma(etf_top, lambda q: f"**{q['ma']}** ({vn(q['gia'], 0)} đ, {dau(q['loi_nhuan'].get('1d'))}%)")}. [So sánh tất cả ETF]({{{{ '/etf/' | relative_url }}}}).
-{dong_quy}
 ---
 
 *Bản tin được hệ thống tự động tổng hợp lúc {bay_gio.strftime("%H:%M")} từ bảng giá công khai của Vietcap (VCI). Số liệu có thể chậm hoặc sai sót, chỉ mang tính tham khảo, không phải khuyến nghị đầu tư. Xem số liệu chi tiết tại [trang Thị trường]({{{{ '/thi-truong/' | relative_url }}}}).*
@@ -970,7 +817,7 @@ def main():
     else:
         chi_so = cap_nhat_chi_so()
         cap_nhat_etf()
-        cap_nhat_vn30_va_quy(chi_so)
+        cap_nhat_vn30()
         ghi_danh_muc_ma()
         cap_nhat_ro_etf()
         cap_nhat_quy_nam_giu()

@@ -16,7 +16,6 @@ Có 2 cách sửa:
 | Thị trường | `thi-truong.html` | `/thi-truong/` |
 | Danh sách ETF | `etf/index.html` | `/etf/` |
 | Chi tiết một ETF | `etf/chi-tiet.html` | `/etf/chi-tiet/?ma=E1VFVN30` |
-| Quỹ mô phỏng KCN30 | `quy-mo-phong.html` | `/quy-mo-phong/` |
 | Danh sách bài viết | `blog/index.html` | `/blog/` |
 | Hỏi đáp | `hoi-dap.html` | `/hoi-dap/` |
 | Bản tin thị trường | `ban-tin/index.html` (bài tự viết trong `ban-tin/_posts/`) | `/ban-tin/` |
@@ -73,12 +72,12 @@ Sửa file `_data/hoi_dap.yml`. Mỗi câu gồm 2 dòng `hoi:` và `dap:`, th�
 
 Sửa file `_data/menu.yml`: đổi `ten` để đổi chữ hiển thị, đổi thứ tự các khối để đổi thứ tự menu.
 
-### Số liệu thị trường, ETF, quỹ mô phỏng
+### Số liệu thị trường và ETF
 
 Không cần sửa tay. Script `scripts/cap_nhat_du_lieu.py` lấy dữ liệu từ bảng giá công khai của Vietcap (VCI) và KBS (mã nguồn trong `scripts/nguon.py`) rồi ghi vào thư mục `assets/data/`. GitHub Actions chạy script này, được **cron-job.org** gọi theo lịch (lịch "schedule" của GitHub chạy trễ hàng giờ nên không dùng):
 
 - **Cronjob 1, `cap-nhat-trong-phien.yml`: 9:00–14:50 thứ Hai đến thứ Sáu, mỗi 10 phút.** Chỉ lấy bảng giá hiện tại, khoảng 30 giây (`--trong-phien`).
-- **Cronjob 2, `cap-nhat-du-lieu.yml`: 16:40 thứ Hai đến thứ Sáu, một lần.** Chạy đầy đủ: tải lại lịch sử, chốt giá đóng cửa, tính lại NAV quỹ mô phỏng và chỉ số rủi ro, **tự viết bản tin cuối phiên** vào `ban-tin/_posts/` (chỉ viết sau 15:05).
+- **Cronjob 2, `cap-nhat-du-lieu.yml`: 16:40 thứ Hai đến thứ Sáu, một lần.** Chạy đầy đủ: tải lại lịch sử, chốt giá đóng cửa, tính lại chỉ số rủi ro, **tự viết bản tin cuối phiên** vào `ban-tin/_posts/` (chỉ viết sau 15:05).
 
 Cả hai cronjob gọi `POST https://api.github.com/repos/quachhieu2313/chay-review/actions/workflows/<tên file>/dispatches` với header `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28` và body `{"ref":"main"}`. Token là fine-grained token, chỉ cấp cho repo này, quyền Actions: Read and write.
 
@@ -133,7 +132,7 @@ Xem chi tiết lỗi tại tab **Actions** của repo trên GitHub.
 ## Phần giao diện và tính năng (cần biết code)
 
 - Màu sắc, kiểu chữ, bố cục: `assets/style.css` (bảng màu nằm ở đầu file).
-- Tính năng chạy được: `assets/app.js` (menu, giao diện tối, bảng mục tiêu, máy tính lãi kép) và `assets/data-pages.js` (ETF, quỹ mô phỏng, thị trường, biểu đồ).
+- Tính năng chạy được: `assets/app.js` (menu, giao diện tối, bảng mục tiêu, máy tính lãi kép) và `assets/data-pages.js` (ETF, thị trường, biểu đồ, công cụ phân tích).
 
 ## Cảnh báo dòng tiền quỹ
 

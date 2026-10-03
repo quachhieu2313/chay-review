@@ -1,4 +1,4 @@
-/* Kim Chỉ Nam — các trang dùng dữ liệu thật: Thị trường, ETF, chi tiết ETF, Quỹ mô phỏng, trang chủ */
+/* Kim Chỉ Nam — các trang dùng dữ liệu thật: Thị trường, ETF, quỹ nắm giữ và khuyến nghị */
 (function(){
   'use strict';
 
@@ -1538,87 +1538,6 @@
     run();
   }
 
-  // =====================================================================
-  // TRANG QUỸ MÔ PHỎNG
-  // =====================================================================
-  var fund = $('#fundPage');
-  if(fund){
-    Promise.all([load('quy_mo_phong.json'), loadChiSo(['VN30']), load('etf/E1VFVN30.json').catch(function(){ return null; })]).then(function(res){
-      var f = res[0], cs = res[1], e1 = res[2];
-      var n = f.nav.length, L = f.loi_nhuan;
-      $('#fNav').textContent = fmt(f.nav[n - 1], 2);
-      var ch = $('#fChg'); ch.className = 'fund-chg ' + cls(L['1d']); ch.textContent = pct(L['1d']) + ' hôm nay';
-      $('#fDate').textContent = 'NAV mô phỏng ' + moc(f.cap_nhat, f.cap_nhat_luc);
-      $('#fSince').innerHTML = '<b class="' + cls(f.tu_dau) + '">' + pct(f.tu_dau) + '</b> từ ngày khởi đầu ' + ngayVN(f.ngay_khoi_dau) +
-        ' · bình quân <b class="' + cls(f.tu_dau_nam) + '">' + pct(f.tu_dau_nam) + '</b>/năm';
-
-      $('#fFacts').innerHTML = [
-        ['Mã quỹ (mô phỏng)', f.ma],
-        ['Ngày khởi đầu', ngayVN(f.ngay_khoi_dau)],
-        ['NAV khởi đầu', fmt(f.nav_khoi_dau) + ' đ'],
-        ['Chỉ số so sánh', 'VN30'],
-        ['Phương pháp', 'Bình quyền ' + f.so_ma + ' mã'],
-        ['Tái cân bằng', 'Đầu mỗi quý'],
-        ['Lần gần nhất', ngayVN(f.tai_can_bang_gan_nhat)],
-        ['Phí quản lý giả định', fmt(f.phi, 1) + '%/năm']
-      ].map(function(x){ return '<div><dt>' + x[0] + '</dt><dd>' + esc(x[1]) + '</dd></div>'; }).join('');
-
-      var cols = palette(), months = 12;
-      var chart = LineChart($('#fChart'), {label:'Hiệu suất quỹ mô phỏng so với VN30', area:true});
-      function draw(){
-        var s = [{name:'KCN30 (mô phỏng)', color:cols[0], d:f.d, c:f.nav}];
-        if(cs.VN30) s.push({name:'Chỉ số VN30', color:css('--muted'), d:cs.VN30.d, c:cs.VN30.c});
-        if(e1) s.push({name:'E1VFVN30', color:cols[1], d:e1.d, c:e1.c});
-        chart.render(s, months, true);
-      }
-      bindRange($('#fRange'), months, function(m){ months = m; draw(); });
-      draw();
-
-      var rows = [{name:'KCN30 (mô phỏng)', color:cols[0], ret:L}];
-      if(cs.VN30) rows.push({name:'Chỉ số VN30', color:css('--muted'), ret:returns(cs.VN30.d, cs.VN30.c)});
-      if(e1) rows.push({name:'E1VFVN30 (giá)', color:cols[1], ret:returns(e1.d, e1.c)});
-      returnsTable($('#fReturns'), rows);
-
-      $('#fRisk').innerHTML = [
-        ['Biến động 1 năm', f.bien_dong_1y === null ? '–' : fmt(f.bien_dong_1y, 1) + '%', 'Độ lệch chuẩn lợi nhuận ngày, quy ra năm'],
-        ['Sụt giảm sâu nhất 1 năm', pct(f.sut_giam_1y, 1), 'Mức giảm lớn nhất từ đỉnh xuống đáy'],
-        ['Sụt giảm sâu nhất từ đầu', pct(f.sut_giam_tu_dau, 1), 'Tính từ ngày khởi đầu'],
-        ['Beta so với VN30', f.beta_1y === null ? '–' : fmt(f.beta_1y, 2), 'Beta > 1: dao động mạnh hơn VN30'],
-        ['Sai lệch so với VN30', f.sai_lech_1y === null ? '–' : fmt(f.sai_lech_1y, 1) + '%', 'Độ lệch lợi nhuận so với chỉ số, quy ra năm']
-      ].map(function(x){ return '<div class="risk"><span>' + x[0] + '</span><b class="tabular">' + x[1] + '</b><small>' + x[2] + '</small></div>'; }).join('');
-
-      // danh mục
-      var full = false;
-      function holdings(){
-        var list = full ? f.danh_muc : f.danh_muc.slice(0, 10);
-        $('#fHoldings').innerHTML = list.map(function(x, i){
-          return '<tr><td class="num muted">' + (i + 1) + '</td><td><b>' + esc(x.ma) + '</b><span class="sub">' + esc(x.nganh) + ' · ' + esc(x.ten) + '</span></td>' +
-            '<td class="num">' + fmt(x.gia) + '</td>' +
-            '<td class="num ' + cls(x.thay_doi) + '">' + pct(x.thay_doi) + '</td>' +
-            '<td class="num"><span class="wbar"><i style="width:' + Math.min(100, x.ty_trong / f.danh_muc[0].ty_trong * 100) + '%"></i></span>' + fmt(x.ty_trong, 2) + '%</td></tr>';
-        }).join('');
-        $('#fToggle').textContent = full ? 'Thu gọn, chỉ xem 10 mã lớn nhất' : 'Xem toàn bộ ' + f.danh_muc.length + ' mã';
-      }
-      $('#fToggle').addEventListener('click', function(){ full = !full; holdings(); });
-      holdings();
-      $('#fHoldDate').textContent = ngayVN(f.cap_nhat);
-
-      $('#fCsv').addEventListener('click', function(){
-        var lines = ['STT,Ma,Ten,Nganh,Gia (dong),Thay doi (%),Ty trong (%)'];
-        f.danh_muc.forEach(function(x, i){
-          lines.push([i + 1, x.ma, '"' + x.ten.replace(/"/g, '""') + '"', '"' + x.nganh + '"', x.gia, x.thay_doi, x.ty_trong].join(','));
-        });
-        var blob = new Blob(['﻿' + lines.join('\n')], {type:'text/csv;charset=utf-8'});
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'KCN30_danh_muc_' + f.cap_nhat + '.csv';
-        document.body.appendChild(a); a.click(); a.remove();
-      });
-
-      donut($('#fDonut'), $('#fSectors'), f.nganh);
-    }).catch(function(){ fail(fund); });
-  }
-
   function donut(svgBox, legendBox, items){
     var colors = ['#264395', '#C6E010', '#4F86C6', '#E07B39', '#8AA2DA', '#2E9E8F', '#A3B800', '#7A5BA8', '#B9C3DC', '#5B6B8C', '#D9A441', '#9AA3B8'];
     var R = 60, C = 2 * Math.PI * R, off = 0, h = '';
@@ -1639,19 +1558,6 @@
   // =====================================================================
   // TRANG CHỦ
   // =====================================================================
-  var homeFund = $('#homeFund');
-  if(homeFund){
-    load('quy_mo_phong.json').then(function(f){
-      var n = f.nav.length;
-      $('#hfNav').textContent = fmt(f.nav[n - 1], 2);
-      var c = $('#hfChg'); c.className = 'fund-chg ' + cls(f.loi_nhuan['1d']); c.textContent = pct(f.loi_nhuan['1d']) + ' hôm nay';
-      $('#hfStats').innerHTML = [['1 năm', f.loi_nhuan['1y']], ['3 năm', f.loi_nhuan['3y']], ['Từ đầu', f.tu_dau]].map(function(x){
-        return '<div><span>' + x[0] + '</span><b class="' + cls(x[1]) + '">' + pct(x[1], 1) + '</b></div>';
-      }).join('');
-      $('#hfDate').textContent = 'NAV mô phỏng ' + moc(f.cap_nhat, f.cap_nhat_luc);
-      $('#hfSpark').innerHTML = sparkSvg(f.nav.slice(-252), 300, 70, css('--s1'));
-    }).catch(function(){});
-  }
   var homeEtf = $('#homeEtf');
   if(homeEtf){
     load('etf.json').then(function(data){
@@ -2201,7 +2107,7 @@
   // =====================================================================
   // TỰ TẢI LẠI KHI CÓ DỮ LIỆU MỚI (2 phút kiểm tra một lần, chỉ khi tab đang được xem)
   // =====================================================================
-  var dungDuLieu = document.querySelector('#mktChart, #etfTable, #etfDetail, #fundPage, #homeFund, #homeEtf, #holdPage, #ptPage, #dlPage, #recPage');
+  var dungDuLieu = document.querySelector('#mktChart, #etfTable, #etfDetail, #homeEtf, #holdPage, #ptPage, #dlPage, #recPage');
   if(dungDuLieu){
     var toast = null;
     function banDangThaoTac(){
