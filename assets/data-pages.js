@@ -250,6 +250,96 @@
     el.innerHTML = h + '</tbody></table>';
   }
 
+  // ---- Cổ Phiếu Khuyến Nghị: xếp hạng thử nghiệm và backtest động lượng giá
+  var recPage = $('#recPage');
+  if(recPage){
+    var recHorizon = '3m', recSide = 'mua';
+    var recLabels = {
+      dong_luong: 'Động lượng giá',
+      chat_luong: 'Chất lượng tài chính',
+      quy: 'Độ phủ danh mục quỹ',
+      dinh_gia: 'Định giá',
+      rui_ro: 'Rủi ro'
+    };
+    function veRecBang(data){
+      var items = data.danh_sach[recHorizon] && data.danh_sach[recHorizon][recSide] || [];
+      $('#recTitle').textContent = (recSide === 'mua' ? 'Top 10 mua theo bộ lọc' : 'Top 10 bán/giảm theo bộ lọc') + ' · ' + (recHorizon === '3m' ? '3 tháng' : '6 tháng');
+      if(!items.length){
+        $('#recTable').innerHTML = '<div class="empty-state">Chưa đủ dữ liệu để xếp hạng ở thời hạn này.</div>';
+        return;
+      }
+      var table = '<table class="data-table rec-table"><thead><tr><th scope="col" class="num">#</th><th scope="col">Mã / doanh nghiệp</th><th scope="col" class="num">Điểm</th><th scope="col" class="num">3T</th><th scope="col" class="num">6T</th><th scope="col" class="num">ROE</th><th scope="col" class="num">P/E</th><th scope="col" class="num">Quỹ / ETF</th><th scope="col">Cảnh báo</th><th scope="col">Chi tiết</th></tr></thead><tbody>';
+      table += items.map(function(x, i){
+        var m = x.metrics || {}, warnings = x.warnings || [];
+        var parts = x.components && x.components[recHorizon] || {};
+        var details = '<details class="rec-detail"><summary>Yếu tố</summary><div class="rec-detail-body"><p><b>Điểm thành phần (bách phân vị 0–100)</b></p><dl>' +
+          Object.keys(recLabels).map(function(key){
+            var value = parts[key];
+            return '<div><dt>' + esc(recLabels[key]) + '</dt><dd>' + (value === null || value === undefined ? 'Thiếu dữ liệu' : fmt(value, 1) + '/100') + '</dd></div>';
+          }).join('') + '</dl><p>6 tháng: ' + (x.scores['6m'] === null ? 'Chưa đủ dữ liệu' : fmt(x.scores['6m'], 1) + '/100') +
+          ' · P/B: ' + (m.pb === null ? '–' : fmt(m.pb, 2)) + ' · Biến động năm hóa: ' + (m.bien_dong_nam_pct === null ? '–' : fmt(m.bien_dong_nam_pct, 1) + '%') +
+          ' · Sụt giảm tối đa 1 năm: ' + (m.sut_giam_toi_da_1n_pct === null ? '–' : fmt(m.sut_giam_toi_da_1n_pct, 1) + '%') +
+          ' · Khối quỹ: ' + (m.so_quy === null ? '–' : m.so_quy) + ' quỹ mở, ' + (m.so_etf === null ? '–' : m.so_etf) + ' ETF' +
+          ' · Tỷ trọng quỹ bình quân: ' + (m.ty_trong_quy_tb_pct === null ? '–' : fmt(m.ty_trong_quy_tb_pct, 2) + '%') +
+          ' · Cao nhất: ' + (m.ty_trong_quy_max_pct === null ? '–' : fmt(m.ty_trong_quy_max_pct, 2) + '%') +
+          ' · Độ bao phủ điểm: ' + fmt(x.coverage[recHorizon], 0) + '%' +
+          (x.ngay_gia ? ' · Giá đến ' + ngayVN(x.ngay_gia) : '') + (x.ky_tai_chinh ? ' · Kỳ tài chính ' + esc(x.ky_tai_chinh) : '') + '</p>' +
+          (warnings.length ? '<p class="rec-warning-list"><b>Cảnh báo:</b> ' + warnings.map(esc).join(' · ') + '</p>' : '') +
+          '</div></details>';
+        var code = '<button type="button" class="rec-code" data-ma="' + esc(x.ma) + '">' + esc(x.ma) + '</button><span>' + esc(x.ten) + '</span>';
+        return '<tr><td class="num">' + (i + 1) + '</td><td class="rec-company">' + code + '</td><td class="num"><b class="rec-score">' + fmt(x.scores[recHorizon], 1) + '</b><small>/100</small></td>' +
+          '<td class="num">' + pct(m.loi_nhuan_3m_pct) + '</td><td class="num">' + pct(m.loi_nhuan_6m_pct) + '</td>' +
+          '<td class="num">' + (m.roe_pct === null ? '–' : fmt(m.roe_pct, 1) + '%') + '</td><td class="num">' + (m.pe === null ? '–' : fmt(m.pe, 1) + 'x') + '</td>' +
+          '<td class="num">' + (m.so_quy === null ? '–' : m.so_quy) + ' / ' + (m.so_etf === null ? '–' : m.so_etf) + '</td><td>' + (warnings.length ? '<span class="rec-warn" title="' + esc(warnings.join('; ')) + '">' + warnings.length + ' cảnh báo</span>' : '<span class="rec-ok">—</span>') + '</td><td>' + details + '</td></tr>';
+      }).join('');
+      $('#recTable').innerHTML = table + '</tbody></table>';
+      $('#recTable').onclick = function(e){
+        var button = e.target.closest('button[data-ma]');
+        if(!button) return;
+        var marketInput = $('[data-market-url]');
+        if(window.KCN_moPopup) window.KCN_moPopup(button.getAttribute('data-ma'));
+        else if(marketInput) location.href = marketInput.getAttribute('data-market-url') + '#ma=' + encodeURIComponent(button.getAttribute('data-ma'));
+      };
+    }
+    function veRecBacktest(data){
+      var body = $('#recBacktest');
+      body.innerHTML = ['3m', '6m'].map(function(key){
+        var x = data.backtest[key] || {};
+        if(!x.so_ky) return '<article class="rec-bt-card"><h3>' + (key === '3m' ? '3 tháng' : '6 tháng') + '</h3><p>Chưa đủ dữ liệu lịch sử để tính.</p></article>';
+        return '<article class="rec-bt-card"><h3>' + (key === '3m' ? '3 tháng' : '6 tháng') + '</h3><p class="muted-text">' + x.so_ky + ' kỳ · ' + ngayVN(x.tu) + ' – ' + ngayVN(x.den) + '</p>' +
+          '<dl><div><dt>Top 10 mua theo động lượng</dt><dd>' + pct(x.top_tb_pct) + '</dd></div><div><dt>VN-Index</dt><dd>' + pct(x.vnindex_tb_pct) + '</dd></div>' +
+          '<div><dt>Chênh lệch so với VN-Index</dt><dd>' + pct(x.top_chenh_vnindex_pct) + '</dd></div><div><dt>Kỳ top 10 vượt VN-Index</dt><dd>' + fmt(x.top_hon_vnindex_pct, 1) + '%</dd></div>' +
+          '<div><dt>Top 10 điểm thấp</dt><dd>' + pct(x.day_duoi_tb_pct) + '</dd></div></dl></article>';
+      }).join('');
+    }
+    load('co_phieu_khuyen_nghi.json').then(function(data){
+      var excludedCount = Object.keys(data.ma_bi_loai || {}).reduce(function(total, key){ return total + (Number(data.ma_bi_loai[key]) || 0); }, 0);
+      $('#recMeta').textContent = 'Giá đến ' + ngayVN(data.cap_nhat) + ' · ' + fmt(data.so_ma_phan_tich) + '/' + fmt(data.so_ma_trong_ro) + ' mã trong ' + esc(data.vung_loc || 'VN100') +
+        ' · Danh mục quỹ đến ' + ngayVN(data.cap_nhat_quy) + ' · Loại khỏi lọc: ' + fmt(excludedCount) + ' mã. Nguồn: VCI, KBS và dữ liệu danh mục quỹ Kim Chỉ Nam.';
+      $('#recSummary').innerHTML = '<span><b>' + fmt(data.so_ma_phan_tich) + '</b> mã đủ điều kiện</span><span><b>3–6 tháng</b> thời hạn lọc</span><span><b>' +
+        fmt(data.trong_so.dong_luong) + '/' + fmt(data.trong_so.chat_luong) + '/' + fmt(data.trong_so.quy) + '/' + fmt(data.trong_so.dinh_gia) + '/' + fmt(data.trong_so.rui_ro) +
+        '%</b> trọng số: giá / tài chính / quỹ / định giá / rủi ro</span>';
+      veRecBang(data);
+      veRecBacktest(data);
+      $('#recHorizon').addEventListener('click', function(e){
+        var b = e.target.closest('button[data-horizon]'); if(!b) return;
+        recHorizon = b.getAttribute('data-horizon');
+        $$('#recHorizon button').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        veRecBang(data);
+      });
+      $('#recSide').addEventListener('click', function(e){
+        var b = e.target.closest('button[data-side]'); if(!b) return;
+        recSide = b.getAttribute('data-side');
+        $$('#recSide button').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        veRecBang(data);
+      });
+    }).catch(function(){
+      $('#recMeta').textContent = 'Không tải được dữ liệu xếp hạng.';
+      fail($('#recTable'), 'Chưa tải được bảng xếp hạng. Hãy thử tải lại trang sau.');
+      fail($('#recBacktest'), 'Chưa tải được kết quả backtest.');
+    });
+  }
+
   // =====================================================================
   // POPUP CHI TIẾT MÃ CỔ PHIẾU (biểu đồ nến TradingView Lightweight Charts v5)
   // =====================================================================
@@ -1743,6 +1833,126 @@
       $('#hEtf').textContent = d.so_etf;
       $('#hNgay').textContent = ngayVN(d.ngay_tu) + ' – ' + ngayVN(d.ngay_den);
 
+      var auditIssues = 0, auditRows = 0;
+      ds.forEach(function(x){
+        var mo = x.quy_mo || [], etf = x.etf || [], nn = x.quy_nn || [];
+        var pct = mo.map(function(q){ return Number(q.pct); }).filter(function(v){ return isFinite(v); });
+        var mean = pct.length ? Math.round(pct.reduce(function(sum, v){ return sum + v; }, 0) / pct.length * 100) / 100 : null;
+        var max = pct.length ? Math.max.apply(null, pct) : null;
+        auditRows++;
+        if(x.so_quy !== mo.length || x.so_etf !== etf.length || (x.so_quy_nn || 0) !== nn.length ||
+          (mean === null ? x.pct_tb !== null : Math.abs(Number(x.pct_tb) - mean) > 0.011) ||
+          (max === null ? x.pct_max !== null : Math.abs(Number(x.pct_max) - max) > 0.011)){
+          auditIssues++;
+        }
+      });
+      var auditMeta = d.quy_nn_meta || [];
+      auditMeta.forEach(function(q){
+        if(q.danh_muc && q.so_ma !== q.danh_muc.length) auditIssues++;
+      });
+      $('#hFormulaAudit').textContent = auditIssues
+        ? 'CÓ ' + auditIssues + ' sai khác nội bộ trong ' + auditRows + ' mã được rà soát; không nên dùng bảng tổng hợp trước khi kiểm tra lại.'
+        : 'ĐẠT: đã tính lại số quỹ, tỷ trọng TB/cao nhất và số ETF cho ' + auditRows +
+          ' mã; danh mục chi tiết khớp số mã công bố ở ' + auditMeta.length + ' thẻ quỹ.';
+
+      load('phan_tich.json').then(function(a){
+        var nn = a.dong_tien_nn || {}, mo = a.dong_tien_mo || {};
+        $('#hInsightFresh').textContent = 'Phân tích cập nhật ' + moc(a.cap_nhat, a.cap_nhat_luc) +
+          (a.ftse && a.ftse.ngay_he_so ? ' · hệ số free-float chốt ' + ngayVN(a.ftse.ngay_he_so) : '');
+
+        var nnRows = (nn.ds || []).slice(0, 4);
+        var moRows = (mo.ds || []).slice().sort(function(x, y){ return Math.abs(y.diem || 0) - Math.abs(x.diem || 0); }).slice(0, 3);
+        var flowHtml = '';
+        if(nnRows.length){
+          flowHtml += '<p class="hi-label">ETF ngoại · thay đổi số cổ phiếu</p><ol class="clean hi-list">' +
+            nnRows.map(function(x){
+              var dates = (x.quy || []).map(function(q){ return [q.tu, q.den]; }).filter(function(q){ return q[0] && q[1]; });
+              var period = '';
+              if(dates.length){
+                var from = dates.map(function(q){ return q[0]; }).sort()[0];
+                var to = dates.map(function(q){ return q[1]; }).sort().slice(-1)[0];
+                period = ngayVN(from) + '–' + ngayVN(to);
+              }
+              var funds = (x.quy || []).map(function(q){ return esc(q.ma) + ' ' + (q.chenh_cp > 0 ? '+' : q.chenh_cp < 0 ? '−' : '') + fmt(Math.abs(q.chenh_cp)) + (q.moi ? ' mới' : q.thoat ? ' thoát' : ''); }).join(' · ');
+              return '<li><div><b>' + esc(x.ma) + '</b><span>' + esc(x.ten) + '</span></div>' +
+                '<strong class="' + cls(x.chenh_cp) + '">' + (x.chenh_cp > 0 ? '+' : x.chenh_cp < 0 ? '−' : '') + fmt(Math.abs(x.chenh_cp)) + ' cp</strong>' +
+                '<small>' + esc(funds) + (period ? ' · ' + period : '') + '</small></li>';
+            }).join('') + '</ol>';
+        }else{
+          flowHtml += '<div class="pt-empty"><b>Chưa đủ lịch sử để xác nhận mua/bán ròng ETF ngoại.</b> Cần ít nhất hai lần công bố có số lượng nắm giữ; hiện có ' +
+            fmt(nn.so_lan_chup || 0) + ' lần chụp đủ dữ liệu' + (nn.tu_ngay ? ' từ ' + ngayVN(nn.tu_ngay) : '') + '. Không suy diễn giao dịch từ một danh mục đơn lẻ.</div>';
+        }
+        if(moRows.length){
+          flowHtml += '<p class="hi-label">Quỹ mở trong nước · thay đổi top 10</p><ol class="clean hi-list">' +
+            moRows.map(function(x){
+              return '<li><div><b>' + esc(x.ma) + '</b><span>' + esc(x.ten) + '</span></div>' +
+                '<strong class="' + cls(x.diem) + '">' + (x.diem > 0 ? '+' : '') + fmt(x.diem) + ' điểm</strong>' +
+                '<small>' + fmt(x.moi) + ' mới vào top 10 · ' + fmt(x.tang) + ' tăng tỷ trọng · ' + fmt(x.giam) + ' giảm tỷ trọng · ' + fmt(x.thoat) + ' rời top 10</small></li>';
+            }).join('') + '</ol>';
+        }else{
+          flowHtml += '<div class="pt-empty hi-empty">Quỹ mở: chưa có đủ hai kỳ công bố cho cùng quỹ để so sánh. Dữ liệu top 10 không cho biết thay đổi ở các mã ngoài top 10.</div>';
+        }
+        $('#hInsightFlows').innerHTML = flowHtml;
+        if(nnRows.length){
+          $('#hInsightFlows').insertAdjacentHTML('beforeend', '<p class="hi-footnote">Thay đổi số cổ phiếu nắm giữ giữa các lần công bố; chia/tách cổ phiếu hoặc thay đổi đơn vị quỹ có thể ảnh hưởng số lượng. Giá trị quy đổi không xác nhận lệnh khớp.</p>');
+        }
+
+        var gaps = (a.lech_pha || []).slice().sort(function(x, y){ return Math.abs(y.nn_tru_noi || 0) - Math.abs(x.nn_tru_noi || 0); }).slice(0, 4);
+        $('#hInsightGaps').innerHTML = gaps.length
+          ? '<ol class="clean hi-list">' + gaps.map(function(x){
+              var gap = (x.ngoai_tb || 0) - (x.noi_tb || 0);
+              return '<li><div><b>' + esc(x.ma) + '</b><span>' + esc(x.ten) + '</span></div>' +
+                '<strong class="' + cls(gap) + '">' + (gap > 0 ? '+' : '') + fmt(gap, 2) + ' điểm %</strong>' +
+                '<small>VN100 ' + fmt(x.vn100, 2) + '% · Nội ' + fmt(x.noi_tb, 2) + '% (' + fmt(x.so_noi) + ' quỹ) · Ngoại ' + fmt(x.ngoai_tb, 2) + '% (' + fmt(x.so_ngoai) + ' quỹ)</small></li>';
+            }).join('') + '</ol><p class="hi-footnote">Mẫu quỹ ngoại chỉ gồm các quỹ có danh mục đủ để so; quỹ nội chỉ công bố top 10. Chênh lệch không đồng nghĩa với dòng tiền mới. Với quỹ thụ động, mô hình FTSE bên dưới đối chiếu vốn hoá free-float; danh mục không tiết lộ lý do riêng của quỹ chủ động.</p>'
+          : '<div class="pt-empty">Chưa có đủ dữ liệu cùng kỳ để so sánh tỷ trọng giữa quỹ nội và quỹ ngoại.</div>';
+
+        var ft = a.ftse || {}, rowsFt = ft.ds || [];
+        var von = $('#hScenarioFund'), tranche = $('#hScenarioTranche'), fx = $('#hScenarioFx'), participation = $('#hScenarioParticipation');
+        von.value = ft.von_ty_usd === undefined ? '' : ft.von_ty_usd;
+        tranche.value = ft.dot_dau_pct === undefined ? '' : ft.dot_dau_pct;
+        fx.value = ft.fx === undefined ? '' : ft.fx;
+        var tongFF = rowsFt.reduce(function(sum, x){ return sum + (x.ff_gt || 0); }, 0);
+        function veScenario(){
+          var vonUsd = Math.max(0, Number(von.value) || 0);
+          var dot = Math.min(100, Math.max(0, Number(tranche.value) || 0));
+          var tyGia = Math.max(1, Number(fx.value) || Number(ft.fx) || 1);
+          var tg = Math.min(100, Math.max(1, Number(participation.value) || 20));
+          var tongCau = vonUsd * 1e9 * tyGia * dot / 100;
+          var result = rowsFt.map(function(x){
+            var w = tongFF ? (x.ff_gt || 0) / tongFF : 0;
+            var cau = tongCau * w;
+            return {x:x, w:w, cau:cau, sessions:x.adv ? cau / (x.adv * tg / 100) : null};
+          }).sort(function(x, y){ return (y.sessions || 0) - (x.sessions || 0); });
+          var worst = result.filter(function(x){ return x.sessions !== null; })[0];
+          $('#hScenarioTiles').innerHTML =
+            '<div class="pt-tile"><small>Tổng cầu theo giả định</small><b>' + fmt(tongCau / 1e12, 1) + ' nghìn tỷ đồng</b></div>' +
+            '<div class="pt-tile"><small>Áp lực thanh khoản cao nhất</small><b>' + (worst ? esc(worst.x.ma) + ' · ' + fmt(worst.sessions, 1) + ' phiên' : 'Chưa đủ dữ liệu') + '</b></div>' +
+            '<div class="pt-tile"><small>Phạm vi dữ liệu</small><b>' + fmt(rowsFt.length) + ' mã FTSE · ' + (ft.ngay_he_so ? ngayVN(ft.ngay_he_so) : 'chưa rõ ngày hệ số') + '</b></div>';
+          $('#hScenarioBody').innerHTML = result.length ? result.slice(0, 5).map(function(r){
+            return '<tr><td><b>' + esc(r.x.ma) + '</b><span class="sub">' + esc(r.x.ten) + '</span></td>' +
+              '<td class="num">' + fmt(r.w * 100, 2) + '%</td>' +
+              '<td class="num">' + fmt(r.cau / 1e9, 0) + '</td>' +
+              '<td class="num">' + (r.x.adv ? fmt(r.x.adv / 1e9, 0) : '–') + '</td>' +
+              '<td class="num">' + (r.sessions === null ? '–' : fmt(r.sessions, 1)) + '</td></tr>';
+          }).join('') : '<tr><td colspan="5" class="empty-row">Chưa có dữ liệu thành phần và free-float.</td></tr>';
+          $('#hScenarioMethod').innerHTML =
+            'Cách tính: tỷ trọng mã = vốn hoá free-float mã / tổng vốn hoá free-float 27 mã; cầu mã = vốn giả định × tỷ lệ đợt × tỷ trọng; phiên tương đương = cầu mã / (thanh khoản bình quân 20 phiên × tỷ lệ tham gia ' + fmt(tg, 0) + '%). ' +
+            'Danh sách đầu vào là 27 mã thuộc rổ FTSE27 theo dữ liệu hiện có. Hệ số free-float chốt ' + (ft.ngay_he_so ? ngayVN(ft.ngay_he_so) : 'chưa rõ ngày') + '. Vốn ' + fmt(vonUsd, 1) + ' tỷ USD và tỷ lệ đợt ' + fmt(dot, 0) + '% là giả định để thử kịch bản, không phải cam kết giải ngân hay tỷ trọng chính thức. ' +
+            'Mô hình không tính giới hạn sở hữu nước ngoài, điều chỉnh chỉ số, giao dịch trước ngày hiệu lực hoặc tác động giá; thời gian thực tế có thể khác đáng kể.';
+        }
+        [von, tranche, fx, participation].forEach(function(input){ input.addEventListener('input', veScenario); });
+        if(!rowsFt.length || !tongFF){
+          $('#hScenarioBody').innerHTML = '<tr><td colspan="5" class="empty-row">Thiếu dữ liệu free-float để tính kịch bản.</td></tr>';
+          $('#hScenarioMethod').textContent = 'Chưa thể tính do thiếu dữ liệu thành phần hoặc free-float.';
+        }else veScenario();
+      }).catch(function(){
+        $('#hInsightFresh').textContent = 'Chưa tải được dữ liệu phân tích.';
+        $('#hInsightFlows').innerHTML = '<div class="pt-empty">Không tải được lịch sử dòng tiền; thử tải lại sau.</div>';
+        $('#hInsightGaps').innerHTML = '<div class="pt-empty">Không tải được dữ liệu so sánh; thử tải lại sau.</div>';
+        $('#hScenarioMethod').textContent = 'Không tải được dữ liệu đầu vào cho kịch bản.';
+      });
+
       function xep(){
         return ds.filter(function(x){
           var f = filter;
@@ -1991,7 +2201,7 @@
   // =====================================================================
   // TỰ TẢI LẠI KHI CÓ DỮ LIỆU MỚI (2 phút kiểm tra một lần, chỉ khi tab đang được xem)
   // =====================================================================
-  var dungDuLieu = document.querySelector('#mktChart, #etfTable, #etfDetail, #fundPage, #homeFund, #homeEtf, #holdPage, #ptPage, #dlPage');
+  var dungDuLieu = document.querySelector('#mktChart, #etfTable, #etfDetail, #fundPage, #homeFund, #homeEtf, #holdPage, #ptPage, #dlPage, #recPage');
   if(dungDuLieu){
     var toast = null;
     function banDangThaoTac(){
