@@ -328,7 +328,7 @@ def quy_thien_hoang():
     except Exception:
         pass
     time.sleep(NGHI)
-    return {"ma": "008763", "ten": "Thiên Hoằng Việt Nam (天弘越南 QDII, Trung Quốc)", "loai": "QUY_NN", "ngay": ngay.group(1),
+    return {"ma": "Tianhong", "ten": "Thiên Hoằng Việt Nam (天弘越南 QDII, Trung Quốc)", "loai": "QUY_NN", "ngay": ngay.group(1),
             "top": [(m, p) for m, p, _, _ in top], "so_cp": {m: sl for m, _, sl, _ in top}, "chi_tiet": [{"ma": m, "pct": p, "so_cp": sl, "gia_tri_ndt": gt} for m, p, sl, gt in top],
             "them": them, "nguon": "https://fundf10.eastmoney.com/ccmx_008763.html"}
 
@@ -354,7 +354,7 @@ def quy_fubon_00885():
     if len(top) < 20:
         raise RuntimeError(f"danh mục Fubon quá ít mã ({len(top)})")
     time.sleep(NGHI)
-    return {"ma": "00885", "ten": "Fubon FTSE Vietnam ETF (00885, Đài Loan)", "loai": "ETF_NN",
+    return {"ma": "Fubon", "ten": "Fubon FTSE Vietnam ETF (00885, Đài Loan)", "loai": "ETF_NN",
             "ngay": ngay.group(1).replace("/", "-"), "top": top, "so_cp": so_cp,
             "nguon": "https://websys.fsit.com.tw/FubonETF/Trade/Assets.aspx?stkId=00885&lan=EN"}
 
