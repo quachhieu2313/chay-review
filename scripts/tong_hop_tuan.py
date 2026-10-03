@@ -1,4 +1,4 @@
-"""Tổng hợp tuần về dòng tiền quỹ: so danh mục quỹ ETF ngoại cách nhau tối thiểu 7 ngày và các thay đổi của quỹ mở trong nước.
+"""Tổng hợp tuần về biến động danh mục ETF ngoại và các thay đổi top 10 quỹ mở trong nước.
 Ghi assets/data/tong_hop_tuan.json (cho trang Radar) và một bài trong ban-tin/_posts/ (dùng làm bản tin, gửi Zalo/Telegram...).
 """
 import json
@@ -92,20 +92,20 @@ def tinh(ls, gia, cty, canh_bao, hom_nay):
 def van_ban(t):
     """Bản tin dạng chữ thuần, dán được vào Zalo/Telegram/email."""
     ng = lambda s: f"{s[8:]}/{s[5:7]}"
-    dong = [f"DÒNG TIỀN QUỸ TUẦN {ng(t['tu'])}–{ng(t['den'])}", ""]
-    dong.append(f"Quỹ ETF ngoại: mua ròng {_vn(t['tong_mua'] / 1e9, 1)} tỷ đồng, bán ròng {_vn(abs(t['tong_ban']) / 1e9, 1)} tỷ đồng (tính theo giá hiện tại).")
+    dong = [f"BIẾN ĐỘNG DANH MỤC QUỸ TUẦN {ng(t['tu'])}–{ng(t['den'])}", ""]
+    dong.append(f"ETF ngoại: giá trị quy đổi của lượng nắm giữ công bố tăng là {_vn(t['tong_mua'] / 1e9, 1)} tỷ đồng; giảm là {_vn(abs(t['tong_ban']) / 1e9, 1)} tỷ đồng (dùng giá hiện tại, các quỹ có ngày chốt khác nhau).")
     if t["mua"]:
-        dong.append("Mua ròng nhiều nhất: " + ", ".join(f"{x['ma']} {_vn(x['gt'] / 1e9, 1)} tỷ" for x in t["mua"][:5]) + ".")
+        dong.append("Mức tăng quy đổi lớn nhất: " + ", ".join(f"{x['ma']} {_vn(x['gt'] / 1e9, 1)} tỷ" for x in t["mua"][:5]) + ".")
     if t["ban"]:
-        dong.append("Bán ròng nhiều nhất: " + ", ".join(f"{x['ma']} {_vn(abs(x['gt']) / 1e9, 1)} tỷ" for x in t["ban"][:5]) + ".")
+        dong.append("Mức giảm quy đổi lớn nhất: " + ", ".join(f"{x['ma']} {_vn(abs(x['gt']) / 1e9, 1)} tỷ" for x in t["ban"][:5]) + ".")
     if t["mo_tang"] or t["mo_giam"]:
         dong.append(f"Quỹ mở trong nước ({t['so_quy_mo_moi']} quỹ vừa cập nhật danh mục): "
-                    + ("tăng tỷ trọng " + ", ".join(x["ma"] for x in t["mo_tang"]) if t["mo_tang"] else "")
+                    + ("tăng hiện diện/tỷ trọng công bố " + ", ".join(x["ma"] for x in t["mo_tang"]) if t["mo_tang"] else "")
                     + ("; " if t["mo_tang"] and t["mo_giam"] else "")
-                    + ("giảm tỷ trọng " + ", ".join(x["ma"] for x in t["mo_giam"]) if t["mo_giam"] else "") + ".")
+                    + ("giảm hiện diện/tỷ trọng công bố " + ", ".join(x["ma"] for x in t["mo_giam"]) if t["mo_giam"] else "") + ".")
     for x in t["canh_bao"][:4]:
         dong.append("• " + x["tieu_de"])
-    dong += ["", f"Chi tiết: {SITE}/phan-tich/", "Ước tính từ danh mục công khai của quỹ, không phải khuyến nghị đầu tư."]
+    dong += ["", f"Chi tiết: {SITE}/phan-tich/", "Chênh lệch danh mục không xác nhận giao dịch, dòng vốn hay động cơ; không phải khuyến nghị đầu tư."]
     return "\n".join(dong)
 
 
@@ -117,23 +117,23 @@ def ban_tin_md(t):
     mo = ""
     if t["mo_tang"] or t["mo_giam"]:
         mo = (f"\n## Quỹ mở trong nước\n\n{t['so_quy_mo_moi']} quỹ vừa cập nhật danh mục. "
-              + ("**Được tăng tỷ trọng hoặc mua mới:** " + ", ".join(x["ma"] for x in t["mo_tang"]) + ". " if t["mo_tang"] else "")
-              + ("**Bị giảm tỷ trọng hoặc bán hết:** " + ", ".join(x["ma"] for x in t["mo_giam"]) + "." if t["mo_giam"] else "") + "\n")
-    return f"""Quỹ ETF nước ngoài **mua ròng {_vn(t['tong_mua'] / 1e9, 1)} tỷ đồng** và **bán ròng {_vn(abs(t['tong_ban']) / 1e9, 1)} tỷ đồng** cổ phiếu Việt Nam trong tuần {ng(t['tu'])}–{ng(t['den'])}, tính theo chênh lệch số cổ phiếu nắm giữ giữa hai lần công bố danh mục và quy theo giá hiện tại.
+              + ("**Mã mới xuất hiện trong top 10 hoặc tăng tỷ trọng công bố:** " + ", ".join(x["ma"] for x in t["mo_tang"]) + ". " if t["mo_tang"] else "")
+              + ("**Mã không còn trong top 10 hoặc giảm tỷ trọng công bố:** " + ", ".join(x["ma"] for x in t["mo_giam"]) + "." if t["mo_giam"] else "") + "\n")
+    return f"""Giá trị quy đổi theo giá hiện tại của lượng cổ phiếu Việt Nam được ETF ngoại công bố tăng là **{_vn(t['tong_mua'] / 1e9, 1)} tỷ đồng**, lượng công bố giảm là **{_vn(abs(t['tong_ban']) / 1e9, 1)} tỷ đồng** trong các kỳ so sánh gần nhất. Khoảng ngày cụ thể khác nhau theo từng quỹ (xem mục bên dưới), vì vậy không diễn giải đây là dòng tiền tuần hay giá trị giao dịch.
 
-## Mã được mua ròng nhiều nhất
+## Mã có lượng công bố tăng quy đổi lớn nhất
 
 | Mã | Tên | Giá trị (tỷ đồng) | Quỹ |
 |---|---|---:|---|
 {bang(t['mua'])}
 
-## Mã bị bán ròng nhiều nhất
+## Mã có lượng công bố giảm quy đổi lớn nhất
 
 | Mã | Tên | Giá trị (tỷ đồng) | Quỹ |
 |---|---|---:|---|
 {bang(t['ban'])}
 
-## Theo từng quỹ
+## Kỳ so sánh theo từng quỹ
 
 {quy}
 {mo}
@@ -141,11 +141,11 @@ def ban_tin_md(t):
 
 {cb}
 
-[Xem radar dòng tiền đầy đủ]({{{{ '/phan-tich/' | relative_url }}}}).
+[Xem Radar biến động danh mục]({{{{ '/phan-tich/' | relative_url }}}}).
 
 ---
 
-*Bản tin tự động tổng hợp từ danh mục công khai do nhà phát hành quỹ công bố (VanEck, Global X, KraneShares, Fubon, Vanguard) và Kim Chỉ Nam lưu lại theo ngày. Chỉ là ước tính, không phải khuyến nghị đầu tư.*
+*Tính từ chênh lệch số lượng nắm giữ từng quỹ–mã, quy đổi theo giá hiện tại. Ngày chốt khác nhau; chia/tách, hoán đổi hoặc sự kiện doanh nghiệp có thể ảnh hưởng số lượng. Không xác nhận giao dịch hoặc dòng vốn; không phải khuyến nghị đầu tư.*
 """
 
 
@@ -163,11 +163,11 @@ def xu_ly(ls, gia, cty, ghi_json, hom_nay, gio):
     thu6 = (date.fromisoformat(hom_nay) + timedelta(days=4 - date.fromisoformat(hom_nay).weekday()))
     if date.fromisoformat(hom_nay).weekday() >= 4 and (bay_gio.weekday() > 4 or bay_gio.hour >= 16):
         tuan = thu6.isocalendar()[1]
-        path = BAN_TIN / f"{thu6.isoformat()}-dong-tien-quy-tuan-{tuan:02d}.md"
+        path = BAN_TIN / f"{thu6.isoformat()}-bien-dong-danh-muc-quy-tuan-{tuan:02d}.md"
         ng = lambda s: f"{s[8:]}/{s[5:7]}/{s[:4]}"
         noi_dung = f"""---
-title: "Dòng tiền quỹ tuần {tuan}: quỹ ngoại mua ròng {_vn(t['tong_mua'] / 1e9, 1)} tỷ, bán ròng {_vn(abs(t['tong_ban']) / 1e9, 1)} tỷ đồng"
-description: "Tổng hợp tuần {ng(t['tu'])} đến {ng(t['den'])}: mã được và bị quỹ ETF ngoại giao dịch ròng nhiều nhất, thay đổi của quỹ mở trong nước."
+title: "Biến động danh mục quỹ tuần {tuan}: cập nhật ETF ngoại và quỹ mở"
+description: "Tổng hợp biến động lượng nắm giữ công bố của ETF ngoại và tỷ trọng top 10 quỹ mở; kỳ danh mục khác nhau theo từng quỹ."
 chu_de: Bản tin
 hinh: sao
 phut_doc: 2

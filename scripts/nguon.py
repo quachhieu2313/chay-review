@@ -154,7 +154,8 @@ def quy_vaneck_vnm():
             so_cp[m] = float(str(row["Shares"]).replace(",", ""))
     time.sleep(NGHI)
     return {"ma": "VNM", "ten": "VanEck Vietnam ETF (VNM, Mỹ)", "loai": "ETF_NN", "ngay": ngay, "top": top, "so_cp": so_cp,
-            "nguon": "https://www.vaneck.com/us/en/investments/vietnam-etf-vnm/holdings/"}
+            "nguon": "https://www.vaneck.com/us/en/investments/vietnam-etf-vnm/holdings/",
+            "tep_nguon": res.url}
 
 
 def quy_globalx_vnam():
@@ -175,7 +176,7 @@ def quy_globalx_vnam():
             so_cp[m] = float(str(row["Shares Held"]).replace(",", ""))
     time.sleep(NGHI)
     return {"ma": "VNAM", "ten": "Global X MSCI Vietnam ETF (VNAM, Mỹ)", "loai": "ETF_NN", "ngay": ngay, "top": top, "so_cp": so_cp,
-            "nguon": "https://www.globalxetfs.com/funds/vnam/"}
+            "nguon": "https://www.globalxetfs.com/funds/vnam/", "tep_nguon": link.group(0)}
 
 
 def quy_kraneshares_kpho():
@@ -205,7 +206,7 @@ def quy_kraneshares_kpho():
     if etf_pct:
         them["loai_quy"] += f"; {etf_pct:.2f}".replace(".", ",") + "% tài sản nằm trong chứng chỉ quỹ DCVFMVN Diamond ETF (không tính vào bảng cổ phiếu)"
     return {"ma": "KPHO", "ten": "KraneShares Dragon Capital Vietnam ETF (KPHO, Mỹ)", "loai": "ETF_NN", "ngay": ngay.group(1), "top": top, "so_cp": so_cp,
-            "them": them, "nguon": "https://kraneshares.com/etf/kpho/"}
+            "them": them, "nguon": "https://kraneshares.com/etf/kpho/", "tep_nguon": link.group(0)}
 
 
 TEN_VEIL = {"vingroup": "VIC", "vinhomes": "VHM", "mobile world": "MWG", "bidv": "BID", "vietcombank": "VCB", "vp bank": "VPB",
@@ -416,7 +417,7 @@ def quy_mo_nam_giu():
         out.append({
             "ma": q["shortName"], "ten": q.get("name") or q["shortName"], "loai": loai,
             "ngay": pd.to_datetime(ngay, unit="ms").strftime("%Y-%m-%d") if ngay else None,
-            "top": top,
+            "top": top, "nguon": f"{FMARKET}/{q['id']}",
         })
     return out
 

@@ -134,11 +134,13 @@ Xem chi tiết lỗi tại tab **Actions** của repo trên GitHub.
 - Màu sắc, kiểu chữ, bố cục: `assets/style.css` (bảng màu nằm ở đầu file).
 - Tính năng chạy được: `assets/app.js` (menu, giao diện tối, bảng mục tiêu, máy tính lãi kép) và `assets/data-pages.js` (ETF, thị trường, biểu đồ, công cụ phân tích).
 
-## Cảnh báo dòng tiền quỹ
+## Cảnh báo biến động danh mục quỹ
 
-Mỗi lần chạy "Cập nhật dữ liệu thị trường", hệ thống so danh mục quỹ ETF ngoại với lần công bố trước. Khi có quỹ mua/bán ròng một mã từ 20 tỷ đồng, hoặc quỹ (như VWO/VT) lần đầu có cổ phiếu Việt Nam, nó:
-- ghi vào `assets/data/canh_bao.json` và `canh_bao.atom` (hiện ở trang Radar dòng tiền, có RSS);
+Mỗi lần chạy "Cập nhật dữ liệu thị trường", hệ thống so số lượng cổ phiếu được ETF ngoại công bố với lần chụp trước theo từng quỹ–mã. Ngưỡng 20 tỷ đồng là giá trị quy đổi theo giá hiện tại, không phải dòng vốn hay giá trị giao dịch. Chia/tách cổ phiếu, hoán đổi, sự kiện doanh nghiệp và ngày chốt khác nhau có thể ảnh hưởng chênh lệch. Khi vượt ngưỡng hoặc mã Việt Nam lần đầu xuất hiện trong dữ liệu đang theo dõi, hệ thống:
+- ghi vào `assets/data/canh_bao.json` và `canh_bao.atom` (hiện ở trang Radar danh mục, có RSS);
 - đăng một **Issue** có nhãn `canh-bao` trong kho mã. GitHub sẽ gửi email/thông báo ứng dụng cho bạn (kiểm tra Settings > Notifications);
 - gửi **Telegram** nếu bạn tạo hai secret trong Settings > Secrets and variables > Actions: `TELEGRAM_BOT_TOKEN` (tạo bot qua @BotFather) và `TELEGRAM_CHAT_ID` (gửi một tin cho bot rồi mở `https://api.telegram.org/bot<TOKEN>/getUpdates` để lấy `chat.id`).
 
-Đổi ngưỡng: sửa `NGUONG_DONG` trong `scripts/canh_bao.py`. Tổng hợp tuần tự thành bài trong Bản tin vào chiều thứ Sáu; dữ liệu tải về ở trang `/du-lieu/`.
+Đổi ngưỡng: sửa `NGUONG_DONG` trong `scripts/canh_bao.py`. Tổng hợp tuần tạo bản tin về biến động công bố vào chiều thứ Sáu; các quỹ có ngày chốt khác nhau, nên không diễn giải số quy đổi là dòng tiền tuần.
+
+Số quỹ mở trên trang nắm giữ chỉ đếm mã xuất hiện trong top 10 Fmarket; không thấy mã trong top 10 không có nghĩa tỷ trọng bằng 0. Snapshot lưu riêng ngày danh mục và ngày hệ thống thu thập; nếu nguồn không công bố ngày phát hành riêng hoặc snapshot cũ không lưu thời điểm thu thập, giao diện ghi rõ thay vì suy đoán. Dữ liệu hiện chưa được đối chiếu độc lập với báo cáo gốc. Pipeline từ chối snapshot có ngày/tỷ trọng/số lượng sai cấu trúc, mã trùng, tỷ trọng ngoài 0–100% hoặc tổng tỷ trọng vượt 101%, đồng thời giữ snapshot trước đó và đánh dấu lỗi nguồn. Thay đổi cùng ngày danh mục được cập nhật vào lịch sử và ghi phiên bản trước/sau trong `assets/data/lich_su_dieu_chinh_quy.json`; cơ chế này chỉ ghi từ khi được bật, không hồi tố lịch sử cũ. Số ETF có mã trong chỉ số tham chiếu là proxy, không phải danh mục nắm giữ thực. Dữ liệu công khai không tự cấp quyền tái sử dụng thương mại; kiểm tra điều khoản từng nguồn trước khi khai thác. Tải dữ liệu tại trang `/du-lieu/`.

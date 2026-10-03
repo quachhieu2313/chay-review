@@ -38,7 +38,7 @@ permalink: /co-phieu-khuyen-nghi/
     <div class="table-scroll" id="recTable">
       <div class="empty-state">Đang tải xếp hạng…</div>
     </div>
-    <p class="table-note">Điểm là thứ hạng tương đối trong nhóm cổ phiếu VN100 hiện tại, không phải xác suất sinh lời. Nhấn “Yếu tố” để xem điểm đóng góp và cảnh báo từng mã.</p>
+    <p class="table-note">Điểm là thứ hạng tương đối trong nhóm cổ phiếu VN100 hiện tại, không phải xác suất sinh lời. Cột “Quỹ mở / ETF chỉ số” đếm mã trong top 10 quỹ mở / mã trong chỉ số tham chiếu ETF, không phải holdings thực của ETF. Nhấn “Yếu tố” để xem điểm đóng góp và cảnh báo từng mã.</p>
   </section>
 
   <section class="card panel" aria-labelledby="recBacktestTitle">
@@ -63,7 +63,7 @@ permalink: /co-phieu-khuyen-nghi/
         <tbody>
           <tr><td>Động lượng</td><td class="num">30%</td><td>75% thứ hạng lợi nhuận giá 63/126 phiên + 25% vị trí giá so với MA50/MA200.</td><td><a href="https://trading.vietcap.com.vn/" rel="noopener">VCI · giá đóng cửa</a></td></tr>
           <tr><td>Chất lượng</td><td class="num">25%</td><td>Trung bình thứ hạng ROE cùng ngành, biên lợi nhuận ròng cùng ngành và EPS dương.</td><td><a href="https://www.kbsec.com.vn/" rel="noopener">KBS · kỳ tài chính gần nhất</a></td></tr>
-          <tr><td>Dữ liệu quỹ</td><td class="num">20%</td><td>Trung bình thứ hạng số quỹ, số ETF và tỷ trọng NAV bình quân được công bố nắm giữ mã.</td><td>Danh mục quỹ đã thu thập</td></tr>
+          <tr><td>Dữ liệu quỹ</td><td class="num">20%</td><td>Trung bình thứ hạng số quỹ mở có mã trong top 10, số ETF có mã trong chỉ số tham chiếu (proxy, không phải holdings thực) và tỷ trọng NAV bình quân đã công bố.</td><td>Danh mục và chỉ số tham chiếu; ngày/phạm vi có thể khác nhau</td></tr>
           <tr><td>Định giá</td><td class="num">15%</td><td>Trung bình thứ hạng P/E và P/B thấp hơn trong cùng ngành; P/E = giá/EPS, P/B = giá/BVPS.</td><td>Giá VCI + EPS/BVPS KBS</td></tr>
           <tr><td>Rủi ro</td><td class="num">10%</td><td>Trung bình thứ hạng thấp hơn về biến động năm hóa và mức sụt giảm tối đa 1 năm.</td><td>VCI · lịch sử giá 252 phiên</td></tr>
         </tbody>
@@ -72,7 +72,7 @@ permalink: /co-phieu-khuyen-nghi/
     <ul>
       <li>Thiếu một yếu tố thì trọng số các yếu tố còn dữ liệu được chuẩn hóa lại; chỉ xếp hạng khi độ bao phủ trọng số đạt ít nhất 65%.</li>
       <li>Backtest là danh mục đều trọng số, tái lập mỗi 21 phiên; kết quả hiển thị là trung bình lợi nhuận giá mỗi kỳ, các kỳ nắm giữ có thể chồng lấn. So với VN-Index, chưa tính cổ tức, phí, thuế, trượt giá. Chỉ dùng VN100 hiện tại nên có thiên lệch sống sót.</li>
-      <li>Dữ liệu quỹ có độ trễ và độ bao phủ không đồng đều; tỷ trọng bình quân chỉ tính trên danh mục đã công bố (một số quỹ chỉ công bố top holdings), số quỹ nắm giữ không có nghĩa là vừa mua. KBS chỉ có chỉ số tài chính quý gần nhất nên điểm tổng hợp chưa thể kiểm định theo lịch sử mà không gây thiên lệch dữ liệu tương lai.</li>
+      <li>Dữ liệu quỹ có độ trễ và độ bao phủ không đồng đều; số quỹ mở chỉ đếm mã xuất hiện trong top 10, tỷ trọng bình quân chỉ tính trên danh mục đã công bố và số ETF là proxy theo chỉ số tham chiếu, không phải danh mục ETF thực tế. Các chỉ số này không cho biết quỹ vừa mua. KBS chỉ có chỉ số tài chính quý gần nhất nên điểm tổng hợp chưa thể kiểm định theo lịch sử mà không gây thiên lệch dữ liệu tương lai.</li>
       <li>Xếp hạng điểm thấp chỉ là tín hiệu yếu tương đối để xem xét, không phải khuyến nghị bán khống. Hiệu suất quá khứ không đảm bảo kết quả tương lai.</li>
     </ul>
     <p class="muted-text">Nguồn đầu vào được ghi cùng thời điểm cập nhật trên trang. Dữ liệu có thể thiếu, trễ hoặc sai; hãy đối chiếu báo cáo gốc và tự đánh giá khẩu vị rủi ro trước mọi quyết định.</p>

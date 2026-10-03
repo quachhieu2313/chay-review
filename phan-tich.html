@@ -1,15 +1,15 @@
 ---
 layout: default
-title: Radar dòng tiền quỹ
-description: Phân tích chỉ có ở Kim Chỉ Nam - áp lực mua thụ động khi FTSE nâng hạng Việt Nam, dòng tiền mua bán ròng của quỹ ETF nước ngoài và quỹ mở, và chỗ quỹ nội với quỹ ngoại đang lệch pha.
+title: Radar biến động danh mục quỹ
+description: Theo dõi biến động danh mục quỹ, so sánh top 10 nội-ngoại và kịch bản FTSE với ngày dữ liệu, phạm vi và giả định rõ ràng.
 nav: phan-tich
 permalink: /phan-tich/
 image: /assets/img/og-etf.png
 ---
 <section class="page-head wrap">
-  <p class="eyebrow">Radar dòng tiền</p>
-  <h1>Tiền thụ động và tiền quỹ đang chảy vào mã nào</h1>
-  <p>Những con số này không có sẵn ở đâu: Kim Chỉ Nam ghép danh mục của quỹ trong và ngoài nước với giá, free-float và thanh khoản, rồi lưu lại lịch sử mỗi ngày để tính ai đang mua, ai đang bán.</p>
+  <p class="eyebrow">Radar danh mục</p>
+  <h1>Biến động danh mục quỹ và kịch bản thị trường</h1>
+  <p>Kim Chỉ Nam lưu lịch sử danh mục công bố, biến động số lượng/tỷ trọng và các giả định mô phỏng. Những thay đổi này không tự chứng minh giao dịch khớp lệnh, dòng vốn hay động cơ của quỹ.</p>
 </section>
 
 <div class="wrap" id="ptPage">
@@ -19,8 +19,8 @@ image: /assets/img/og-etf.png
   </div>
 
   <section class="nn-box" aria-labelledby="ptCb">
-    <h2 id="ptCb">Cảnh báo dòng tiền quỹ</h2>
-    <p class="nn-sub">Tự động phát hiện khi quỹ ETF ngoại mua hoặc bán ròng một mã từ 20 tỷ đồng, hoặc khi quỹ lần đầu nắm giữ cổ phiếu Việt Nam (như Vanguard VWO/VT). Đăng ký nhận qua <a href="{{ '/assets/data/canh_bao.atom' | relative_url }}">RSS/Atom</a>; dữ liệu thô ở trang <a href="{{ '/du-lieu/' | relative_url }}">Dữ liệu &amp; API</a>.</p>
+    <h2 id="ptCb">Cảnh báo biến động danh mục</h2>
+    <p class="nn-sub">Cảnh báo dựa trên chênh lệch giữa các lần công bố danh mục, không phải xác nhận lệnh giao dịch hoặc dòng vốn. VWO/VT chỉ hiện khi danh mục Việt Nam được đối chiếu từ dữ liệu nguồn. Đăng ký qua <a href="{{ '/assets/data/canh_bao.atom' | relative_url }}">RSS/Atom</a>; dữ liệu thô ở trang <a href="{{ '/du-lieu/' | relative_url }}">Dữ liệu &amp; API</a>.</p>
     <div id="ptCbBody"><div class="pt-empty">Đang tải…</div></div>
   </section>
 
@@ -33,11 +33,11 @@ image: /assets/img/og-etf.png
   </section>
 
   <section class="nn-box" aria-labelledby="ptFt">
-    <h2 id="ptFt">Radar FTSE: tiền thụ động sẽ dồn vào mã nào, và thị trường hấp thụ được không</h2>
-    <p class="nn-sub">Khi Việt Nam vào nhóm thị trường mới nổi của FTSE (từ 21/09/2026), các quỹ bám chỉ số này buộc phải mua 27 cổ phiếu đủ điều kiện. Công cụ chia số tiền giả định theo <b>vốn hoá free-float</b> rồi so với thanh khoản trung bình 20 phiên của từng mã, để thấy mã nào <b>thiếu hàng</b> so với lượng cần mua.</p>
+    <h2 id="ptFt">Kịch bản FTSE: ước tính quy mô cầu theo giả định</h2>
+    <p class="nn-sub">Công cụ phân bổ tổng vốn giả định theo <b>vốn hoá free-float</b> của tập mã đầu vào và so với thanh khoản trung bình 20 phiên. Đây không phải danh sách lệnh hay tỷ trọng chính thức của FTSE/quỹ, cũng không chứng minh mã nào sẽ thiếu hàng.</p>
     <div class="pt-inputs">
-      <label>Vốn thụ động đổ vào Việt Nam <span>(tỷ USD)</span><input type="number" id="ptVon" min="0" step="0.1" inputmode="decimal"></label>
-      <label>Tỷ lệ mua trong đợt đầu <span>(%)</span><input type="number" id="ptDot" min="1" max="100" step="5" inputmode="decimal"></label>
+      <label>Tổng vốn giả định <span>(tỷ USD)</span><input type="number" id="ptVon" min="0" step="0.1" inputmode="decimal"></label>
+      <label>Tỷ lệ giả định trong đợt đầu <span>(%)</span><input type="number" id="ptDot" min="1" max="100" step="5" inputmode="decimal"></label>
       <label>Tỷ giá <span>(VND/USD)</span><input type="number" id="ptFx" min="20000" step="50" inputmode="decimal"></label>
       <label>Tỷ lệ tham gia thanh khoản <span>(% giá trị giao dịch)</span><input type="number" id="ptTg" min="1" max="100" step="1" inputmode="decimal"></label>
     </div>
@@ -61,20 +61,20 @@ image: /assets/img/og-etf.png
   </section>
 
   <section class="nn-box" aria-labelledby="ptNn">
-    <h2 id="ptNn">Quỹ ETF nước ngoài đang mua hay bán ròng</h2>
-    <p class="nn-sub">So số cổ phiếu mà VanEck VNM, Global X VNAM, KraneShares KPHO, Fubon và Vanguard (khi có mã Việt Nam) nắm giữ giữa hai lần công bố liên tiếp. Đây là <b>khối lượng mua bán ròng thật</b>, không lẫn biến động giá.</p>
+    <h2 id="ptNn">Biến động số lượng trong danh mục ETF nước ngoài</h2>
+    <p class="nn-sub">So số cổ phiếu được công bố riêng theo từng quỹ–mã giữa hai kỳ liên tiếp. Đây là chênh lệch lượng nắm giữ công bố, không phải xác nhận lượng mua/bán trên sàn; chia tách, hoán đổi, corporate actions và ngày chốt khác nhau có thể ảnh hưởng kết quả.</p>
     <div id="ptNnBody"></div>
   </section>
 
   <section class="nn-box" aria-labelledby="ptMo">
-    <h2 id="ptMo">Quỹ mở trong nước đang tăng hay giảm tỷ trọng</h2>
-    <p class="nn-sub">Mã vào hoặc ra khỏi top 10, và mã đổi tỷ trọng từ 0,3 điểm % trở lên, giữa hai kỳ công bố gần nhất của từng quỹ. Điểm = số quỹ tăng/mua mới trừ số quỹ giảm/bán hết.</p>
+    <h2 id="ptMo">Biến động top 10 quỹ mở trong nước</h2>
+    <p class="nn-sub">Theo dõi mã vào/ra top 10 và thay đổi tỷ trọng từ 0,3 điểm % giữa hai kỳ của từng quỹ. Điểm là số lần tăng/giảm quan sát được trong mẫu, không phải dòng tiền hay số cổ phiếu thực mua.</p>
     <div id="ptMoBody"></div>
   </section>
 
   <section class="nn-box" aria-labelledby="ptLp">
-    <h2 id="ptLp">Lệch pha giữa quỹ nội và quỹ ngoại</h2>
-    <p class="nn-sub">Tỷ trọng trung bình của các quỹ mở cổ phiếu trong nước và của các quỹ ETF nước ngoài công bố đầy đủ, so với tỷ trọng trong VN100. Mã mà một bên nắm nhiều còn bên kia gần như không có là nơi hai dòng tiền bất đồng.</p>
+    <h2 id="ptLp">So sánh tỷ trọng được công bố: mẫu top 10 nội–ngoại</h2>
+    <p class="nn-sub">So trung bình tỷ trọng chỉ trên các quỹ có mã đó trong top 10 ở mỗi nhóm; số quỹ góp phần tính trung bình được ghi riêng. Mã không có trong top 10 là chưa được công bố trong phạm vi này, không phải tỷ trọng 0. Ngày danh mục và thành phần mẫu khác nhau được liệt kê bên dưới.</p>
     <div class="toolbar">
       <div class="seg" id="ptLpSort" role="group" aria-label="Sắp xếp">
         <button type="button" data-k="ngoai" aria-pressed="true">Ngoại chuộng hơn nội</button>
@@ -87,8 +87,8 @@ image: /assets/img/og-etf.png
           <thead><tr>
             <th scope="col">Cổ phiếu</th>
             <th scope="col" class="num">VN100</th>
-            <th scope="col" class="num">Quỹ nội TB</th>
-            <th scope="col" class="num">Quỹ ngoại TB</th>
+            <th scope="col" class="num">Nội TB khi công bố</th>
+            <th scope="col" class="num">Ngoại TB khi công bố</th>
             <th scope="col" class="num hide-sm">Số quỹ nội</th>
             <th scope="col" class="num hide-sm">Số quỹ ngoại</th>
           </tr></thead>
@@ -96,6 +96,10 @@ image: /assets/img/og-etf.png
         </table>
       </div>
     </div>
-    <p class="table-note">Quỹ mở chỉ công bố top 10 mã nên tỷ trọng quỹ nội bị thấp hơn thực tế; hãy so thứ hạng giữa các mã thay vì so tuyệt đối với VN100.</p>
+    <details class="table-note" id="ptLpMeta">
+      <summary id="ptLpMetaSummary">Danh sách mẫu, ngày công bố và trạng thái nguồn</summary>
+      <p id="ptLpMetaContent"></p>
+    </details>
+    <p class="table-note">Chỉ so các mã xuất hiện trong top 10 của cả hai nhóm. Trung bình có điều kiện trên quỹ đã công bố mã; không diễn giải mã vắng mặt thành 0%. Ngày chốt từng quỹ có thể không đồng nhất.</p>
   </section>
 </div>

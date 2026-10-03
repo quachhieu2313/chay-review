@@ -1,4 +1,4 @@
-"""Cảnh báo dòng tiền quỹ: phát hiện sự kiện mới, lưu lịch sử (canh_bao.json + canh_bao.atom) và chuẩn bị tin cần gửi.
+"""Cảnh báo biến động danh mục: lưu sự kiện từ các kỳ công bố (canh_bao.json + canh_bao.atom).
 
 Tin cần gửi được ghi vào scripts/.canh_bao_moi.json; bước "Gửi cảnh báo" của workflow (scripts/gui_canh_bao.py) đọc file này
 và đăng lên GitHub Issues (có email/thông báo điện thoại của GitHub) và Telegram nếu đã cấu hình.
@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets" / "data"
 FILE_MOI = ROOT / "scripts" / ".canh_bao_moi.json"
 SITE = "https://quachhieu2313.github.io/chay-review"
-NGUONG_DONG = 20e9     # mua/bán ròng một mã từ 20 tỷ đồng (khoảng 0,76 triệu USD) trở lên mới cảnh báo
+NGUONG_DONG = 20e9     # ngưỡng giá trị quy đổi hiện tại của biến động lượng công bố, không phải dòng tiền
 TOI_DA_TIN = 6         # số cảnh báo tối đa trong một tin gửi đi, phần còn lại gộp thành "và N cảnh báo khác"
 GIU = 300
 
@@ -41,21 +41,21 @@ def phat_hien(ls, dong_nn):
             tong = sum(b["pct"].values())
             ds.append({
                 "id": f"vn_lan_dau|{ma}|{b['ngay']}", "loai": "vn_lan_dau", "ma": ma, "quy": ma, "ngay": b["ngay"], "muc": 100,
-                "tieu_de": f"{ma} lần đầu nắm giữ cổ phiếu Việt Nam",
-                "noi_dung": (f"Danh mục {ma} chốt ngày {b['ngay'][8:]}/{b['ngay'][5:7]}/{b['ngay'][:4]} có {len(b['pct'])} cổ phiếu Việt Nam, "
-                             f"chiếm {_vn(tong, 2)}% quỹ. Lớn nhất: " + ", ".join(f"{m} {_vn(p, 2)}%" for m, p in top) + "."),
+                "tieu_de": f"{ma} lần đầu xuất hiện trong dữ liệu danh mục Việt Nam đang theo dõi",
+                "noi_dung": (f"Danh mục {ma} chốt ngày {b['ngay'][8:]}/{b['ngay'][5:7]}/{b['ngay'][:4]} có {len(b['pct'])} cổ phiếu Việt Nam trong phạm vi dữ liệu đã lọc, "
+                             f"tổng tỷ trọng công bố của các mã này là {_vn(tong, 2)}%. Lớn nhất: " + ", ".join(f"{m} {_vn(p, 2)}%" for m, p in top) + "."),
             })
     for x in dong_nn:
         if abs(x["chenh_gt"]) < NGUONG_DONG:
             continue
-        mua = x["chenh_gt"] > 0
+        tang = x["chenh_gt"] > 0
         den = max(q["den"] for q in x["quy"])
-        chi_tiet = ", ".join(f"{q['ma']} {'+' if q['chenh_cp'] > 0 else '−'}{_vn(abs(q['chenh_cp']))} cp" + (" (mua mới)" if q["moi"] else " (bán hết)" if q["thoat"] else "") for q in x["quy"])
+        chi_tiet = ", ".join(f"{q['ma']} {'+' if q['chenh_cp'] > 0 else '−'}{_vn(abs(q['chenh_cp']))} cp" + (" (mới xuất hiện trong snapshot)" if q["moi"] else " (không còn trong snapshot)" if q["thoat"] else "") for q in x["quy"])
         ds.append({
-            "id": f"{'mua_manh' if mua else 'ban_manh'}|{x['ma']}|{den}", "loai": "mua_manh" if mua else "ban_manh", "ma": x["ma"],
+            "id": f"{'mua_manh' if tang else 'ban_manh'}|{x['ma']}|{den}", "loai": "mua_manh" if tang else "ban_manh", "ma": x["ma"],
             "quy": ",".join(q["ma"] for q in x["quy"]), "ngay": den, "muc": abs(x["chenh_gt"]) / 1e9,
-            "tieu_de": f"Quỹ ETF ngoại {'mua' if mua else 'bán'} ròng {x['ma']} khoảng {_vn(abs(x['chenh_gt']) / 1e9, 1)} tỷ đồng",
-            "noi_dung": f"{x['ma']} ({x['ten']}): {chi_tiet}. Giá trị tính theo giá hiện tại.",
+            "tieu_de": f"ETF ngoại: lượng nắm giữ công bố của {x['ma']} {'tăng' if tang else 'giảm'} đáng kể",
+            "noi_dung": f"{x['ma']} ({x['ten']}): {chi_tiet}. Giá trị quy đổi {_vn(abs(x['chenh_gt']) / 1e9, 1)} tỷ đồng theo giá hiện tại, giữa các ngày công bố ghi trên từng quỹ. Không xác nhận giao dịch; chia/tách hoặc sự kiện doanh nghiệp có thể ảnh hưởng số lượng.",
         })
     ds.sort(key=lambda t: -t["muc"])
     return ds
@@ -73,7 +73,7 @@ def _atom(ds, luc):
             f"<summary>{escape(x['noi_dung'])}</summary>"
             "</entry>")
     return ('<?xml version="1.0" encoding="utf-8"?>\n<feed xmlns="http://www.w3.org/2005/Atom">'
-            "<title>Kim Chỉ Nam - Cảnh báo dòng tiền quỹ</title>"
+            "<title>Kim Chỉ Nam - Cảnh báo biến động danh mục quỹ</title>"
             f"<id>{SITE}/assets/data/canh_bao.atom</id>"
             f"<link href=\"{SITE}/phan-tich/\"/><link rel=\"self\" href=\"{SITE}/assets/data/canh_bao.atom\"/>"
             f"<updated>{luc}</updated>" + "".join(muc) + "</feed>\n")
