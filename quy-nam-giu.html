@@ -70,6 +70,25 @@ image: /assets/img/og-etf.png
   <p class="table-note"><button type="button" class="btn btn-ghost" id="hMore" hidden>Xem thêm</button></p>
 </div>
 
+<!-- cửa sổ chi tiết toàn bộ mã cổ phiếu Việt Nam trong danh mục quỹ -->
+<div class="sm-overlay" id="hFundOverlay" hidden>
+  <div class="hd hd-fund" role="dialog" aria-modal="true" aria-labelledby="hFundCode" tabindex="-1">
+    <header class="hd-head">
+      <div>
+        <h2 id="hFundCode">…</h2>
+        <p id="hFundName"></p>
+      </div>
+      <button type="button" class="sm-btn" id="hFundClose" aria-label="Đóng">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+    <div class="hd-body">
+      <p class="hd-fund-note" id="hFundNote"></p>
+      <ol class="clean hd-fund-list" id="hFundList"></ol>
+    </div>
+  </div>
+</div>
+
 <!-- cửa sổ chi tiết quỹ nào đang giữ một mã -->
 <div class="sm-overlay" id="hOverlay" hidden>
   <div class="hd" role="dialog" aria-modal="true" aria-labelledby="hdCode" tabindex="-1">

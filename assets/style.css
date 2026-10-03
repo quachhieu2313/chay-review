@@ -1084,11 +1084,22 @@ body.modal-open{overflow:hidden;}
 .hd-list .tl-bar{background:var(--surface-sunk);}
 .hd-etf{display:flex; flex-wrap:wrap; gap:6px;}
 .hd-etf .chip{font-family:"JetBrains Mono",monospace; font-size:12px;}
+.hd-fund{max-width:720px;}
+.hd-fund-note{font-size:13px; color:var(--ink-soft); margin-bottom:12px !important; line-height:1.55;}
+.hd-fund-list{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 24px;}
+.hd-fund-list li{display:grid; grid-template-columns:34px 58px minmax(0,1fr) 62px; gap:8px; align-items:center; padding:7px 0; border-bottom:1px solid var(--border); font-size:13px;}
+.hd-fund-list li > span:first-child{color:var(--muted); font-family:"JetBrains Mono",monospace; font-size:11px;}
+.hd-fund-list b{font-family:"JetBrains Mono",monospace;}
+.hd-fund-list em{font-style:normal; font-family:"JetBrains Mono",monospace; text-align:right;}
+.nn-grid .nn-card{display:flex; flex-direction:column;}
+.nn-detail{align-self:flex-end; margin-top:auto; padding-top:12px; font-size:12px;}
 @media (max-width:1020px){ .top6{grid-template-columns:repeat(3,1fr);} }
 @media (max-width:560px){
   .top6{grid-template-columns:repeat(2,1fr);}
   .hd-list li{grid-template-columns:70px minmax(0,1fr) 54px;}
   .hd-list .tl-bar{display:none;}
+  .hd-fund-list{grid-template-columns:1fr;}
+  .hd-fund-list li{grid-template-columns:28px 52px minmax(0,1fr) 58px;}
 }
 
 /* quỹ ETF nước ngoài */

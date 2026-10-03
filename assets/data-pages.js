@@ -1655,12 +1655,16 @@
   var holdPage = $('#holdPage');
   if(holdPage){
     load('quy_nam_giu.json').then(function(d){
-      var ds = d.co_phieu, sortKey = 'so_quy', filter = '', soDong = 30, meta = d.quy_nn_meta || [];
+      var ds = d.co_phieu, sortKey = 'so_quy', filter = '', soDong = 30, meta = (d.quy_nn_meta || []).slice();
+      var thienHoang = meta.findIndex(function(q){ return q.ma === '008763'; });
+      var vwo = meta.findIndex(function(q){ return q.ma === 'VWO'; });
+      if(thienHoang > vwo && vwo > -1) meta.splice(vwo, 0, meta.splice(thienHoang, 1)[0]);
       $('#hNN').innerHTML = meta.map(function(q){
         if(!q.so_ma){
           return '<article class="nn-card nn-wait"><header><b>' + esc(q.ma) + '</b><span>' + esc(q.ten) + '</span></header>' +
             '<p class="nn-meta">Danh mục ngày <b>' + ngayVN(q.ngay) + '</b>' + (q.tong_ma_quy ? ' · ' + fmt(q.tong_ma_quy) + ' cổ phiếu toàn cầu' : '') + ' · <a href="' + esc(q.nguon) + '" rel="noopener">Nguồn: trang chính thức</a></p>' +
-            '<p class="nn-empty"><b>Chưa có cổ phiếu Việt Nam.</b> Việt Nam chỉ vào chỉ số FTSE từ 21/09/2026 với trọng số khả đầu tư 10%, trong khi danh mục này công bố theo tháng và mới chốt ngày ' + ngayVN(q.ngay) + '. Các mã Việt Nam sẽ tự hiện ở kỳ cập nhật sau.</p></article>';
+            '<p class="nn-empty"><b>Chưa có cổ phiếu Việt Nam.</b> Việt Nam chỉ vào chỉ số FTSE từ 21/09/2026 với trọng số khả đầu tư 10%, trong khi danh mục này công bố theo tháng và mới chốt ngày ' + ngayVN(q.ngay) + '. Các mã Việt Nam sẽ tự hiện ở kỳ cập nhật sau.</p>' +
+            '<button type="button" class="btn btn-ghost nn-detail" data-fund="' + esc(q.ma) + '">» Chi tiết</button></article>';
         }
         var th = q.them, extra = '';
         if(th){
@@ -1668,11 +1672,14 @@
           extra = '<p class="nn-meta nn-extra">' + esc(th.loai_quy) + '. ' + (cuoi ? 'Quy mô <b>' + fmt(cuoi.gia_tri, 2) + ' tỷ NDT</b> (' + ngayVN(cuoi.ngay) + (dau ? ', quý trước ' + fmt(dau.gia_tri, 2) : '') + ')' : '') +
             (th.co_phieu_pct ? ' · cổ phiếu chiếm ' + fmt(th.co_phieu_pct, 1) + '% tài sản, tiền mặt ' + fmt(th.tien_mat_pct, 1) + '%' : '') + (th.chi_top ? '. Chỉ công bố <b>top ' + th.chi_top + '</b> mã mỗi kỳ báo cáo.' : '.') + '</p>';
         }
+        var holdings = q.danh_muc || q.top;
         return '<article class="nn-card"><header><b>' + esc(q.ma) + '</b><span>' + esc(q.ten) + '</span></header>' +
           '<p class="nn-meta">Danh mục ngày <b>' + ngayVN(q.ngay) + '</b> · ' + q.so_ma + (th && th.chi_top ? ' cổ phiếu Việt Nam (top ' + th.chi_top + ')' : ' cổ phiếu Việt Nam') + ' · <a href="' + esc(q.nguon) + '" rel="noopener">Nguồn: trang chính thức</a></p>' + extra +
           '<ol class="clean nn-top">' + q.top.map(function(t){
             return '<li><button type="button" data-ma="' + esc(t.ma) + '"><b>' + esc(t.ma) + '</b><span class="tl-bar"><i class="acc-bg" style="width:' + (t.pct / q.top[0].pct * 100) + '%"></i></span><em>' + fmt(t.pct, 2) + '%</em></button></li>';
-          }).join('') + '</ol></article>';
+          }).join('') + '</ol>' +
+          (holdings && holdings.length ? '<button type="button" class="btn btn-ghost nn-detail" data-fund="' + esc(q.ma) + '">» Chi tiết</button>' : '') +
+          '</article>';
       }).join('') || '<p class="muted">Chưa lấy được danh mục quỹ nước ngoài.</p>';
       load('chi_so_tham_chieu.json').then(function(c){
         var x = c.xtrackers; if(!x || !x.ten) return;
@@ -1697,7 +1704,41 @@
           '<p class="nn-meta" style="margin-top:8px;">Các mã còn lại chiếm ' + fmt(tp.khac_pct, 2) + '%.' + (st ? ' Thứ tự top 10 hiện tại theo STOXX: ' + st.top.map(function(t){ return esc(t.ma || t.ten); }).join(' › ') + '.' : '') + '</p>' +
           '<p class="nn-meta xt-warn">Lưu ý: DWS ghi chỉ số giới hạn mã lớn nhất ở 15% nhưng bảng thành phần lại ghi VIC 28,07% (ngày 30/06/2026), nên tỷ trọng top 5 có thể chưa phản ánh đúng sau lần cơ cấu gần nhất. Hãy đối chiếu với STOXX trước khi dùng.</p></article>';
       }).catch(function(){});
-      $('#hNN').addEventListener('click', function(e){ var b = e.target.closest('[data-ma]'); if(b) mo(b.getAttribute('data-ma')); });
+      var fundOv = $('#hFundOverlay'), fundDlg = $('.hd-fund', fundOv), fundLastFocus = null;
+      function moQuy(ma){
+        var q = meta.filter(function(item){ return item.ma === ma; })[0];
+        if(!q) return;
+        var holdings = q.danh_muc || q.top || [], th = q.them || {};
+        fundLastFocus = document.activeElement;
+        $('#hFundCode').textContent = q.ma;
+        $('#hFundName').textContent = q.ten;
+        $('#hFundNote').textContent = holdings.length
+          ? 'Danh mục ngày ' + ngayVN(q.ngay) + ' · ' + holdings.length +
+            ' mã cổ phiếu Việt Nam trong dữ liệu nguồn.' +
+            (th.chi_top ? ' Nguồn chỉ công bố top ' + th.chi_top + ' mã.' : '')
+          : 'Danh mục ngày ' + ngayVN(q.ngay) + ' chưa ghi nhận cổ phiếu Việt Nam. Danh mục cổ phiếu toàn cầu của quỹ không được liệt kê ở trang này.';
+        var mx = holdings.length ? (holdings[0].pct || 1) : 1;
+        $('#hFundList').innerHTML = holdings.map(function(t, i){
+          return '<li><span>' + (i + 1) + '</span><b>' + esc(t.ma) + '</b><span class="tl-bar"><i class="acc-bg" style="width:' +
+            (t.pct / mx * 100) + '%"></i></span><em>' + fmt(t.pct, 2) + '%</em></li>';
+        }).join('') || '<li class="muted">Chưa có mã Việt Nam trong danh mục kỳ này.</li>';
+        fundOv.hidden = false;
+        document.body.classList.add('modal-open');
+        fundDlg.focus();
+      }
+      function dongQuy(){
+        fundOv.hidden = true;
+        document.body.classList.remove('modal-open');
+        if(fundLastFocus) fundLastFocus.focus();
+      }
+      $('#hFundClose').addEventListener('click', dongQuy);
+      fundOv.addEventListener('click', function(e){ if(e.target === fundOv) dongQuy(); });
+      document.addEventListener('keydown', function(e){ if(!fundOv.hidden && e.key === 'Escape') dongQuy(); });
+      $('#hNN').addEventListener('click', function(e){
+        var detail = e.target.closest('[data-fund]');
+        if(detail){ moQuy(detail.getAttribute('data-fund')); return; }
+        var b = e.target.closest('[data-ma]'); if(b) mo(b.getAttribute('data-ma'));
+      });
       $('#hQuyMo').textContent = d.so_quy_mo;
       $('#hEtf').textContent = d.so_etf;
       $('#hNgay').textContent = ngayVN(d.ngay_tu) + ' – ' + ngayVN(d.ngay_den);
