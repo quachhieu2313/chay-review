@@ -12,9 +12,6 @@
 - id: phan-tich
   ten: Radar dòng tiền
   link: /phan-tich/
-- id: quy-mo-phong
-  ten: Quỹ mô phỏng
-  link: /quy-mo-phong/
 - id: thi-truong
   ten: Thị trường
   link: /thi-truong/
