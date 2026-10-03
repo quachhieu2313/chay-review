@@ -8,13 +8,13 @@ image: /assets/img/og-etf.png
 ---
 <section class="page-head wrap">
   <p class="eyebrow">Dữ liệu &amp; API</p>
-  <h1>Lịch sử dòng tiền quỹ, tải về dùng ngay</h1>
-  <p>Kim Chỉ Nam lưu lại danh mục của các quỹ mỗi khi họ công bố bản mới. Phần lịch sử này không có sẵn ở nguồn gốc (các quỹ chỉ đăng bản mới nhất), và bắt đầu từ <b id="dlTu">…</b>. Mọi file đều tải miễn phí, không cần đăng ký.</p>
+  <h1>Lịch sử danh mục quỹ, tải về dùng ngay</h1>
+  <p>Kim Chỉ Nam lưu lại các bản danh mục được công bố và những biến động có thể tính từ lịch sử. Phạm vi, ngày công bố và giới hạn của từng tập dữ liệu cần được kiểm tra trước khi phân tích. Lịch sử tích lũy bắt đầu từ <b id="dlTu">…</b>.</p>
 </section>
 
 <div class="wrap" id="dlPage">
   <div class="hold-warn" role="note">
-    <b>Lưu ý sử dụng.</b> Danh mục gốc do nhà phát hành quỹ (VanEck, Global X, KraneShares, Fubon, Vanguard, Dragon Capital, Thiên Hoằng) và Fmarket công bố; quyền thuộc về họ. Kim Chỉ Nam chỉ tổng hợp, lưu lịch sử và tính toán. Số liệu có thể chậm hoặc sai sót, không phải khuyến nghị đầu tư. Khi dùng lại, vui lòng ghi nguồn "Kim Chỉ Nam".
+    <b>Lưu ý sử dụng.</b> Danh mục gốc do nhà phát hành quỹ (VanEck, Global X, KraneShares, Fubon, Vanguard, Dragon Capital, Thiên Hoằng) và Fmarket công bố; quyền và điều khoản sử dụng thuộc về từng nguồn. Việc dữ liệu công khai hoặc ghi nguồn Kim Chỉ Nam không tự cấp quyền tái sử dụng hay khai thác thương mại. Hãy kiểm tra điều khoản của nguồn gốc trước khi sử dụng. Dữ liệu có thể chậm hoặc sai sót, không phải khuyến nghị đầu tư.
   </div>
 
   <section class="nn-box" aria-labelledby="dlT">
@@ -32,9 +32,14 @@ image: /assets/img/og-etf.png
     <h2 id="dlC">Dùng trong Python</h2>
     <pre class="code-block"><code>import pandas as pd
 BASE = "{{ '/assets/data/' | absolute_url }}"
-cp = pd.read_csv(BASE + "xuat/lich_su_quy_ngoai.csv")          # số cổ phiếu từng quỹ nắm giữ theo ngày
-rong = (cp.pivot_table(index="ngay_cong_bo", columns="ma_co_phieu", values="so_co_phieu", aggfunc="sum")
-          .diff())                                               # mua/bán ròng theo ngày, từng mã
-print(rong.tail())</code></pre>
+cp = pd.read_csv(BASE + "xuat/lich_su_quy_ngoai.csv")
+cp = cp.sort_values(["quy", "ma_co_phieu", "ngay_cong_bo"])
+nhom = cp.groupby(["quy", "ma_co_phieu"], sort=False)
+cp["so_cp_ky_truoc"] = nhom["so_co_phieu"].shift(1)
+cp["bien_dong_cong_bo"] = cp["so_co_phieu"] - cp["so_cp_ky_truoc"]
+thay_doi = cp.dropna(subset=["so_cp_ky_truoc"])
+print(thay_doi[["quy", "ma_co_phieu", "ngay_cong_bo",
+                "so_cp_ky_truoc", "so_co_phieu", "bien_dong_cong_bo"]].tail())</code></pre>
+    <p class="table-note">Tính chênh lệch riêng theo từng quỹ–mã trước khi tổng hợp. Mỗi quỹ có ngày chốt khác nhau; biến động số lượng công bố không tự xác nhận giao dịch, do có thể có chia/tách, hoán đổi hoặc thay đổi đơn vị. Không gộp chênh lệch theo ngày nếu ngày danh mục không đồng nhất.</p>
   </section>
 </div>

@@ -600,25 +600,165 @@ def cap_nhat_ro_etf():
         log(f"Rổ {ro}: {len(muc)} mã")
 
 
+def _kiem_tra_danh_muc_quy(quy):
+    """Reject malformed or implausible source snapshots before replacing published data."""
+    if not isinstance(quy, dict):
+        raise ValueError("bản ghi quỹ không phải object")
+    ngay = quy.get("ngay")
+    try:
+        datetime.strptime(ngay, "%Y-%m-%d")
+    except (TypeError, ValueError):
+        raise ValueError(f"{quy.get('ma', 'quỹ')}: ngày danh mục không hợp lệ")
+
+    top = quy.get("top")
+    if not isinstance(top, list):
+        raise ValueError(f"{quy.get('ma', 'quỹ')}: danh mục không phải danh sách")
+
+    seen = set()
+    tong_ty_trong = 0.0
+    for row in top:
+        if not isinstance(row, (tuple, list)) or len(row) < 2:
+            raise ValueError(f"{quy.get('ma', 'quỹ')}: dòng danh mục sai cấu trúc")
+        ma, pct = row[0], row[1]
+        try:
+            pct = float(pct)
+        except (TypeError, ValueError):
+            raise ValueError(f"{quy.get('ma', 'quỹ')}: tỷ trọng không phải số")
+        if not isinstance(ma, str) or not ma.strip() or not math.isfinite(pct) or pct < 0 or pct > 100:
+            raise ValueError(f"{quy.get('ma', 'quỹ')}: mã hoặc tỷ trọng ngoài phạm vi hợp lệ")
+        if ma in seen:
+            raise ValueError(f"{quy.get('ma', 'quỹ')}: mã {ma} bị lặp")
+        seen.add(ma)
+        tong_ty_trong += pct
+    if tong_ty_trong > 101:
+        raise ValueError(f"{quy.get('ma', 'quỹ')}: tổng tỷ trọng {tong_ty_trong:.2f}% vượt ngưỡng kiểm tra")
+    so_cp = quy.get("so_cp")
+    if so_cp is not None:
+        if not isinstance(so_cp, dict):
+            raise ValueError(f"{quy.get('ma', 'quỹ')}: bảng số lượng cổ phiếu sai cấu trúc")
+        for ma, so_luong in so_cp.items():
+            if not isinstance(ma, str) or not ma.strip():
+                raise ValueError(f"{quy.get('ma', 'quỹ')}: mã trong bảng số lượng không hợp lệ")
+            try:
+                so_luong = float(so_luong)
+            except (TypeError, ValueError):
+                raise ValueError(f"{quy.get('ma', 'quỹ')}: số lượng cổ phiếu không phải số")
+            if not math.isfinite(so_luong) or so_luong < 0:
+                raise ValueError(f"{quy.get('ma', 'quỹ')}: số lượng cổ phiếu ngoài phạm vi hợp lệ")
+
+
 def cap_nhat_quy_nam_giu():
-    """Tổng hợp cổ phiếu được các quỹ nắm giữ: quỹ mở (danh mục top 10 thật) + quỹ ETF (theo rổ chỉ số)."""
+    """Aggregate disclosed fund holdings and explicitly label index-based ETF proxies."""
     try:
         quy = nguon.quy_mo_nam_giu()
     except Exception as e:
         log(f"  ! quỹ mở: {str(e)[:100]}")
+        cu = doc_json(OUT / "quy_nam_giu.json", {})
+        if cu:
+            cu["quy_mo_trang_thai"] = "loi_nguon"
+            cu["quy_mo_thong_bao"] = "Không lấy được dữ liệu mới; snapshot gần nhất được giữ nguyên."
+            for fund in cu.get("quy_mo_meta", []):
+                fund["trang_thai_nguon"] = "loi_nguon"
+            cu["cap_nhat_luc"] = gio_vn()
+            ghi_json(OUT / "quy_nam_giu.json", cu)
         return
     if not quy:
+        cu = doc_json(OUT / "quy_nam_giu.json", {})
+        if cu:
+            cu["quy_mo_trang_thai"] = "loi_nguon"
+            cu["quy_mo_thong_bao"] = "Nguồn trả về danh sách rỗng; snapshot gần nhất được giữ nguyên."
+            for fund in cu.get("quy_mo_meta", []):
+                fund["trang_thai_nguon"] = "loi_nguon"
+            cu["cap_nhat_luc"] = gio_vn()
+            ghi_json(OUT / "quy_nam_giu.json", cu)
+        return
+    try:
+        for fund in quy:
+            _kiem_tra_danh_muc_quy(fund)
+    except ValueError as e:
+        log(f"  ! quỹ mở vượt kiểm tra chất lượng: {e}")
+        cu = doc_json(OUT / "quy_nam_giu.json", {})
+        if cu:
+            cu["quy_mo_trang_thai"] = "loi_nguon"
+            cu["quy_mo_thong_bao"] = "Snapshot mới vượt kiểm tra chất lượng; dữ liệu trước đó được giữ nguyên."
+            for fund in cu.get("quy_mo_meta", []):
+                fund["trang_thai_nguon"] = "loi_nguon"
+            cu["cap_nhat_luc"] = gio_vn()
+            ghi_json(OUT / "quy_nam_giu.json", cu)
         return
     cty = nguon.thong_tin_cong_ty()
+    metadata = {
+        "VNM": ("Quỹ ETF", "Thụ động · theo chỉ số", "Danh mục Việt Nam đầy đủ", "VanEck", "https://www.vaneck.com/us/en/investments/vietnam-etf-vnm/holdings/", "Hằng ngày", 4),
+        "VNAM": ("Quỹ ETF", "Thụ động · theo chỉ số", "Danh mục Việt Nam đầy đủ", "Global X", "https://www.globalxetfs.com/funds/vnam/", "Hằng ngày", 4),
+        "KPHO": ("Quỹ ETF", "Chủ động · Dragon Capital chọn rổ", "Danh mục cổ phiếu Việt Nam công bố", "KraneShares", "https://kraneshares.com/etf/kpho/", "Hằng ngày", 4),
+        "VEIL": ("Quỹ đóng niêm yết", "Chủ động", "Chỉ công bố top 10", "Dragon Capital / VEIL", "https://www.veil.uk/the-fund/", "Hằng tháng", 45),
+        "Fubon": ("Quỹ ETF", "Thụ động · FTSE Vietnam 30", "Danh mục Việt Nam công bố", "Fubon", "https://websys.fsit.com.tw/FubonETF/Trade/Assets.aspx?stkId=00885&lan=EN", "Hằng ngày", 4),
+        "Tianhong": ("Quỹ mở QDII", "Theo dõi VN30 có điều kiện", "Chỉ công bố top 20", "Eastmoney", "https://fundf10.eastmoney.com/ccmx_008763.html", "Hằng quý", 120),
+        "VWO": ("Quỹ ETF", "Thụ động · FTSE Emerging Markets", "Danh mục toàn cầu; lọc cổ phiếu Việt Nam", "Vanguard", "https://investor.vanguard.com/investment-products/etfs/profile/vwo", "Hằng tháng", 45),
+        "VT": ("Quỹ ETF", "Thụ động · FTSE Global All Cap", "Danh mục toàn cầu; lọc cổ phiếu Việt Nam", "Vanguard", "https://investor.vanguard.com/investment-products/etfs/profile/vt", "Hằng tháng", 45),
+    }
+    old_data = doc_json(OUT / "quy_nam_giu.json", {})
+    old_meta = {q.get("ma"): q for q in old_data.get("quy_nn_meta", [])}
     quy_nn = []
-    for ham in (nguon.quy_vaneck_vnm, nguon.quy_globalx_vnam, nguon.quy_kraneshares_kpho, nguon.quy_veil, nguon.quy_fubon_00885, nguon.quy_thien_hoang, nguon.quy_vanguard_vwo, nguon.quy_vanguard_vt):
+    status = {}
+    functions = (nguon.quy_vaneck_vnm, nguon.quy_globalx_vnam, nguon.quy_kraneshares_kpho,
+                nguon.quy_veil, nguon.quy_fubon_00885, nguon.quy_thien_hoang,
+                nguon.quy_vanguard_vwo, nguon.quy_vanguard_vt)
+    for ham in functions:
         try:
-            quy_nn.append(ham())
+            q = ham()
+            _kiem_tra_danh_muc_quy(q)
+            q["ngay_thu_thap"] = date_vn()
+            q["trang_thai_nguon"] = "da_lay"
+            q["loai_quy"], q["chien_luoc"], q["pham_vi"], q["nguon_ten"] = metadata[q["ma"]][:4]
+            q["chu_ky_nguon"], q["nguong_tre_ngay"] = metadata[q["ma"]][5:]
+            q["ngay_cong_bo"] = q.get("ngay_cong_bo")
+            q["ngay_cong_bo_trang_thai"] = "nguon_khong_cung_cap" if not q["ngay_cong_bo"] else "nguon_cung_cap"
+            q["trang_thai_doi_chieu"] = "chua_doi_chieu_nguon"
+            quy_nn.append(q)
+            status[q["ma"]] = "da_lay"
         except Exception as e:
             log(f"  ! quỹ nước ngoài {ham.__name__}: {str(e)[:100]}")
-    if not quy_nn:  # lỗi thì giữ danh sách cũ
-        cu_nn = doc_json(OUT / "quy_nam_giu.json", {}).get("quy_nn_meta", [])
-        log("Không lấy được quỹ nước ngoài, bỏ qua" if not cu_nn else "Giữ dữ liệu quỹ nước ngoài cũ")
+            code = {
+                "quy_vaneck_vnm": "VNM", "quy_globalx_vnam": "VNAM",
+                "quy_kraneshares_kpho": "KPHO", "quy_veil": "VEIL",
+                "quy_fubon_00885": "Fubon", "quy_thien_hoang": "Tianhong",
+                "quy_vanguard_vwo": "VWO", "quy_vanguard_vt": "VT",
+            }[ham.__name__]
+            status[code] = "loi_nguon"
+    for code, state in status.items():
+        if state != "loi_nguon":
+            continue
+        previous = old_meta.get(code)
+        if previous and previous.get("danh_muc"):
+            quy_nn.append({
+                "ma": code, "ten": previous["ten"], "loai": "ETF_NN",
+                "loai_quy": metadata[code][0], "chien_luoc": metadata[code][1],
+                "pham_vi": metadata[code][2], "nguon_ten": metadata[code][3],
+                "chu_ky_nguon": metadata[code][5], "nguong_tre_ngay": metadata[code][6],
+                "ngay": previous.get("ngay"),
+                "top": [(x["ma"], x["pct"]) for x in previous["danh_muc"]],
+                "so_cp": None, "nguon": previous.get("nguon"),
+                "tep_nguon": previous.get("tep_nguon"),
+                "tong_ma_quy": previous.get("tong_ma_quy"),
+                "them": previous.get("them"),
+                "ngay_thu_thap": previous.get("ngay_thu_thap"),
+                "ngay_cong_bo": previous.get("ngay_cong_bo"),
+                "ngay_cong_bo_trang_thai": previous.get("ngay_cong_bo_trang_thai", "nguon_khong_cung_cap"),
+                "trang_thai_nguon": "loi_nguon",
+                "trang_thai_doi_chieu": previous.get("trang_thai_doi_chieu", "chua_doi_chieu_nguon"),
+            })
+        else:
+            quy_nn.append({
+                "ma": code, "ten": code, "loai": "ETF_NN", "ngay": None,
+                "top": [], "so_cp": {}, "nguon": metadata[code][4],
+                "loai_quy": metadata[code][0], "chien_luoc": metadata[code][1],
+                "pham_vi": metadata[code][2], "nguon_ten": metadata[code][3],
+                "chu_ky_nguon": metadata[code][5], "nguong_tre_ngay": metadata[code][6],
+                "ngay_cong_bo": None, "ngay_cong_bo_trang_thai": "nguon_khong_cung_cap",
+                "trang_thai_doi_chieu": "chua_doi_chieu_nguon",
+                "ngay_thu_thap": None, "trang_thai_nguon": "loi_nguon",
+            })
     etf = [q for q in doc_json(OUT / "etf.json", {}).get("quy", []) if q.get("tham_chieu")]
     ro = {}
     for q in etf:
@@ -655,10 +795,36 @@ def cap_nhat_quy_nam_giu():
     ngay = [q["ngay"] for q in quy if q["ngay"]]
     moi = {
         "so_quy_mo": len(quy), "so_etf": len(etf),
-        "quy_nn_meta": [{"ma": q["ma"], "ten": q["ten"], "ngay": q["ngay"], "nguon": q["nguon"], "so_ma": len(q["top"]), "tong_ma_quy": q.get("tong_ma_quy"), "them": q.get("them"),
+        "quy_mo_trang_thai": "da_lay", "quy_mo_thu_thap_ngay": date_vn(),
+        "quy_mo_thong_bao": None,
+        "pham_vi_quy_mo": "Top 10 công bố từ Fmarket; số lượng không hàm ý không nắm giữ ngoài danh sách",
+        "quy_mo_meta": [{
+            "ma": q["ma"], "ten": q["ten"], "loai_quy": {"STOCK": "Quỹ cổ phiếu", "BALANCED": "Quỹ cân bằng"}.get(q["loai"]),
+            "ngay": q.get("ngay"), "ngay_cong_bo": q.get("ngay_cong_bo"),
+            "ngay_cong_bo_trang_thai": "nguon_khong_cung_cap" if not q.get("ngay_cong_bo") else "nguon_cung_cap",
+            "ngay_thu_thap": date_vn(), "trang_thai_nguon": "da_lay",
+            "trang_thai_doi_chieu": "chua_doi_chieu_nguon", "pham_vi": "Top 10",
+            "nguon_ten": "Fmarket API", "nguon": q.get("nguon") or "https://fmarket.vn/",
+        } for q in quy],
+        "quy_nn_meta": [{"ma": q["ma"], "ten": q["ten"], "ngay": q.get("ngay"), "ngay_thu_thap": q.get("ngay_thu_thap"),
+                         "ngay_cong_bo": q.get("ngay_cong_bo"),
+                         "ngay_cong_bo_trang_thai": q.get("ngay_cong_bo_trang_thai", "nguon_khong_cung_cap"),
+                         "trang_thai_nguon": q.get("trang_thai_nguon", "da_lay"),
+                         "trang_thai_doi_chieu": q.get("trang_thai_doi_chieu", "chua_doi_chieu_nguon"),
+                         "nguon": q.get("nguon") or metadata[q["ma"]][4], "nguon_ten": metadata[q["ma"]][3],
+                         "loai_quy": metadata[q["ma"]][0], "chien_luoc": metadata[q["ma"]][1],
+                         "pham_vi": metadata[q["ma"]][2], "chu_ky_nguon": metadata[q["ma"]][5],
+                         "nguong_tre_ngay": metadata[q["ma"]][6],
+                         "tep_nguon": q.get("tep_nguon"),
+                         "so_ma": len(q["top"]), "tong_ma_quy": q.get("tong_ma_quy"), "them": q.get("them"),
                          "top": [{"ma": m, "pct": r(p, 2)} for m, p in sorted(q["top"], key=lambda t: -t[1])[:10]],
                          "danh_muc": [{"ma": m, "pct": r(p, 2)} for m, p in sorted(q["top"], key=lambda t: -t[1])]} for q in quy_nn],
+        "ngay_thu_thap": date_vn(),
         "ngay_tu": min(ngay) if ngay else None, "ngay_den": max(ngay) if ngay else None,
+        "ngay_quy_nn_tu": min((q["ngay"] for q in quy_nn if q.get("ngay")), default=None),
+        "ngay_quy_nn_den": max((q["ngay"] for q in quy_nn if q.get("ngay")), default=None),
+        "so_quy_mo_mau": len(quy),
+        "cach_dem_etf": "ETF có mã trong chỉ số tham chiếu; proxy, không phải danh mục holdings thực",
         "co_phieu": ds,
     }
     cu = doc_json(OUT / "quy_nam_giu.json", {})

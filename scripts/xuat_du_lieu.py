@@ -45,7 +45,7 @@ def xuat(ls, canh_bao, ghi_json, ngay, gio):
     bo = [
         ("lich_su_quy_ngoai.csv", "Số cổ phiếu và tỷ trọng quỹ ETF ngoại nắm giữ theo từng ngày công bố", ["ngay_cong_bo", "quy", "ma_co_phieu", "so_co_phieu", "ty_trong_pct"], r1),
         ("lich_su_quy_mo.csv", "Tỷ trọng top 10 của từng quỹ mở trong nước theo từng kỳ công bố", ["ngay_cong_bo", "quy", "ma_co_phieu", "ty_trong_pct"], r2),
-        ("canh_bao.csv", "Cảnh báo dòng tiền quỹ đã phát hiện", ["ngay", "loai", "ma_co_phieu", "quy", "tieu_de", "noi_dung"], r3),
+        ("canh_bao.csv", "Cảnh báo biến động danh mục đã phát hiện", ["ngay", "loai", "ma_co_phieu", "quy", "tieu_de", "noi_dung"], r3),
         ("lich_su_quy_khac.csv", "Quỹ công bố một phần danh mục (VEIL top 10, Thiên Hoằng top 20)", ["quy", "ngay_cong_bo", "ma_co_phieu", "ty_trong_pct"], r4),
     ]
     muc = []
@@ -54,10 +54,10 @@ def xuat(ls, canh_bao, ghi_json, ngay, gio):
         muc.append({"tep": f"xuat/{tep}", "mo_ta": mo_ta, "cot": cot, "so_dong": len(rows), "dinh_dang": "csv"})
     json_tep = [
         ("lich_su_quy.json", "Toàn bộ lịch sử danh mục quỹ (JSON thô)"),
-        ("canh_bao.json", "Cảnh báo dòng tiền quỹ (JSON)"),
-        ("canh_bao.atom", "Cảnh báo dòng tiền quỹ (Atom/RSS, đăng ký bằng trình đọc tin)"),
-        ("tong_hop_tuan.json", "Tổng hợp dòng tiền tuần gần nhất"),
-        ("phan_tich.json", "Radar dòng tiền: mua/bán ròng, lệch pha nội–ngoại, dữ liệu radar FTSE"),
+        ("canh_bao.json", "Cảnh báo biến động danh mục (JSON)"),
+        ("canh_bao.atom", "Cảnh báo biến động danh mục (Atom/RSS, đăng ký bằng trình đọc tin)"),
+        ("tong_hop_tuan.json", "Tổng hợp biến động danh mục tuần gần nhất"),
+        ("phan_tich.json", "Radar danh mục: biến động nắm giữ, so sánh top 10 nội–ngoại, dữ liệu kịch bản FTSE"),
         ("quy_nam_giu.json", "Cổ phiếu được quỹ mở, quỹ ETF và quỹ ngoại nắm giữ"),
     ]
     for tep, mo_ta in json_tep:
