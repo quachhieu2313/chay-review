@@ -19,6 +19,7 @@ permalink: /co-phieu-khuyen-nghi/
   <div class="rec-tabs" role="tablist" aria-label="Nội dung trang">
     <button type="button" role="tab" id="recTabRank" aria-selected="true" aria-controls="recPaneRank">Xếp hạng</button>
     <button type="button" role="tab" id="recTabFs" aria-selected="false" aria-controls="recPaneFs">Báo cáo tài chính</button>
+    <button type="button" role="tab" id="recTabVal" aria-selected="false" aria-controls="recPaneVal">Định giá theo BCTC</button>
   </div>
 
   <div id="recPaneRank" role="tabpanel" aria-labelledby="recTabRank">
@@ -140,6 +141,56 @@ permalink: /co-phieu-khuyen-nghi/
         <li>Ngân hàng, chứng khoán và bảo hiểm dùng biểu mẫu riêng nên tên và số dòng chỉ tiêu khác doanh nghiệp thông thường; “Doanh thu” trong thẻ tóm tắt là doanh thu thuần, thu nhập lãi thuần (ngân hàng) hoặc doanh thu phí bảo hiểm.</li>
         <li>Số liệu cả năm (tổng tài sản, vốn chủ sở hữu, lợi nhuận sau thuế, dòng tiền kinh doanh, doanh thu) được đối chiếu tự động với nguồn thứ hai là KBS mỗi khi có kỳ mới; nếu hai nguồn lệch nhau, trang sẽ hiện cảnh báo ngay dưới bảng.</li>
         <li>Báo cáo quý chưa kiểm toán hoặc soát xét có thể được điều chỉnh sau này. Đây là dữ liệu tham khảo, hãy đối chiếu báo cáo gốc do doanh nghiệp công bố trước khi sử dụng.</li>
+      </ul>
+    </section>
+  </div>
+
+  <div id="recPaneVal" role="tabpanel" aria-labelledby="recTabVal" hidden>
+    <div class="rec-disclaimer" role="note">
+      <b>Đây là điểm định giá theo báo cáo tài chính, không phải dự báo giá và không phải khuyến nghị mua/bán.</b>
+      Điểm cho biết cổ phiếu đang rẻ hay đắt so với lợi nhuận và vốn chủ sở hữu trong báo cáo tài chính. Kết quả kiểm tra lịch sử nằm bên dưới; quá khứ không bảo đảm tương lai.
+      Cổ phiếu có điểm cao có thể rẻ vì lý do chính đáng (lợi nhuận đột biến một lần, ngành đang xấu đi); điểm thấp chỉ nghĩa là đắt so với báo cáo, chưa chắc giảm giá.
+    </div>
+
+    <section class="card panel" aria-labelledby="valTitle">
+      <div class="panel-head rec-head">
+        <div>
+          <p class="eyebrow">Điểm định giá từ báo cáo tài chính</p>
+          <h2 id="valTitle">Nhóm điểm cao nhất</h2>
+          <p class="panel-sub" id="valMeta">Đang tải dữ liệu…</p>
+        </div>
+        <div class="rec-controls">
+          <div class="seg" id="valSide" role="group" aria-label="Nhóm hiển thị">
+            <button type="button" data-side="cao" aria-pressed="true">Top 10 điểm cao (rẻ)</button>
+            <button type="button" data-side="thap" aria-pressed="false">Top 10 điểm thấp (đắt)</button>
+          </div>
+        </div>
+      </div>
+      <div class="table-scroll" id="valTable"><div class="empty-state">Đang tải…</div></div>
+      <p class="table-note" id="valNote"></p>
+    </section>
+
+    <section class="card panel" aria-labelledby="valBtTitle">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Kiểm tra lịch sử</p>
+          <h2 id="valBtTitle">Backtest: nhóm điểm cao có tăng hơn nhóm điểm thấp không?</h2>
+          <p class="panel-sub" id="valBtMeta"></p>
+        </div>
+      </div>
+      <div id="valBt" class="rec-backtest"><div class="empty-state">Đang tải…</div></div>
+      <h3 class="val-h3">Yếu tố nào từ báo cáo tài chính thực sự có tác dụng?</h3>
+      <div class="table-scroll" id="valFactors"></div>
+    </section>
+
+    <section class="note-card rec-method">
+      <h2>Cách tính và giới hạn</h2>
+      <ul>
+        <li>Điểm = trung bình thứ hạng của hai tỷ số, trọng số 50/50: <b>E/P</b> (lợi nhuận sau thuế 4 quý gần nhất / vốn hóa) và <b>B/P</b> (vốn chủ sở hữu / vốn hóa), xếp trong 100 cổ phiếu VN100. Rẻ hơn thì điểm cao hơn. Vốn hóa = giá × số cổ phiếu (vốn góp / mệnh giá 10.000 đồng).</li>
+        <li>Tăng trưởng lợi nhuận, ROE và chất lượng dòng tiền được tính để tham khảo nhưng <b>không</b> đưa vào điểm vì backtest không cho thấy chúng dự báo được lợi nhuận (xem bảng yếu tố).</li>
+        <li>Backtest chỉ dùng báo cáo đã công bố tại từng thời điểm (cộng thêm độ trễ), vào lệnh ở giá đóng cửa phiên kế tiếp, chia 5 nhóm đều trọng số. Thống kê t chỉ tính trên các kỳ không chồng lấn nên số kỳ độc lập ít (khoảng 26 kỳ 3 tháng).</li>
+        <li>Hạn chế: nhóm cổ phiếu là VN100 hiện tại (thiên lệch sống sót, làm kết quả quá khứ đẹp hơn thực tế); chưa tính phí, thuế, trượt giá, thanh khoản; vốn hóa lịch sử là ước tính theo số cổ phiếu hiện tại; yếu tố định giá được chọn sau khi xem kết quả trên cùng giai đoạn nên có nguy cơ khớp quá mức dù đã kiểm tra tách hai nửa giai đoạn.</li>
+        <li>Báo cáo tài chính và giá lấy từ nguồn công khai (Vietcap, KBS) và có thể sai sót; mã có dấu ⚠ là mã mà hai nguồn báo cáo ghi số khác nhau. Hãy đối chiếu báo cáo gốc trước khi dùng.</li>
       </ul>
     </section>
   </div>

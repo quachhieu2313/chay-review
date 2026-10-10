@@ -484,8 +484,8 @@
       setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
     }
 
-    function fsDatHash(ma){
-      try{ history.replaceState(null, '', location.pathname + location.search + (ma ? '#bctc=' + encodeURIComponent(ma) : '')); }catch(e){}
+    function fsDatHash(ma, giu){
+      try{ history.replaceState(null, '', location.pathname + location.search + (ma ? '#bctc=' + encodeURIComponent(ma) : (giu || ''))); }catch(e){}
     }
     function fsXem(ma, giuHash){
       ma = String(ma || '').trim().toUpperCase();
@@ -506,9 +506,12 @@
       });
     }
 
+    var TAB = {recPaneRank: 'recTabRank', recPaneFs: 'recTabFs', recPaneVal: 'recTabVal'};
+    function chonTab(pane){
+      Object.keys(TAB).forEach(function(p){ var on = p === pane; $('#' + p).hidden = !on; $('#' + TAB[p]).setAttribute('aria-selected', on ? 'true' : 'false'); });
+    }
     function fsMo(ma){
-      $$('#recPaneRank, #recPaneFs').forEach(function(p){ p.hidden = p.id !== 'recPaneFs'; });
-      $('#recTabRank').setAttribute('aria-selected', 'false'); $('#recTabFs').setAttribute('aria-selected', 'true');
+      chonTab('recPaneFs');
       if(!fs.daMo){
         fs.daMo = true;
         load('bctc/muc_luc.json').then(function(m){
@@ -523,17 +526,20 @@
       else fsDatHash(fs.ma);
     }
     function fsDong(){
-      $$('#recPaneRank, #recPaneFs').forEach(function(p){ p.hidden = (p.id === 'recPaneFs'); });
-      $('#recTabRank').setAttribute('aria-selected', 'true'); $('#recTabFs').setAttribute('aria-selected', 'false');
+      chonTab('recPaneRank');
       fsDatHash('');
     }
 
     $('#recTabRank').addEventListener('click', fsDong);
     $('#recTabFs').addEventListener('click', function(){ fsMo(); });
+    $('#recTabVal').addEventListener('click', function(){ valMo(); });
     $('#recTabRank').parentNode.addEventListener('keydown', function(e){
       if(e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
       e.preventDefault();
-      if(e.key === 'ArrowRight'){ fsMo(); $('#recTabFs').focus(); } else { fsDong(); $('#recTabRank').focus(); }
+      var thu = ['recTabRank', 'recTabFs', 'recTabVal'], i = thu.indexOf(document.activeElement.id);
+      if(i < 0) return;
+      var j2 = Math.max(0, Math.min(2, i + (e.key === 'ArrowRight' ? 1 : -1)));
+      [fsDong, function(){ fsMo(); }, valMo][j2](); $('#' + thu[j2]).focus();
     });
     $('#fsGo').addEventListener('click', function(){ fsXem($('#fsMa').value); });
     $('#fsMa').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); fsXem(this.value); } });
@@ -549,14 +555,87 @@
     nhom('#fsKy', 'data-ky', 'ky'); nhom('#fsBc', 'data-bc', 'bc'); nhom('#fsView', 'data-view', 'view');
     $('#fsChinh').addEventListener('change', function(){ fs.chinh = this.checked; if(fs.data) fsTable(); });
     $('#fsCsv').addEventListener('click', function(){ if(fs.data) fsCsv(); });
+    // ---- tab Định giá theo BCTC: điểm E/P + B/P từ assets/data/diem_tai_chinh.json (scripts/diem_tai_chinh.py) và kết quả backtest (scripts/backtest_tai_chinh.py)
+    var val = {side: 'cao', data: null, daMo: false};
+    function valMo(){
+      chonTab('recPaneVal');
+      fsDatHash('', '#dinh-gia');
+      if(val.daMo) return;
+      val.daMo = true;
+      load('diem_tai_chinh.json').then(function(d){ val.data = d; valVe(); }).catch(function(){
+        $('#valMeta').textContent = 'Không tải được dữ liệu định giá.';
+        fail($('#valTable'), 'Chưa tải được bảng điểm. Hãy thử tải lại trang sau.'); fail($('#valBt'), 'Chưa tải được kết quả backtest.');
+      });
+    }
+    function valBang(){
+      var d = val.data, ds = d.ds || [];
+      var ds10 = val.side === 'cao' ? ds.slice(0, 10) : ds.slice(-10).reverse();
+      $('#valTitle').textContent = val.side === 'cao' ? 'Nhóm điểm cao nhất: rẻ nhất so với báo cáo tài chính' : 'Nhóm điểm thấp nhất: đắt nhất so với báo cáo tài chính';
+      var h = '<table class="data-table rec-table"><thead><tr><th scope="col" class="num">#</th><th scope="col">Mã / doanh nghiệp</th><th scope="col" class="num">Điểm</th>' +
+        '<th scope="col" class="num" title="Giá / lợi nhuận sau thuế 4 quý">P/E</th><th scope="col" class="num" title="Vốn hóa / vốn chủ sở hữu">P/B</th><th scope="col" class="num">ROE</th>' +
+        '<th scope="col" class="num" title="Lợi nhuận sau thuế 4 quý gần nhất so với 4 quý cùng kỳ năm trước">Lợi nhuận 4 quý</th><th scope="col" class="num">So cùng kỳ</th></tr></thead><tbody>';
+      ds10.forEach(function(r, i){
+        var g = r.ln_4q_truoc && r.ln_4q_truoc > 0 && r.ln_4q !== null ? (r.ln_4q / r.ln_4q_truoc - 1) * 100 : null;
+        var dot = g !== null && g > 150 ? ' <span class="val-flag" title="Lợi nhuận tăng đột biến, có thể do khoản thu một lần làm cổ phiếu trông rẻ hơn thực tế">đột biến?</span>' : '';
+        h += '<tr><td class="num">' + (val.side === 'cao' ? i + 1 : ds.length - i) + '</td><td class="rec-company"><button type="button" class="rec-code" data-ma="' + esc(r.ma) + '">' + esc(r.ma) + '</button>' +
+          (r.canh_bao_du_lieu ? ' <span class="val-warn" title="Hai nguồn báo cáo ghi số cả năm khác nhau, hãy đối chiếu báo cáo gốc">⚠</span>' : '') + '<span>' + esc(r.ten) + '</span>' +
+          '<a href="#bctc=' + esc(r.ma) + '" class="rec-bctc" data-bctc="' + esc(r.ma) + '">Báo cáo tài chính →</a></td>' +
+          '<td class="num"><b class="rec-score">' + fmt(r.diem, 1) + '</b><small>/100</small></td>' +
+          '<td class="num">' + (r.pe === null ? '–' : fmt(r.pe, 1) + 'x') + '</td><td class="num">' + (r.pb === null ? '–' : fmt(r.pb, 2) + 'x') + '</td>' +
+          '<td class="num">' + (r.f.roe === null ? '–' : fmt(r.f.roe * 100, 1) + '%') + '</td><td class="num">' + (r.ln_4q === null ? '–' : fmt(r.ln_4q, 0) + ' tỷ') + '</td>' +
+          '<td class="num ' + cls(g) + '">' + (g === null ? (r.ln_4q > 0 && r.ln_4q_truoc <= 0 ? 'lỗ → lãi' : '–') : pct(g, 0)) + dot + '</td></tr>';
+      });
+      $('#valTable').innerHTML = h + '</tbody></table>';
+      $('#valTable').onclick = function(e){
+        var b = e.target.closest('button[data-ma]');
+        if(b && window.KCN_moPopup) window.KCN_moPopup(b.getAttribute('data-ma'));
+      };
+    }
+    function valCard(nhan, r){
+      if(!r) return '';
+      var mx = Math.max.apply(null, r.nhom.map(function(v){ return Math.abs(v); })) || 1;
+      var bars = r.nhom.map(function(v, i){
+        return '<div class="val-bar"><span class="val-bar-l">' + (i === 0 ? 'Điểm thấp nhất' : i === 4 ? 'Điểm cao nhất' : 'Nhóm ' + (i + 1)) + '</span><span class="val-bar-t"><i class="' + (v < 0 ? 'neg' : '') + '" style="width:' + (Math.abs(v) / mx * 100).toFixed(0) + '%"></i></span><b>' + pct(v * 100, 1) + '</b></div>';
+      }).join('');
+      return '<article class="rec-bt-card"><h3>Giữ ' + esc(nhan) + '</h3><p class="muted-text" style="margin:0 0 6px">Lợi nhuận giá trung bình mỗi nhóm 20 mã</p>' + bars +
+        '<dl class="val-dl"><div><dt>Chênh nhóm cao − nhóm thấp</dt><dd>' + pct(r.q5_tru_q1 * 100, 1) + '</dd></div><div><dt>Nhóm cao hơn nhóm thấp</dt><dd>' + fmt(r.q5_hon_q1 * 100, 0) + '% số kỳ</dd></div>' +
+        '<div><dt>Tương quan hạng (IC)</dt><dd>' + (r.ic > 0 ? '+' : '') + fmt(r.ic, 3) + ' · t = ' + fmt(r.ic_t, 1) + '</dd></div><div><dt>Số kỳ độc lập</dt><dd>' + r.so_ky + '</dd></div></dl></article>';
+    }
+    function valVe(){
+      var d = val.data, bt = d.backtest;
+      $('#valMeta').textContent = 'Giá đến ' + ngayVN(d.gia_den) + ' · báo cáo tài chính đến ' + (d.ds[0] ? d.ds[0].ky : '–') + ' · ' + fmt(d.so_ma) + ' cổ phiếu VN100. Nguồn: Vietcap (giá, báo cáo), KBS (đối chiếu).';
+      valBang();
+      $('#valNote').textContent = 'Điểm là thứ hạng tương đối trong nhóm, không phải xác suất sinh lời. Lợi nhuận đột biến một lần làm cổ phiếu trông rẻ hơn thực tế: hãy xem cột “So cùng kỳ” và bấm “Báo cáo tài chính” để kiểm tra nguồn gốc lợi nhuận.';
+      $('#valSide').addEventListener('click', function(e){
+        var b = e.target.closest('button[data-side]'); if(!b) return;
+        val.side = b.getAttribute('data-side');
+        $$('#valSide button').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        valBang();
+      });
+      if(!bt || !bt.tre_30){ fail($('#valBt'), 'Chưa có kết quả backtest.'); return; }
+      var b30 = bt.tre_30;
+      $('#valBtMeta').textContent = 'Mỗi cuối tháng từ ' + ngayVN(bt.thoi_gian.tu) + ' đến ' + ngayVN(bt.thoi_gian.den) + ': xếp các cổ phiếu VN100 hiện tại (' + bt.thoi_gian.so_ma + ' mã có đủ dữ liệu, mỗi kỳ khoảng 90 mã) chỉ bằng báo cáo đã công bố tại thời điểm đó, vào lệnh ở phiên kế tiếp, chia 5 nhóm đều trọng số. Chưa tính phí, thuế, trượt giá.';
+      $('#valBt').innerHTML = valCard('1 tháng', b30['21']) + valCard('3 tháng', b30['63']) + valCard('6 tháng', b30['126']);
+      var rows = Object.keys(bt.yeu_to).map(function(k){
+        var r = bt.yeu_to[k], tinh = (d.trong_so && d.trong_so[k] !== undefined), cungDau = r.ic > 0 && r.ic_nua_dau > 0 && r.ic_nua_sau > 0;
+        var kl = cungDau && r.ic_t >= 2.7 ? '<span class="up"><b>Có tác dụng</b></span>' : cungDau && r.ic_t >= 2 ? '<b>Có dấu hiệu</b>' : '<span class="muted-text">Chưa chứng minh được</span>';
+        return '<tr><td>' + esc(d.nhan[k] || k) + '</td><td>' + (tinh ? '<b>Tính vào điểm</b>' : '<span class="muted-text">Chỉ tham khảo</span>') + '</td><td class="num">' + (r.ic > 0 ? '+' : '') + fmt(r.ic, 3) + '</td><td class="num">' + fmt(r.ic_t, 1) + '</td>' +
+          '<td class="num">' + (r.ic_nua_dau > 0 ? '+' : '') + fmt(r.ic_nua_dau, 3) + '</td><td class="num">' + (r.ic_nua_sau > 0 ? '+' : '') + fmt(r.ic_nua_sau, 3) + '</td><td>' + kl + '</td></tr>';
+      }).join('');
+      $('#valFactors').innerHTML = '<table class="data-table"><thead><tr><th scope="col">Yếu tố từ báo cáo tài chính</th><th scope="col">Vai trò</th><th scope="col" class="num" title="Hệ số tương quan hạng giữa yếu tố và lợi nhuận 3 tháng sau">IC 3 tháng</th><th scope="col" class="num" title="Thống kê t trên các kỳ không chồng lấn; từ 2 trở lên mới đáng tin hơn ngẫu nhiên">t</th><th scope="col" class="num">IC nửa đầu</th><th scope="col" class="num">IC nửa sau</th><th scope="col">Kết luận</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+        '<p class="table-note">“Có tác dụng” = IC dương ở cả hai nửa giai đoạn và t từ 2,7 trở lên (ngưỡng đã nâng lên vì thử 8 yếu tố cùng lúc nên dễ có kết quả đẹp do may rủi); “Có dấu hiệu” = t từ 2 đến dưới 2,7. ' +
+        'Mô hình giữ hai yếu tố định giá vì E/P đạt mức cao nhất, còn B/P là yếu tố định giá kinh điển có cơ sở lý luận từ trước. Tăng tốc lợi nhuận có dấu hiệu nhưng IC nhỏ nên chưa đưa vào điểm. Tăng trưởng lợi nhuận, doanh thu, ROE và dòng tiền chưa chứng minh được tác dụng.</p>';
+    }
     // liên kết trực tiếp: …/co-phieu-khuyen-nghi/#bctc=FPT mở thẳng tab báo cáo tài chính
     var hm = /^#bctc(?:=([A-Za-z0-9]{1,12}))?$/.exec(location.hash);
     if(hm) fsMo(hm[1] ? hm[1].toUpperCase() : '');
+    else if(location.hash === '#dinh-gia') valMo();
     // đổi #bctc=… trên thanh địa chỉ (dán liên kết, nút Quay lại) thì cập nhật theo
     window.addEventListener('hashchange', function(){
       var h = /^#bctc(?:=([A-Za-z0-9]{1,12}))?$/.exec(location.hash);
       if(h){ var m = h[1] ? h[1].toUpperCase() : ''; if($('#recPaneFs').hidden || (m && m !== fs.ma)) fsMo(m); }
-      else if(!$('#recPaneFs').hidden) fsDong();
+      else if(location.hash === '#dinh-gia'){ if($('#recPaneVal').hidden) valMo(); }
+      else if(!$('#recPaneFs').hidden || !$('#recPaneVal').hidden) fsDong();
     });
     // bấm nút “Xem báo cáo tài chính” (data-bctc) ở bất kỳ đâu trên trang
     document.addEventListener('click', function(e){

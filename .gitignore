@@ -4,3 +4,6 @@ __pycache__/
 _site/
 .jekyll-cache/
 scripts/.canh_bao_moi.json
+
+# lịch sử báo cáo dài dùng riêng cho backtest (tải lại được bằng scripts/backtest_tai_chinh.py --tai)
+.cache/

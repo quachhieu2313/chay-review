@@ -39,6 +39,11 @@ jobs:
         continue-on-error: true
         run: python scripts/bao_cao_tai_chinh.py
 
+      # Điểm định giá theo báo cáo tài chính (tab "Định giá theo BCTC"): tính lại từ báo cáo + giá mới nhất; giữ nguyên phần backtest đã chạy tay
+      - name: Điểm định giá
+        continue-on-error: true
+        run: python scripts/diem_tai_chinh.py
+
       - name: Lưu thay đổi
         run: |
           git config user.name "github-actions[bot]"

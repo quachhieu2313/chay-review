@@ -1290,3 +1290,18 @@ body.modal-open{overflow:hidden;}
 .fs-kt-na{font-size:12.5px; color:var(--muted);}
 .fs-kt-warn{border:1px solid var(--critical); border-left-width:4px; border-radius:10px; padding:10px 14px; font-size:13px; color:var(--ink-soft); background:var(--surface);}
 .fs-kt-warn b{color:var(--critical);}
+
+/* ---------- tab Định giá theo BCTC */
+.val-h3{margin:18px 0 8px; font-size:15px;}
+.val-bar{display:grid; grid-template-columns:96px 1fr 62px; align-items:center; gap:8px; margin:0 0 5px; font-size:12.5px;}
+.val-bar-l{color:var(--muted); white-space:nowrap;}
+.val-bar-t{display:block; height:10px; background:var(--surface-sunk); border-radius:6px; overflow:hidden;}
+.val-bar-t i{display:block; height:100%; background:var(--good); border-radius:6px;}
+.val-bar-t i.neg{background:var(--critical);}
+.val-bar b{text-align:right; font-family:"JetBrains Mono",monospace; font-size:12px;}
+.val-dl{margin-top:10px;}
+.val-flag{display:inline-block; margin-left:4px; padding:0 6px; border-radius:6px; background:var(--accent-tint); color:var(--accent-ink); font-size:11px; font-weight:650; white-space:nowrap;}
+.val-warn{color:var(--critical); font-weight:700; cursor:help;}
+
+.val-dl dt,.val-dl dd{font-size:12.5px;}
+.val-dl dd{font-family:"JetBrains Mono",monospace; font-size:12px;}

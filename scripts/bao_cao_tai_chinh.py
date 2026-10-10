@@ -215,7 +215,7 @@ def kiem_tra_cheo(ma, d):
     return kq
 
 
-def tai_mot_ma(ma, ten, nganh, cu=None, tat_ca=False):
+def tai_mot_ma(ma, ten, nganh, cu=None, tat_ca=False, so_quy=SO_QUY, so_nam=SO_NAM, kiem_tra=True):
     kqkd = lay_bao_cao(ma, SECTIONS["kqkd"])
     moc = moc_cua(kqkd)
     if not moc:
@@ -224,8 +224,8 @@ def tai_mot_ma(ma, ten, nganh, cu=None, tat_ca=False):
         return cu, "giữ nguyên"
     metrics = nguon._goi("GET", f"{FS}/{ma}/financial-statement/metrics", nguon.H_VCI)["data"]
     bao = {"kqkd": kqkd, "cdkt": lay_bao_cao(ma, SECTIONS["cdkt"]), "lctt": lay_bao_cao(ma, SECTIONS["lctt"])}
-    quy = cac_ky(kqkd.get("quarters") or [], SO_QUY)
-    nam = cac_ky(kqkd.get("years") or [], SO_NAM)
+    quy = cac_ky(kqkd.get("quarters") or [], so_quy)
+    nam = cac_ky(kqkd.get("years") or [], so_nam)
     by = {k: {(r["yearReport"], r["lengthReport"]): r for r in (v.get("quarters") or []) + (v.get("years") or [])} for k, v in bao.items()}
     out = {
         "ma": ma, "ten": ten, "nganh": nganh, "loai": loai_hinh(metrics), "don_vi": "tỷ đồng", "cap_nhat": date.today().isoformat(), "moc": moc, "nguon": "Vietcap (iq.vietcap.com.vn)",
@@ -241,6 +241,8 @@ def tai_mot_ma(ma, ten, nganh, cu=None, tat_ca=False):
     tt = {k: next((f for f in cands if f in co), None) for k, cands in TOM_TAT.items()}
     tt["dt"] = next((f for f in DOANH_THU if f in co), None)
     out["tt"] = tt
+    if not kiem_tra:                            # dùng cho backtest (lịch sử dài): không cần đối chiếu KBS
+        return out, "đã tải"
     try:
         out["kt"] = kiem_tra_cheo(ma, out)
     except Exception as e:                     # KBS lỗi thì không chặn việc lưu báo cáo; ghi nhận là chưa đối chiếu được
