@@ -1,0 +1,364 @@
+{
+ "cap_nhat": "2026-10-10",
+ "so_ma": 100,
+ "khop": 92,
+ "lech": [
+  {
+   "ma": "CMG",
+   "chi_tiet": [
+    {
+     "ct": "Tổng tài sản",
+     "nam": 2025,
+     "vietcap": 10048.2,
+     "kbs": 10451.9
+    },
+    {
+     "ct": "Tổng tài sản",
+     "nam": 2024,
+     "vietcap": 7719.7,
+     "kbs": 7677.1
+    },
+    {
+     "ct": "Vốn chủ sở hữu",
+     "nam": 2025,
+     "vietcap": 3991.5,
+     "kbs": 4087.4
+    },
+    {
+     "ct": "Vốn chủ sở hữu",
+     "nam": 2024,
+     "vietcap": 3585.7,
+     "kbs": 3677.5
+    },
+    {
+     "ct": "Lợi nhuận sau thuế",
+     "nam": 2025,
+     "vietcap": 498.6,
+     "kbs": 516.8
+    },
+    {
+     "ct": "Lợi nhuận sau thuế",
+     "nam": 2024,
+     "vietcap": 384.3,
+     "kbs": 427.1
+    },
+    {
+     "ct": "Dòng tiền kinh doanh",
+     "nam": 2025,
+     "vietcap": 621.0,
+     "kbs": 592.7
+    },
+    {
+     "ct": "Dòng tiền kinh doanh",
+     "nam": 2024,
+     "vietcap": 749.6,
+     "kbs": 941.3
+    },
+    {
+     "ct": "Doanh thu thuần",
+     "nam": 2025,
+     "vietcap": 9111.1,
+     "kbs": 9560.8
+    },
+    {
+     "ct": "Doanh thu thuần",
+     "nam": 2024,
+     "vietcap": 7933.9,
+     "kbs": 8202.6
+    }
+   ]
+  },
+  {
+   "ma": "CTD",
+   "chi_tiet": [
+    {
+     "ct": "Tổng tài sản",
+     "nam": 2025,
+     "vietcap": 34442.2,
+     "kbs": 29701.5
+    },
+    {
+     "ct": "Tổng tài sản",
+     "nam": 2024,
+     "vietcap": 27076.9,
+     "kbs": 22868.8
+    },
+    {
+     "ct": "Vốn chủ sở hữu",
+     "nam": 2025,
+     "vietcap": 9385.3,
+     "kbs": 8965.2
+    },
+    {
+     "ct": "Vốn chủ sở hữu",
+     "nam": 2024,
+     "vietcap": 8688.8,
+     "kbs": 8591.3
+    },
+    {
+     "ct": "Lợi nhuận sau thuế",
+     "nam": 2025,
+     "vietcap": 781.4,
+     "kbs": 456.2
+    },
+    {
+     "ct": "Lợi nhuận sau thuế",
+     "nam": 2024,
+     "vietcap": 371.4,
+     "kbs": 309.6
+    },
+    {
+     "ct": "Dòng tiền kinh doanh",
+     "nam": 2025,
+     "vietcap": -830.9,
+     "kbs": -1153.6
+    },
+    {
+     "ct": "Dòng tiền kinh doanh",
+     "nam": 2024,
+     "vietcap": -857.0,
+     "kbs": 24.3
+    },
+    {
+     "ct": "Doanh thu thuần",
+     "nam": 2025,
+     "vietcap": 30699.0,
+     "kbs": 24884.5
+    },
+    {
+     "ct": "Doanh thu thuần",
+     "nam": 2024,
+     "vietcap": 22905.8,
+     "kbs": 21045.2
+    }
+   ]
+  },
+  {
+   "ma": "HDB",
+   "chi_tiet": [
+    {
+     "ct": "Dòng tiền kinh doanh",
+     "nam": 2024,
+     "vietcap": -7384.5,
+     "kbs": 8742.4,
+     "goi_y": "kbs_khop_quy",
+     "tu_quy": 8742.4
+    }
+   ]
+  },
+  {
+   "ma": "HSG",
+   "chi_tiet": [
+    {
+     "ct": "Tổng tài sản",
+     "nam": 2025,
+     "vietcap": 21058.3,
+     "kbs": 18953.0
+    },
+    {
+     "ct": "Tổng tài sản",
+     "nam": 2024,
+     "vietcap": 19800.2,
+     "kbs": 19565.6
+    },
+    {
+     "ct": "Vốn chủ sở hữu",
+     "nam": 2024,
+     "vietcap": 11120.3,
+     "kbs": 10916.9
+    },
+    {
+     "ct": "Lợi nhuận sau thuế",
+     "nam": 2025,
+     "vietcap": 628.3,
+     "kbs": 735.0
+    },
+    {
+     "ct": "Lợi nhuận sau thuế",
+     "nam": 2024,
+     "vietcap": 576.9,
+     "kbs": 514.7
+    },
+    {
+     "ct": "Dòng tiền kinh doanh",
+     "nam": 2025,
+     "vietcap": 2722.2,
+     "kbs": 3685.2
+    },
+    {
+     "ct": "Dòng tiền kinh doanh",
+     "nam": 2024,
+     "vietcap": -762.0,
+     "kbs": -1414.9
+    },
+    {
+     "ct": "Doanh thu thuần",
+     "nam": 2025,
+     "vietcap": 34699.2,
+     "kbs": 36537.8
+    },
+    {
+     "ct": "Doanh thu thuần",
+     "nam": 2024,
+     "vietcap": 40420.3,
+     "kbs": 39271.9
+    }
+   ]
+  },
+  {
+   "ma": "OCB",
+   "chi_tiet": [
+    {
+     "ct": "Tổng tài sản",
+     "nam": 2024,
+     "vietcap": 276486.8,
+     "kbs": 280712.4,
+     "goi_y": "kbs_khop_quy",
+     "tu_quy": 280712.4
+    }
+   ]
+  },
+  {
+   "ma": "SBT",
+   "chi_tiet": [
+    {
+     "ct": "Tổng tài sản",
+     "nam": 2025,
+     "vietcap": 35898.7,
+     "kbs": 37798.6
+    },
+    {
+     "ct": "Tổng tài sản",
+     "nam": 2024,
+     "vietcap": 33959.5,
+     "kbs": 32679.1
+    },
+    {
+     "ct": "Vốn chủ sở hữu",
+     "nam": 2025,
+     "vietcap": 12210.5,
+     "kbs": 12460.4
+    },
+    {
+     "ct": "Vốn chủ sở hữu",
+     "nam": 2024,
+     "vietcap": 10555.4,
+     "kbs": 10850.8
+    },
+    {
+     "ct": "Lợi nhuận sau thuế",
+     "nam": 2025,
+     "vietcap": 736.1,
+     "kbs": 846.4
+    },
+    {
+     "ct": "Lợi nhuận sau thuế",
+     "nam": 2024,
+     "vietcap": 876.7,
+     "kbs": 834.5
+    },
+    {
+     "ct": "Dòng tiền kinh doanh",
+     "nam": 2025,
+     "vietcap": -2375.7,
+     "kbs": -134.5
+    },
+    {
+     "ct": "Dòng tiền kinh doanh",
+     "nam": 2024,
+     "vietcap": 511.0,
+     "kbs": -605.9
+    },
+    {
+     "ct": "Doanh thu thuần",
+     "nam": 2025,
+     "vietcap": 26228.4,
+     "kbs": 26732.8
+    },
+    {
+     "ct": "Doanh thu thuần",
+     "nam": 2024,
+     "vietcap": 29995.2,
+     "kbs": 28482.2
+    }
+   ]
+  },
+  {
+   "ma": "TCH",
+   "chi_tiet": [
+    {
+     "ct": "Tổng tài sản",
+     "nam": 2025,
+     "vietcap": 21120.7,
+     "kbs": 14624.6
+    },
+    {
+     "ct": "Tổng tài sản",
+     "nam": 2024,
+     "vietcap": 15348.6,
+     "kbs": 14176.4
+    },
+    {
+     "ct": "Vốn chủ sở hữu",
+     "nam": 2025,
+     "vietcap": 14270.5,
+     "kbs": 12433.6
+    },
+    {
+     "ct": "Vốn chủ sở hữu",
+     "nam": 2024,
+     "vietcap": 13277.0,
+     "kbs": 11656.1
+    },
+    {
+     "ct": "Lợi nhuận sau thuế",
+     "nam": 2025,
+     "vietcap": 418.5,
+     "kbs": 1243.2
+    },
+    {
+     "ct": "Lợi nhuận sau thuế",
+     "nam": 2024,
+     "vietcap": 1382.8,
+     "kbs": 480.2
+    },
+    {
+     "ct": "Dòng tiền kinh doanh",
+     "nam": 2025,
+     "vietcap": 2342.1,
+     "kbs": -4540.0
+    },
+    {
+     "ct": "Dòng tiền kinh doanh",
+     "nam": 2024,
+     "vietcap": 2014.3,
+     "kbs": -423.1
+    },
+    {
+     "ct": "Doanh thu thuần",
+     "nam": 2025,
+     "vietcap": 1912.2,
+     "kbs": 3803.3
+    },
+    {
+     "ct": "Doanh thu thuần",
+     "nam": 2024,
+     "vietcap": 5427.4,
+     "kbs": 2093.2
+    }
+   ]
+  },
+  {
+   "ma": "VHM",
+   "chi_tiet": [
+    {
+     "ct": "Tổng tài sản",
+     "nam": 2025,
+     "vietcap": 794704.3,
+     "kbs": 787857.3
+    }
+   ]
+  }
+ ],
+ "chua_doi_chieu": []
+}

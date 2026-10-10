@@ -438,13 +438,31 @@
         (fs.bc === 'cdkt' ? 'Cân đối kế toán là số cuối kỳ. ' : fs.ky === 'q' ? 'Số phát sinh riêng từng quý. ' : '') + 'Nguồn: ' + (d.nguon || 'Vietcap') + ', cập nhật ' + ngayVN(d.cap_nhat) + '.';
     }
 
+    function fsDoiChieu(){
+      var kt = fs.data.kt, el = $('#fsKt');
+      if(!kt){ el.innerHTML = ''; return; }
+      var lech = kt.lech || [];
+      if(lech.length){
+        var ds = lech.map(function(c){
+          return esc(c.ct + ' ' + c.nam + ': Vietcap ' + fmt(c.vietcap, 1) + ' / KBS ' + fmt(c.kbs, 1) + ' tỷ') +
+            (c.goi_y === 'kbs_khop_quy' ? ' <i>(KBS khớp số tính từ các quý của Vietcap, nhiều khả năng số cả năm của Vietcap chưa chuẩn)</i>' : '');
+        });
+        el.innerHTML = '<div class="fs-kt-warn" role="alert"><b>Cảnh báo:</b> số liệu cả năm chưa thống nhất giữa hai nguồn, chưa xác định số nào đúng. Có thể do báo cáo được điều chỉnh hoặc lỗi nguồn: ' +
+          ds.join('; ') + '. Hãy đối chiếu báo cáo gốc trước khi sử dụng.</div>';
+      }else if(kt.so_sanh){
+        el.innerHTML = '<div class="fs-kt-ok">✓ Đã đối chiếu ' + kt.so_sanh + ' số liệu cả năm với ' + esc(kt.nguon) + ': khớp (kiểm tra ngày ' + ngayVN(kt.ngay) + ').</div>';
+      }else{
+        el.innerHTML = '<div class="fs-kt-na">Chưa đối chiếu được với nguồn thứ hai.</div>';
+      }
+    }
+
     function fsVe(){
       var d = fs.data;
       $('#fsTitle').textContent = d.ma + ' · ' + d.ten;
       var m = d.quy && d.quy[0];
       $('#fsMeta').textContent = (d.loai === d.nganh ? d.loai : d.loai + ' · ' + d.nganh) + ' · Kỳ mới nhất ' + (m ? m.k + ' (công bố lần đầu ' + ngayVN(m.cb) + (m.cn && m.cn !== m.cb ? ', cập nhật ' + ngayVN(m.cn) : '') + ')' : '–') + ' · tỷ đồng · nguồn Vietcap';
       $('#fsBody').hidden = false;
-      fsKpis(); fsChart(); fsTable();
+      fsKpis(); fsChart(); fsTable(); fsDoiChieu();
     }
 
     function fsCsv(){
