@@ -555,6 +555,100 @@
     nhom('#fsKy', 'data-ky', 'ky'); nhom('#fsBc', 'data-bc', 'bc'); nhom('#fsView', 'data-view', 'view');
     $('#fsChinh').addEventListener('change', function(){ fs.chinh = this.checked; if(fs.data) fsTable(); });
     $('#fsCsv').addEventListener('click', function(){ if(fs.data) fsCsv(); });
+    // ---- popup biểu đồ giá của một mã: dùng chung cho cả 3 tab (trang Thị trường có popup riêng nên chỉ định nghĩa ở đây khi trang chưa có)
+    var cp = {chart: null, ma: null, range: 126, ve: null};
+    function cpDong(){
+      var m = $('#cpModal'); if(!m) return;
+      m.hidden = true; document.body.classList.remove('cp-open'); cp.ma = null;
+      if(cp.chart){ cp.chart.remove(); cp.chart = null; }
+    }
+    function cpKhung(){
+      var m = $('#cpModal'); if(m) return m;
+      m = document.createElement('div'); m.id = 'cpModal'; m.className = 'cp-modal'; m.hidden = true;
+      m.innerHTML = '<div class="cp-box" role="dialog" aria-modal="true" aria-labelledby="cpTitle">' +
+        '<div class="cp-head"><div><h3 id="cpTitle"></h3><p id="cpSub" class="muted-text"></p></div><button type="button" class="cp-x" id="cpClose" aria-label="Đóng">✕</button></div>' +
+        '<div class="cp-stats" id="cpStats"></div>' +
+        '<div class="cp-tools"><div class="seg" id="cpRange" role="group" aria-label="Khoảng thời gian">' +
+        '<button type="button" data-n="63">3 tháng</button><button type="button" data-n="126" aria-pressed="true">6 tháng</button><button type="button" data-n="252">1 năm</button><button type="button" data-n="756">3 năm</button><button type="button" data-n="0">Tất cả</button></div>' +
+        '<label class="fs-check"><input type="checkbox" id="cpMa" checked> Đường MA20/50/200</label><label class="fs-check"><input type="checkbox" id="cpVol" checked> Khối lượng</label></div>' +
+        '<div id="cpChart" class="cp-chart"></div><div class="cp-links" id="cpLinks"></div></div>';
+      document.body.appendChild(m);
+      m.addEventListener('click', function(e){ if(e.target === m) cpDong(); });
+      $('#cpClose').addEventListener('click', cpDong);
+      $('#cpRange').addEventListener('click', function(e){
+        var b = e.target.closest('button[data-n]'); if(!b) return;
+        cp.range = Number(b.getAttribute('data-n'));
+        $$('#cpRange button').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        if(cp.chart) cpKhoang();
+      });
+      $('#cpMa').addEventListener('change', function(){ if(cp.ve) cp.ve(); });
+      $('#cpVol').addEventListener('change', function(){ if(cp.ve) cp.ve(); });
+      $('#cpLinks').addEventListener('click', function(e){ if(e.target.closest('a[data-bctc]')) cpDong(); });
+      document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !m.hidden) cpDong(); });
+      return m;
+    }
+    function cpKhoang(){
+      var n = cp.n || 0, ts = cp.chart.timeScale();
+      if(!cp.range || cp.range >= n) ts.fitContent(); else ts.setVisibleLogicalRange({from: n - cp.range, to: n + 3});
+    }
+    function cpMo(ma){
+      ma = String(ma).toUpperCase();
+      var m = cpKhung(); m.hidden = false; document.body.classList.add('cp-open');
+      cp.ma = ma; cp.ve = null;
+      if(cp.chart){ cp.chart.remove(); cp.chart = null; }
+      $('#cpTitle').textContent = ma; $('#cpSub').textContent = 'Đang tải biểu đồ…'; $('#cpStats').innerHTML = ''; $('#cpChart').innerHTML = ''; $('#cpLinks').innerHTML = '';
+      Promise.all([loadLwc(), load('cp/' + ma + '.json'), load('diem_tai_chinh.json').catch(function(){ return null; })]).then(function(res){
+        if(cp.ma !== ma) return;                              // người dùng đã đóng hoặc mở mã khác
+        var L = res[0], d = res[1], dg = res[2] && (res[2].ds || []).filter(function(x){ return x.ma === ma; })[0];
+        var n = d.c.length, c = d.c, last = c[n - 1], rt = returns(d.d, c);
+        $('#cpTitle').textContent = ma + ' · ' + d.ten;
+        $('#cpSub').textContent = [d.nganh, d.san, 'giá đến ' + ngayVN(d.d[n - 1])].filter(Boolean).join(' · ');
+        function o(nhan, v){ return '<div><span>' + nhan + '</span><b>' + v + '</b></div>'; }
+        function ls(nhan, v){ return o(nhan, '<span class="' + cls(v) + '">' + pct(v, 1) + '</span>'); }
+        var st = o('Giá đóng cửa', fmt(last) + ' đ') + ls('1 ngày', rt['1d']) + ls('1 tháng', rt['1m']) + ls('3 tháng', rt['3m']) + ls('6 tháng', rt['6m']) + ls('1 năm', rt['1y']);
+        if(dg){
+          var g = dg.ln_4q_truoc && dg.ln_4q_truoc > 0 && dg.ln_4q !== null ? (dg.ln_4q / dg.ln_4q_truoc - 1) * 100 : null;
+          st += o('Điểm định giá', fmt(dg.diem, 1) + '<small>/100</small>') + o('P/E · P/B', (dg.pe === null ? '–' : fmt(dg.pe, 1) + 'x') + ' · ' + (dg.pb === null ? '–' : fmt(dg.pb, 2) + 'x')) +
+            o('ROE', dg.f.roe === null ? '–' : fmt(dg.f.roe * 100, 1) + '%') + (g === null ? '' : ls('Lợi nhuận 4 quý so cùng kỳ', g));
+        }
+        $('#cpStats').innerHTML = st;
+        var thi = $('[data-market-url]');
+        $('#cpLinks').innerHTML = '<a href="#bctc=' + esc(ma) + '" data-bctc="' + esc(ma) + '">Báo cáo tài chính →</a>' +
+          (thi ? '<a href="' + esc(thi.getAttribute('data-market-url')) + '#ma=' + encodeURIComponent(ma) + '">Phân tích kỹ thuật đầy đủ →</a>' : '');
+        cp.n = n;
+        cp.ve = function(){
+          if(cp.chart){ cp.chart.remove(); cp.chart = null; }
+          var box = $('#cpChart'); box.innerHTML = '';
+          var up = css('--good'), down = css('--critical'), ink = css('--muted'), line = css('--border');
+          var ch = cp.chart = L.createChart(box, {autoSize: true,
+            layout: {background: {type: 'solid', color: 'transparent'}, textColor: ink, fontFamily: '"JetBrains Mono", monospace', fontSize: 11},
+            grid: {vertLines: {color: line}, horzLines: {color: line}}, rightPriceScale: {borderColor: line, minimumWidth: 70}, timeScale: {borderColor: line, rightOffset: 3, minBarSpacing: 1},
+            crosshair: {mode: 0},
+            localization: {locale: 'vi-VN', priceFormatter: function(p){ return fmt(p); }, timeFormatter: function(t){ return ngayVN(typeof t === 'string' ? t : t.year + '-' + ('0' + t.month).slice(-2) + '-' + ('0' + t.day).slice(-2)); }}});
+          var nen = ch.addSeries(L.CandlestickSeries, {upColor: up, downColor: down, borderVisible: false, wickUpColor: up, wickDownColor: down, priceFormat: {type: 'price', precision: 0, minMove: 10}});
+          nen.setData(d.d.map(function(t, i){ return {time: t, open: d.o[i], high: d.h[i], low: d.l[i], close: d.c[i]}; }));
+          var vol = $('#cpVol').checked;
+          nen.priceScale().applyOptions({scaleMargins: {top: 0.06, bottom: vol ? 0.24 : 0.06}});
+          if(vol){
+            var hs = ch.addSeries(L.HistogramSeries, {priceFormat: {type: 'volume'}, priceScaleId: 'vol', lastValueVisible: false, priceLineVisible: false});
+            hs.priceScale().applyOptions({scaleMargins: {top: 0.82, bottom: 0}});
+            hs.setData(d.d.map(function(t, i){ return {time: t, value: d.v[i], color: d.c[i] >= d.o[i] ? 'rgba(61,209,92,.4)' : 'rgba(255,107,97,.4)'}; }));
+          }
+          if($('#cpMa').checked){
+            [[20, '#e08a1e'], [50, '#3b82c4'], [200, '#8e5bb5']].forEach(function(x){
+              var s = ch.addSeries(L.LineSeries, {color: x[1], lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false});
+              var arr = TA.sma(d.c, x[0]), pts = [];
+              arr.forEach(function(v, i){ if(v !== null && v !== undefined && !isNaN(v)) pts.push({time: d.d[i], value: v}); });
+              s.setData(pts);
+            });
+          }
+          cpKhoang();
+        };
+        cp.ve();
+      }).catch(function(){ if(cp.ma === ma) $('#cpSub').textContent = 'Không tải được dữ liệu giá của ' + ma + '. Hãy thử lại sau.'; });
+    }
+    if(!window.KCN_moPopup) window.KCN_moPopup = cpMo;
+
     // ---- tab Định giá theo BCTC: điểm E/P + B/P từ assets/data/diem_tai_chinh.json (scripts/diem_tai_chinh.py) và kết quả backtest (scripts/backtest_tai_chinh.py)
     var val = {side: 'cao', data: null, daMo: false};
     function valMo(){
