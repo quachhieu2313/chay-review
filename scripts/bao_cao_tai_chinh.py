@@ -67,7 +67,23 @@ def cac_ky(ds, so):
 
 def moc_cua(bao_cao_kqkd):
     q = cac_ky(bao_cao_kqkd.get("quarters") or [], 1)
-    return f"{q[0]['yearReport']}-{q[0]['lengthReport']}|{(q[0].get('publicDate') or '')[:10]}" if q else ""
+    # mốc gồm cả ngày cập nhật: báo cáo quý được soát xét/kiểm toán sau đó sẽ đổi mốc và kích hoạt tải lại số liệu mới
+    return f"{q[0]['yearReport']}-{q[0]['lengthReport']}|{ngay_cap_nhat(q[0])}" if q else ""
+
+
+def _ngay(x, *khoa, dung=min):
+    ds = [str(x.get(k))[:10] for k in khoa if x.get(k)]
+    return dung(ds) if ds else ""
+
+
+def ngay_cong_bo(r):
+    """Ngày công bố LẦN ĐẦU (ước tính): sớm nhất trong ngày hệ thống Vietcap tạo bản ghi và publicDate.
+    publicDate/updateDate bị đẩy sang ngày cập nhật gần nhất khi báo cáo được soát xét/kiểm toán (trung vị chậm ~30 ngày so với lần đầu), không phải ngày công bố."""
+    return _ngay(r, "createDate", "publicDate")
+
+
+def ngay_cap_nhat(r):
+    return _ngay(r, "createDate", "updateDate", "publicDate", dung=max)
 
 
 def so(v, giu_dong):
@@ -109,8 +125,8 @@ def tai_mot_ma(ma, ten, nganh, cu=None, tat_ca=False):
     by = {k: {(r["yearReport"], r["lengthReport"]): r for r in (v.get("quarters") or []) + (v.get("years") or [])} for k, v in bao.items()}
     out = {
         "ma": ma, "ten": ten, "nganh": nganh, "loai": loai_hinh(metrics), "don_vi": "tỷ đồng", "cap_nhat": date.today().isoformat(), "moc": moc, "nguon": "Vietcap (iq.vietcap.com.vn)",
-        "quy": [{"k": f"Q{r['lengthReport']}/{r['yearReport']}", "nam": r["yearReport"], "q": r["lengthReport"], "cb": (r.get("publicDate") or "")[:10]} for r in quy],
-        "nam": [{"k": str(r["yearReport"]), "nam": r["yearReport"], "cb": (r.get("publicDate") or "")[:10]} for r in nam],
+        "quy": [{"k": f"Q{r['lengthReport']}/{r['yearReport']}", "nam": r["yearReport"], "q": r["lengthReport"], "cb": ngay_cong_bo(r), "cn": ngay_cap_nhat(r)} for r in quy],
+        "nam": [{"k": str(r["yearReport"]), "nam": r["yearReport"], "cb": ngay_cong_bo(r), "cn": ngay_cap_nhat(r)} for r in nam],
         "bc": {},
     }
     for k, sec in SECTIONS.items():

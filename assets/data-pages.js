@@ -421,7 +421,7 @@
       var d = fs.data, k = fsKy(), rows = (d.bc[fs.bc] || []).filter(function(r){ return !fs.chinh || r.c === 1; });
       var yoy = fs.view === 'yoy';
       var h = '<table class="data-table fs-table"><thead><tr><th scope="col" class="fs-sticky">Chỉ tiêu' + (yoy ? ' · % so cùng kỳ' : '') + '</th>' +
-        k.per.map(function(p){ return '<th scope="col" class="num">' + esc(p.k) + (p.cb ? '<small>CB ' + esc(ngayVN(p.cb).slice(0, 5) + '/' + p.cb.slice(2, 4)) + '</small>' : '') + '</th>'; }).join('') + '</tr></thead><tbody>';
+        k.per.map(function(p){ return '<th scope="col" class="num">' + esc(p.k) + (p.cb ? '<small title="Ngày công bố lần đầu (ước tính)' + (p.cn && p.cn !== p.cb ? '; cập nhật gần nhất ' + esc(ngayVN(p.cn)) : '') + '">CB ' + esc(ngayVN(p.cb).slice(0, 5) + '/' + p.cb.slice(2, 4)) + '</small>' : '') + '</th>'; }).join('') + '</tr></thead><tbody>';
       rows.forEach(function(r){
         h += '<tr class="fs-l' + Math.min(r.c || 1, 4) + (r.f ? '' : ' fs-group') + '"><th scope="row" class="fs-sticky">' + esc(r.t) + '</th>';
         k.per.forEach(function(p, i){
@@ -434,7 +434,7 @@
       });
       $('#fsTable').innerHTML = h + '</tbody></table>';
       var n = k.per[0];
-      $('#fsNote').textContent = 'Đơn vị: tỷ đồng (dòng “trên cổ phiếu”: đồng). Cột mới nhất: ' + n.k + ', công bố ' + ngayVN(n.cb) + '; kỳ chưa kiểm toán hoặc soát xét có thể được điều chỉnh. ' +
+      $('#fsNote').textContent = 'Đơn vị: tỷ đồng (dòng “trên cổ phiếu”: đồng). Cột mới nhất: ' + n.k + ', công bố lần đầu khoảng ' + ngayVN(n.cb) + (n.cn && n.cn !== n.cb ? ', số liệu cập nhật gần nhất ' + ngayVN(n.cn) : '') + '; báo cáo quý có thể được điều chỉnh sau khi soát xét hoặc kiểm toán. ' +
         (fs.bc === 'cdkt' ? 'Cân đối kế toán là số cuối kỳ. ' : fs.ky === 'q' ? 'Số phát sinh riêng từng quý. ' : '') + 'Nguồn: ' + (d.nguon || 'Vietcap') + ', cập nhật ' + ngayVN(d.cap_nhat) + '.';
     }
 
@@ -442,7 +442,7 @@
       var d = fs.data;
       $('#fsTitle').textContent = d.ma + ' · ' + d.ten;
       var m = d.quy && d.quy[0];
-      $('#fsMeta').textContent = (d.loai === d.nganh ? d.loai : d.loai + ' · ' + d.nganh) + ' · Kỳ mới nhất ' + (m ? m.k + ' (công bố ' + ngayVN(m.cb) + ')' : '–') + ' · tỷ đồng · nguồn Vietcap';
+      $('#fsMeta').textContent = (d.loai === d.nganh ? d.loai : d.loai + ' · ' + d.nganh) + ' · Kỳ mới nhất ' + (m ? m.k + ' (công bố lần đầu ' + ngayVN(m.cb) + (m.cn && m.cn !== m.cb ? ', cập nhật ' + ngayVN(m.cn) : '') + ')' : '–') + ' · tỷ đồng · nguồn Vietcap';
       $('#fsBody').hidden = false;
       fsKpis(); fsChart(); fsTable();
     }
