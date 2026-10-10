@@ -1281,3 +1281,6 @@ body.modal-open{overflow:hidden;}
   .fs-table .fs-sticky{min-width:170px;}
   .rec-tabs button{padding:9px 12px; font-size:13.5px;}
 }
+
+.rec-bctc{display:block; margin-top:3px; font-size:12px; font-weight:650; color:var(--accent-strong); white-space:nowrap;}
+.rec-bctc:hover{text-decoration:underline;}

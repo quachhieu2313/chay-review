@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}?v={{ site.time | date: '%Y%m%d%H%M%S' }}">
 </head>
 <body>
 <a class="skip" href="#main">Bỏ qua, tới nội dung chính</a>
@@ -128,7 +128,7 @@
 {%- if site.cloudflare_analytics_token != "" %}
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ site.cloudflare_analytics_token }}"}'></script>
 {%- endif %}
-<script src="{{ '/assets/app.js' | relative_url }}"></script>
-<script src="{{ '/assets/data-pages.js' | relative_url }}"></script>
+<script src="{{ '/assets/app.js' | relative_url }}?v={{ site.time | date: '%Y%m%d%H%M%S' }}"></script>
+<script src="{{ '/assets/data-pages.js' | relative_url }}?v={{ site.time | date: '%Y%m%d%H%M%S' }}"></script>
 </body>
 </html>

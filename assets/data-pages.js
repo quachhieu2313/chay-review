@@ -286,7 +286,7 @@
           (x.ngay_gia ? ' · Giá đến ' + ngayVN(x.ngay_gia) : '') + (x.ky_tai_chinh ? ' · Kỳ tài chính ' + esc(x.ky_tai_chinh) : '') + '</p>' +
           (warnings.length ? '<p class="rec-warning-list"><b>Cảnh báo:</b> ' + warnings.map(esc).join(' · ') + '</p>' : '') +
           '</div></details>';
-        var code = '<button type="button" class="rec-code" data-ma="' + esc(x.ma) + '">' + esc(x.ma) + '</button><span>' + esc(x.ten) + '</span>';
+        var code = '<button type="button" class="rec-code" data-ma="' + esc(x.ma) + '">' + esc(x.ma) + '</button><span>' + esc(x.ten) + '</span><a href="#bctc=' + esc(x.ma) + '" class="rec-bctc" data-bctc="' + esc(x.ma) + '" title="Xem báo cáo tài chính của ' + esc(x.ma) + '">Báo cáo tài chính →</a>';
         return '<tr><td class="num">' + (i + 1) + '</td><td class="rec-company">' + code + '</td><td class="num"><b class="rec-score">' + fmt(x.scores[recHorizon], 1) + '</b><small>/100</small></td>' +
           '<td class="num">' + pct(m.loi_nhuan_3m_pct) + '</td><td class="num">' + pct(m.loi_nhuan_6m_pct) + '</td>' +
           '<td class="num">' + (m.roe_pct === null ? '–' : fmt(m.roe_pct, 1) + '%') + '</td><td class="num">' + (m.pe === null ? '–' : fmt(m.pe, 1) + 'x') + '</td>' +
@@ -534,6 +534,12 @@
     // liên kết trực tiếp: …/co-phieu-khuyen-nghi/#bctc=FPT mở thẳng tab báo cáo tài chính
     var hm = /^#bctc(?:=([A-Za-z0-9]{1,12}))?$/.exec(location.hash);
     if(hm) fsMo(hm[1] ? hm[1].toUpperCase() : '');
+    // đổi #bctc=… trên thanh địa chỉ (dán liên kết, nút Quay lại) thì cập nhật theo
+    window.addEventListener('hashchange', function(){
+      var h = /^#bctc(?:=([A-Za-z0-9]{1,12}))?$/.exec(location.hash);
+      if(h){ var m = h[1] ? h[1].toUpperCase() : ''; if($('#recPaneFs').hidden || (m && m !== fs.ma)) fsMo(m); }
+      else if(!$('#recPaneFs').hidden) fsDong();
+    });
     // bấm nút “Xem báo cáo tài chính” (data-bctc) ở bất kỳ đâu trên trang
     document.addEventListener('click', function(e){
       var b = e.target.closest('[data-bctc]'); if(!b) return;
