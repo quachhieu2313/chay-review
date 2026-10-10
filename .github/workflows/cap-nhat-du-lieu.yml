@@ -34,6 +34,11 @@ jobs:
       - name: Lấy dữ liệu
         run: python scripts/cap_nhat_du_lieu.py
 
+      # Báo cáo tài chính (tab "Báo cáo tài chính" của trang Cổ phiếu khuyến nghị): chỉ tải lại mã vừa có kỳ báo cáo mới nên lượt thường chỉ mất ~1 phút
+      - name: Báo cáo tài chính
+        continue-on-error: true
+        run: python scripts/bao_cao_tai_chinh.py
+
       - name: Lưu thay đổi
         run: |
           git config user.name "github-actions[bot]"

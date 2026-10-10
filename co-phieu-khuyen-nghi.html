@@ -16,6 +16,12 @@ permalink: /co-phieu-khuyen-nghi/
     <b>Điểm tổng hợp chưa được backtest toàn bộ.</b> Backtest bên dưới chỉ kiểm tra động lượng giá quá khứ, không bao gồm chỉ số tài chính hay dữ liệu quỹ lịch sử. Đây là bộ lọc tham khảo, không phải dự báo chắc chắn hoặc khuyến nghị cá nhân hóa.
   </div>
 
+  <div class="rec-tabs" role="tablist" aria-label="Nội dung trang">
+    <button type="button" role="tab" id="recTabRank" aria-selected="true" aria-controls="recPaneRank">Xếp hạng</button>
+    <button type="button" role="tab" id="recTabFs" aria-selected="false" aria-controls="recPaneFs">Báo cáo tài chính</button>
+  </div>
+
+  <div id="recPaneRank" role="tabpanel" aria-labelledby="recTabRank">
   <section class="card panel" aria-labelledby="recTitle">
     <div class="panel-head rec-head">
       <div>
@@ -77,4 +83,62 @@ permalink: /co-phieu-khuyen-nghi/
     </ul>
     <p class="muted-text">Nguồn đầu vào được ghi cùng thời điểm cập nhật trên trang. Dữ liệu có thể thiếu, trễ hoặc sai; hãy đối chiếu báo cáo gốc và tự đánh giá khẩu vị rủi ro trước mọi quyết định.</p>
   </section>
+  </div>
+
+  <div id="recPaneFs" role="tabpanel" aria-labelledby="recTabFs" hidden>
+    <section class="card panel fs-panel" aria-labelledby="fsTitle">
+      <div class="panel-head rec-head">
+        <div>
+          <p class="eyebrow">Báo cáo tài chính</p>
+          <h2 id="fsTitle">Chọn một mã cổ phiếu</h2>
+          <p class="panel-sub" id="fsMeta">Đang tải danh sách…</p>
+        </div>
+        <div class="fs-pick">
+          <label for="fsMa" class="fs-label">Mã cổ phiếu</label>
+          <div class="fs-pick-row">
+            <input id="fsMa" class="fs-input" type="text" list="fsList" autocomplete="off" spellcheck="false" placeholder="VD: FPT, ACB, SSI…" maxlength="12" aria-describedby="fsMeta">
+            <datalist id="fsList"></datalist>
+            <button type="button" class="btn btn-accent" id="fsGo">Xem</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="fsBody" hidden>
+        <div class="fs-kpis" id="fsKpis"></div>
+
+        <div class="fs-controls">
+          <div class="seg" id="fsKy" role="group" aria-label="Kỳ báo cáo">
+            <button type="button" data-ky="q" aria-pressed="true">Theo quý</button>
+            <button type="button" data-ky="n" aria-pressed="false">Theo năm</button>
+          </div>
+          <div class="seg" id="fsBc" role="group" aria-label="Loại báo cáo">
+            <button type="button" data-bc="kqkd" aria-pressed="true">Kết quả kinh doanh</button>
+            <button type="button" data-bc="cdkt" aria-pressed="false">Cân đối kế toán</button>
+            <button type="button" data-bc="lctt" aria-pressed="false">Lưu chuyển tiền tệ</button>
+          </div>
+          <div class="seg" id="fsView" role="group" aria-label="Cách hiển thị">
+            <button type="button" data-view="so" aria-pressed="true">Số liệu</button>
+            <button type="button" data-view="yoy" aria-pressed="false">Tăng trưởng so cùng kỳ</button>
+          </div>
+          <label class="fs-check"><input type="checkbox" id="fsChinh"> Chỉ mục chính</label>
+          <button type="button" class="btn" id="fsCsv">Tải CSV</button>
+        </div>
+
+        <div class="fs-chart-wrap"><div id="fsChart" class="fs-chart"></div></div>
+
+        <div class="table-scroll fs-scroll"><div id="fsTable"></div></div>
+        <p class="table-note" id="fsNote"></p>
+      </div>
+    </section>
+
+    <section class="note-card rec-method">
+      <h2>Về số liệu báo cáo tài chính</h2>
+      <ul>
+        <li>Nguồn: API công khai của Vietcap (iq.vietcap.com.vn); tải tự động và chỉ cập nhật khi doanh nghiệp công bố kỳ mới. Đơn vị: tỷ đồng, riêng “Lãi cơ bản trên cổ phiếu” tính bằng đồng.</li>
+        <li>Báo cáo hợp nhất theo quý và năm. Cân đối kế toán là số cuối kỳ; kết quả kinh doanh và lưu chuyển tiền tệ theo quý là số phát sinh riêng từng quý (cộng 4 quý xấp xỉ số cả năm).</li>
+        <li>Ngân hàng, chứng khoán và bảo hiểm dùng biểu mẫu riêng nên tên và số dòng chỉ tiêu khác doanh nghiệp thông thường; “Doanh thu” trong thẻ tóm tắt là doanh thu thuần, thu nhập lãi thuần (ngân hàng) hoặc doanh thu phí bảo hiểm.</li>
+        <li>Báo cáo quý chưa kiểm toán hoặc soát xét có thể được điều chỉnh sau này. Đây là dữ liệu tham khảo, hãy đối chiếu báo cáo gốc do doanh nghiệp công bố trước khi sử dụng.</li>
+      </ul>
+    </section>
+  </div>
 </section>

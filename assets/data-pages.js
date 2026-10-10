@@ -340,6 +340,207 @@
     });
   }
 
+  // ---- Cổ Phiếu Khuyến Nghị: tab Báo cáo tài chính (dữ liệu assets/data/bctc/<MÃ>.json do scripts/bao_cao_tai_chinh.py tải từ Vietcap)
+  var fsPane = $('#recPaneFs');
+  if(fsPane){
+    var fs = {ky: 'q', bc: 'kqkd', view: 'so', chinh: false, ma: null, data: null, ds: [], daMo: false};
+    var FS_DT = {isa3: 'Doanh thu thuần', isb27: 'Thu nhập lãi thuần', isi103: 'Doanh thu phí bảo hiểm'};
+
+    function fsSo(v, dv){ return v === null || v === undefined ? '–' : fmt(v, dv === 'VND' ? 0 : 1); }
+    // tăng trưởng theo độ lớn so với cùng kỳ (quý: cách 4 kỳ, năm: cách 1 kỳ); khác dấu hoặc thiếu số thì không tính
+    function fsYoY(arr, i, step){
+      var cur = arr[i], prev = arr[i + step];
+      if(cur === null || cur === undefined || prev === null || prev === undefined || cur === 0 || prev === 0 || (cur > 0) !== (prev > 0)) return null;
+      return (cur / prev - 1) * 100;
+    }
+    function fsHang(bc, f){ return f ? (fs.data.bc[bc] || []).filter(function(r){ return r.f === f; })[0] : null; }
+    function fsKy(){ return fs.ky === 'q' ? {per: fs.data.quy, key: 'q', step: 4} : {per: fs.data.nam, key: 'n', step: 1}; }
+
+    function fsKpis(){
+      var d = fs.data, k = fsKy(), tt = d.tt || {};
+      var defs = [
+        ['Doanh thu', 'kqkd', tt.dt, FS_DT[tt.dt] || 'Doanh thu'], ['Lợi nhuận sau thuế', 'kqkd', tt.lnst, 'Lợi nhuận sau thuế (công ty mẹ nếu có)'],
+        ['Tổng tài sản', 'cdkt', tt.ts, 'Tổng tài sản cuối kỳ'], ['Vốn chủ sở hữu', 'cdkt', tt.vcsh, 'Vốn chủ sở hữu cuối kỳ'],
+        ['Dòng tiền KD', 'lctt', tt.cfo, 'Lưu chuyển tiền thuần từ hoạt động kinh doanh']
+      ];
+      $('#fsKpis').innerHTML = defs.map(function(x){
+        var r = fsHang(x[1], x[2]);
+        if(!r) return '<article class="fs-kpi"><h3>' + esc(x[0]) + '</h3><p class="fs-kpi-v">–</p><p class="fs-kpi-s muted-text">Không có dữ liệu</p></article>';
+        var arr = r[k.key], v = arr[0], g = fsYoY(arr, 0, k.step);
+        var hist = arr.slice(0, 8).filter(function(z){ return z !== null && z !== undefined; }).reverse();
+        return '<article class="fs-kpi" title="' + esc(x[3]) + '"><h3>' + esc(x[0]) + ' <span>· ' + esc(k.per[0].k) + '</span></h3><p class="fs-kpi-v' + (v < 0 ? ' neg' : '') + '">' + fsSo(v) + ' <small>tỷ</small></p>' +
+          '<p class="fs-kpi-s ' + cls(g) + '">' + (g === null ? 'Chưa so sánh được' : pct(g, 1) + ' so cùng kỳ') + '</p>' +
+          '<span class="fs-kpi-spark">' + sparkSvg(hist, 120, 28, g !== null && g < 0 ? css('--critical') : css('--good')) + '</span></article>';
+      }).join('');
+    }
+
+    // biểu đồ cột nhóm: doanh thu và lợi nhuận sau thuế theo kỳ (cũ → mới)
+    function fsBarSvg(labels, series){
+      var W = 760, H = 230, pl = 52, pr = 8, pt = 22, pb = 28, all = [0];
+      series.forEach(function(s){ s.v.forEach(function(x){ if(x !== null && x !== undefined) all.push(x); }); });
+      var mx = Math.max.apply(null, all), mn = Math.min.apply(null, all);
+      if(mx === mn) mx = mn + 1;
+      var n = labels.length, gw = (W - pl - pr) / n, bw = Math.min(26, gw * 0.8 / series.length);
+      function Y(v){ return pt + (mx - v) / (mx - mn) * (H - pt - pb); }
+      var o = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Biểu đồ ' + esc(series.map(function(s){ return s.name; }).join(' và ')) + ' theo kỳ">';
+      for(var i = 0; i <= 4; i++){
+        var gv = mn + (mx - mn) * i / 4, gy = Y(gv);
+        o += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + gy.toFixed(1) + '" y2="' + gy.toFixed(1) + '" class="fs-grid"/><text x="' + (pl - 6) + '" y="' + (gy + 4).toFixed(1) + '" text-anchor="end">' + fmt(gv, 0) + '</text>';
+      }
+      o += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(0).toFixed(1) + '" y2="' + Y(0).toFixed(1) + '" class="fs-zero"/>';
+      labels.forEach(function(lb, i){
+        var x0 = pl + i * gw + (gw - bw * series.length) / 2;
+        series.forEach(function(s, k){
+          var v = s.v[i];
+          if(v !== null && v !== undefined){
+            var y = Y(Math.max(v, 0)), h = Math.max(1, Math.abs(Y(v) - Y(0)));
+            o += '<rect x="' + (x0 + k * bw).toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (bw - 2).toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2" style="fill:' + s.color + '"><title>' + esc(s.name + ' ' + lb + ': ' + fmt(v, 1) + ' tỷ') + '</title></rect>';
+          }
+        });
+        o += '<text x="' + (pl + i * gw + gw / 2).toFixed(1) + '" y="' + (H - 9) + '" text-anchor="middle">' + esc(lb) + '</text>';
+      });
+      series.forEach(function(s, k){
+        o += '<rect x="' + (pl + k * 190) + '" y="4" width="10" height="10" rx="2" style="fill:' + s.color + '"/><text x="' + (pl + k * 190 + 15) + '" y="13">' + esc(s.name) + ' (tỷ đồng)</text>';
+      });
+      return o + '</svg>';
+    }
+
+    function fsChart(){
+      var d = fs.data, k = fsKy(), tt = d.tt || {}, dt = fsHang('kqkd', tt.dt), ln = fsHang('kqkd', tt.lnst);
+      var el = $('#fsChart');
+      if(!dt && !ln){ el.innerHTML = ''; return; }
+      var take = fs.ky === 'q' ? 12 : 6, per = k.per.slice(0, take).reverse();
+      var pick = function(r){ return r ? r[k.key].slice(0, take).reverse() : []; };
+      var series = [];
+      if(dt) series.push({name: FS_DT[tt.dt] || 'Doanh thu', color: css('--accent'), v: pick(dt)});
+      if(ln) series.push({name: 'Lợi nhuận sau thuế', color: css('--good'), v: pick(ln)});
+      el.innerHTML = fsBarSvg(per.map(function(p){ return p.k; }), series);
+    }
+
+    function fsTable(){
+      var d = fs.data, k = fsKy(), rows = (d.bc[fs.bc] || []).filter(function(r){ return !fs.chinh || r.c === 1; });
+      var yoy = fs.view === 'yoy';
+      var h = '<table class="data-table fs-table"><thead><tr><th scope="col" class="fs-sticky">Chỉ tiêu' + (yoy ? ' · % so cùng kỳ' : '') + '</th>' +
+        k.per.map(function(p){ return '<th scope="col" class="num">' + esc(p.k) + (p.cb ? '<small>CB ' + esc(ngayVN(p.cb).slice(0, 5) + '/' + p.cb.slice(2, 4)) + '</small>' : '') + '</th>'; }).join('') + '</tr></thead><tbody>';
+      rows.forEach(function(r){
+        h += '<tr class="fs-l' + Math.min(r.c || 1, 4) + (r.f ? '' : ' fs-group') + '"><th scope="row" class="fs-sticky">' + esc(r.t) + '</th>';
+        k.per.forEach(function(p, i){
+          if(!r.f){ h += '<td></td>'; return; }
+          if(yoy){ var g = fsYoY(r[k.key], i, k.step); h += '<td class="num ' + cls(g) + '">' + (g === null ? '–' : pct(g, 1)) + '</td>'; return; }
+          var v = r[k.key][i];
+          h += '<td class="num' + (v < 0 ? ' neg' : '') + '">' + fsSo(v, r.dv) + '</td>';
+        });
+        h += '</tr>';
+      });
+      $('#fsTable').innerHTML = h + '</tbody></table>';
+      var n = k.per[0];
+      $('#fsNote').textContent = 'Đơn vị: tỷ đồng (dòng “trên cổ phiếu”: đồng). Cột mới nhất: ' + n.k + ', công bố ' + ngayVN(n.cb) + '; kỳ chưa kiểm toán hoặc soát xét có thể được điều chỉnh. ' +
+        (fs.bc === 'cdkt' ? 'Cân đối kế toán là số cuối kỳ. ' : fs.ky === 'q' ? 'Số phát sinh riêng từng quý. ' : '') + 'Nguồn: ' + (d.nguon || 'Vietcap') + ', cập nhật ' + ngayVN(d.cap_nhat) + '.';
+    }
+
+    function fsVe(){
+      var d = fs.data;
+      $('#fsTitle').textContent = d.ma + ' · ' + d.ten;
+      var m = d.quy && d.quy[0];
+      $('#fsMeta').textContent = (d.loai === d.nganh ? d.loai : d.loai + ' · ' + d.nganh) + ' · Kỳ mới nhất ' + (m ? m.k + ' (công bố ' + ngayVN(m.cb) + ')' : '–') + ' · tỷ đồng · nguồn Vietcap';
+      $('#fsBody').hidden = false;
+      fsKpis(); fsChart(); fsTable();
+    }
+
+    function fsCsv(){
+      var d = fs.data, k = fsKy(), rows = (d.bc[fs.bc] || []).filter(function(r){ return !fs.chinh || r.c === 1; });
+      var q = function(s){ return '"' + String(s).replace(/"/g, '""') + '"'; };
+      var lines = [[q('Chỉ tiêu')].concat(k.per.map(function(p){ return q(p.k); })).join(',')];
+      rows.forEach(function(r){
+        lines.push([q(r.t)].concat(k.per.map(function(p, i){
+          if(!r.f) return '';
+          if(fs.view === 'yoy'){ var g = fsYoY(r[k.key], i, k.step); return g === null ? '' : g.toFixed(1); }
+          var v = r[k.key][i]; return v === null || v === undefined ? '' : v;
+        })).join(','));
+      });
+      var blob = new Blob(['﻿' + lines.join('\r\n')], {type: 'text/csv;charset=utf-8'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'bctc_' + d.ma + '_' + fs.bc + '_' + (fs.ky === 'q' ? 'quy' : 'nam') + (fs.view === 'yoy' ? '_tang_truong' : '') + '.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    }
+
+    function fsDatHash(ma){
+      try{ history.replaceState(null, '', location.pathname + location.search + (ma ? '#bctc=' + encodeURIComponent(ma) : '')); }catch(e){}
+    }
+    function fsXem(ma, giuHash){
+      ma = String(ma || '').trim().toUpperCase();
+      if(!ma) return;
+      if(fs.ds.length && !fs.ds.some(function(x){ return x.ma === ma; })){
+        $('#fsMeta').textContent = 'Không có báo cáo tài chính cho mã “' + ma + '”. Chỉ có các mã trong danh sách gợi ý (VN100).';
+        return;
+      }
+      $('#fsMeta').textContent = 'Đang tải báo cáo của ' + ma + '…';
+      load('bctc/' + ma + '.json').then(function(d){
+        fs.ma = ma; fs.data = d; $('#fsMa').value = ma;
+        try{ localStorage.setItem('kcn_bctc_ma', ma); }catch(e){}
+        if(!giuHash) fsDatHash(ma);
+        fsVe();
+      }).catch(function(){
+        $('#fsMeta').textContent = 'Chưa tải được báo cáo của ' + ma + '. Hãy thử lại sau.';
+        $('#fsBody').hidden = true;
+      });
+    }
+
+    function fsMo(ma){
+      $$('#recPaneRank, #recPaneFs').forEach(function(p){ p.hidden = p.id !== 'recPaneFs'; });
+      $('#recTabRank').setAttribute('aria-selected', 'false'); $('#recTabFs').setAttribute('aria-selected', 'true');
+      if(!fs.daMo){
+        fs.daMo = true;
+        load('bctc/muc_luc.json').then(function(m){
+          fs.ds = m.ds || [];
+          $('#fsList').innerHTML = fs.ds.map(function(x){ return '<option value="' + esc(x.ma) + '">' + esc(x.ten + ' · ' + x.nganh) + '</option>'; }).join('');
+          var luu = ''; try{ luu = localStorage.getItem('kcn_bctc_ma') || ''; }catch(e){}
+          var dau = ma || (fs.ds.some(function(x){ return x.ma === luu; }) ? luu : '') || (fs.ds.some(function(x){ return x.ma === 'FPT'; }) ? 'FPT' : (fs.ds[0] || {}).ma);
+          $('#fsMeta').textContent = fs.ds.length + ' mã có báo cáo tài chính. Gõ mã hoặc chọn từ gợi ý.';
+          if(dau) fsXem(dau);
+        }).catch(function(){ $('#fsMeta').textContent = 'Chưa tải được danh sách báo cáo tài chính.'; });
+      }else if(ma){ fsXem(ma); }
+      else fsDatHash(fs.ma);
+    }
+    function fsDong(){
+      $$('#recPaneRank, #recPaneFs').forEach(function(p){ p.hidden = (p.id === 'recPaneFs'); });
+      $('#recTabRank').setAttribute('aria-selected', 'true'); $('#recTabFs').setAttribute('aria-selected', 'false');
+      fsDatHash('');
+    }
+
+    $('#recTabRank').addEventListener('click', fsDong);
+    $('#recTabFs').addEventListener('click', function(){ fsMo(); });
+    $('#recTabRank').parentNode.addEventListener('keydown', function(e){
+      if(e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      if(e.key === 'ArrowRight'){ fsMo(); $('#recTabFs').focus(); } else { fsDong(); $('#recTabRank').focus(); }
+    });
+    $('#fsGo').addEventListener('click', function(){ fsXem($('#fsMa').value); });
+    $('#fsMa').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); fsXem(this.value); } });
+    $('#fsMa').addEventListener('change', function(){ if(fs.ds.some(function(x){ return x.ma === this.value.trim().toUpperCase(); }, this)) fsXem(this.value); });
+    function nhom(id, attr, key){
+      $(id).addEventListener('click', function(e){
+        var b = e.target.closest('button[' + attr + ']'); if(!b) return;
+        fs[key] = b.getAttribute(attr);
+        $$(id + ' button').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        if(fs.data){ if(key === 'ky'){ fsKpis(); fsChart(); } fsTable(); }
+      });
+    }
+    nhom('#fsKy', 'data-ky', 'ky'); nhom('#fsBc', 'data-bc', 'bc'); nhom('#fsView', 'data-view', 'view');
+    $('#fsChinh').addEventListener('change', function(){ fs.chinh = this.checked; if(fs.data) fsTable(); });
+    $('#fsCsv').addEventListener('click', function(){ if(fs.data) fsCsv(); });
+    // liên kết trực tiếp: …/co-phieu-khuyen-nghi/#bctc=FPT mở thẳng tab báo cáo tài chính
+    var hm = /^#bctc(?:=([A-Za-z0-9]{1,12}))?$/.exec(location.hash);
+    if(hm) fsMo(hm[1] ? hm[1].toUpperCase() : '');
+    // bấm nút “Xem báo cáo tài chính” (data-bctc) ở bất kỳ đâu trên trang
+    document.addEventListener('click', function(e){
+      var b = e.target.closest('[data-bctc]'); if(!b) return;
+      e.preventDefault(); fsMo(b.getAttribute('data-bctc')); window.scrollTo({top: $('#recTabFs').getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth'});
+    });
+  }
+
   // =====================================================================
   // POPUP CHI TIẾT MÃ CỔ PHIẾU (biểu đồ nến TradingView Lightweight Charts v5)
   // =====================================================================

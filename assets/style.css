@@ -1233,3 +1233,51 @@ body.modal-open{overflow:hidden;}
   .rec-controls{width:100%; justify-items:start;}
   .rec-backtest{grid-template-columns:1fr;}
 }
+
+/* ---------- Cổ phiếu khuyến nghị: tab Xếp hạng / Báo cáo tài chính */
+.rec-tabs{display:flex; gap:4px; border-bottom:1px solid var(--border); margin:0 0 18px;}
+.rec-tabs button{border:none; background:none; color:var(--ink-soft); padding:10px 16px; font:inherit; font-size:14.5px; font-weight:650; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-1px; border-radius:8px 8px 0 0;}
+.rec-tabs button:hover{color:var(--ink); background:var(--surface-sunk);}
+.rec-tabs button[aria-selected="true"]{color:var(--accent-strong); border-bottom-color:var(--accent);}
+.fs-pick{flex:none; min-width:min(100%, 330px);}
+.fs-label{display:block; font-size:12px; font-weight:650; color:var(--muted); margin-bottom:4px;}
+.fs-pick-row{display:flex; gap:8px;}
+.fs-input{flex:1; min-width:0; padding:9px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--ink); font:inherit; font-size:14px; text-transform:uppercase;}
+.fs-input::placeholder{text-transform:none; color:var(--muted);}
+.fs-kpis{display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:10px; margin:0 0 16px;}
+.fs-kpi{position:relative; border:1px solid var(--border); border-radius:12px; padding:12px 14px 14px; background:var(--surface-sunk); min-height:112px;}
+.fs-kpi h3{margin:0 0 4px; font:650 12.5px/1.3 "Public Sans",system-ui,sans-serif; color:var(--muted); letter-spacing:0; text-transform:none;}
+.fs-kpi h3 span{font-weight:500; opacity:.85;}
+.fs-kpi-v{margin:0; font-size:22px; font-weight:750; color:var(--ink); font-family:"JetBrains Mono",monospace; letter-spacing:-.01em;}
+.fs-kpi-v small{font-size:12px; font-weight:600; color:var(--muted);}
+.fs-kpi-s{margin:2px 0 0; font-size:12.5px; font-weight:600;}
+.fs-kpi-spark{display:block; margin-top:8px; opacity:.9; line-height:0;}
+.fs-controls{display:flex; flex-wrap:wrap; align-items:center; gap:10px 12px; margin:0 0 12px;}
+.fs-check{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-soft); cursor:pointer;}
+.fs-check input{width:16px; height:16px; accent-color:var(--accent);}
+.fs-chart-wrap{border:1px solid var(--border); border-radius:12px; padding:8px 10px 2px; margin:0 0 14px; background:var(--surface);}
+.fs-chart svg{display:block; width:100%; height:auto; max-height:260px;}
+.fs-chart text{fill:var(--muted); font-size:11px;}
+.fs-chart .fs-grid{stroke:var(--border); stroke-width:1;}
+.fs-chart .fs-zero{stroke:var(--ink-soft); stroke-width:1; opacity:.55;}
+.fs-scroll{max-height:70vh; overflow:auto; border:1px solid var(--border); border-radius:12px;}
+.fs-table{border-collapse:separate; border-spacing:0; min-width:100%;}
+.fs-table th, .fs-table td{padding:8px 12px; border-bottom:1px solid var(--border); white-space:nowrap; font-size:13px;}
+.fs-table thead th{position:sticky; top:0; z-index:3; background:var(--surface-sunk); text-align:right; font-size:12.5px;}
+.fs-table thead th small{display:block; font-weight:500; color:var(--muted); font-size:11px;}
+.fs-table .fs-sticky{position:sticky; left:0; z-index:2; background:var(--surface); text-align:left; min-width:260px; max-width:420px; white-space:normal; font-weight:500; box-shadow:1px 0 0 var(--border);}
+.fs-table tbody th{text-transform:none; letter-spacing:normal; font:500 13px/1.4 "Public Sans",system-ui,sans-serif; color:var(--ink);}
+.fs-table thead th.fs-sticky{text-transform:uppercase;}
+.fs-table thead th.fs-sticky{z-index:4; background:var(--surface-sunk);}
+.fs-table tbody tr:hover td, .fs-table tbody tr:hover th{background:color-mix(in srgb, var(--accent-tint) 55%, var(--surface));}
+.fs-table tbody .fs-l1 th.fs-sticky{font-weight:700;}
+.fs-table .fs-l2 .fs-sticky{padding-left:26px;}
+.fs-table tbody .fs-l3 th.fs-sticky{padding-left:42px; color:var(--ink-soft);}
+.fs-table tbody .fs-l4 th.fs-sticky{padding-left:58px; color:var(--ink-soft);}
+.fs-table .fs-group td, .fs-table tbody .fs-group th.fs-sticky{background:var(--accent-tint); font-weight:700; color:var(--accent-ink);}
+.fs-table .neg, .fs-kpi-v.neg{color:var(--critical);}
+@media (max-width:640px){
+  .fs-pick{width:100%;}
+  .fs-table .fs-sticky{min-width:170px;}
+  .rec-tabs button{padding:9px 12px; font-size:13.5px;}
+}
