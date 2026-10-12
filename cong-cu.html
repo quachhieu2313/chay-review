@@ -154,11 +154,11 @@ permalink: /cong-cu/
     </form>
     <form id="qtFormTao" class="qt-form" hidden>
       <h2>Đặt mật khẩu quản trị lần đầu</h2>
-      <p class="qt-mo-ta">Trang chưa có mật khẩu quản trị. Đặt mật khẩu cho tài khoản <b id="qtTenTao"></b> (ít nhất 10 ký tự). Mật khẩu không được gửi đi đâu; trang chỉ tạo ra một đoạn mã băm để bạn dán vào GitHub.</p>
+      <p class="qt-mo-ta">Trang chưa có mật khẩu quản trị. Đặt mật khẩu cho tài khoản <b id="qtTenTao"></b> (ít nhất 6 ký tự). Mật khẩu không được gửi đi đâu; trang chỉ tạo ra một đoạn mã băm để bạn dán vào GitHub.</p>
       <label for="qtMkTao">Mật khẩu mới</label>
-      <input id="qtMkTao" class="dt-input" type="password" autocomplete="new-password" minlength="10" required>
+      <input id="qtMkTao" class="dt-input" type="password" autocomplete="new-password" minlength="6" required>
       <label for="qtMkTao2">Nhập lại mật khẩu</label>
-      <input id="qtMkTao2" class="dt-input" type="password" autocomplete="new-password" minlength="10" required>
+      <input id="qtMkTao2" class="dt-input" type="password" autocomplete="new-password" minlength="6" required>
       <p class="qt-loi" id="qtLoiTao" role="alert"></p>
       <div class="qt-nut"><button class="btn btn-accent" type="submit">Tạo mã băm</button></div>
     </form>
@@ -179,10 +179,10 @@ permalink: /cong-cu/
       <h2>Đổi mật khẩu</h2>
       <label for="qtMkCu">Mật khẩu hiện tại</label>
       <input id="qtMkCu" class="dt-input" type="password" autocomplete="current-password" required>
-      <label for="qtMkMoi">Mật khẩu mới (ít nhất 10 ký tự)</label>
-      <input id="qtMkMoi" class="dt-input" type="password" autocomplete="new-password" minlength="10" required>
+      <label for="qtMkMoi">Mật khẩu mới (ít nhất 6 ký tự)</label>
+      <input id="qtMkMoi" class="dt-input" type="password" autocomplete="new-password" minlength="6" required>
       <label for="qtMkMoi2">Nhập lại mật khẩu mới</label>
-      <input id="qtMkMoi2" class="dt-input" type="password" autocomplete="new-password" minlength="10" required>
+      <input id="qtMkMoi2" class="dt-input" type="password" autocomplete="new-password" minlength="6" required>
       <p class="qt-loi" id="qtLoiDoi" role="alert"></p>
       <div class="qt-nut"><button class="btn btn-accent" type="submit">Đổi mật khẩu</button></div>
     </form>
@@ -545,7 +545,7 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
   $('qtFormTao').addEventListener('submit', function(e){
     e.preventDefault();
     var mk = $('qtMkTao').value, loi = $('qtLoiTao');
-    if(mk.length < 10){ loi.textContent = 'Mật khẩu cần ít nhất 10 ký tự.'; return; }
+    if(mk.length < 6){ loi.textContent = 'Mật khẩu cần ít nhất 6 ký tự.'; return; }
     if(mk !== $('qtMkTao2').value){ loi.textContent = 'Hai lần nhập không khớp.'; return; }
     loi.textContent = 'Đang tạo...';
     var salt = b64(ngauNhien(16)), ten = QT.ten || 'hieu.quach';
@@ -564,7 +564,7 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
   $('qtFormDoi').addEventListener('submit', function(e){
     e.preventDefault();
     var cu = $('qtMkCu').value, moi = $('qtMkMoi').value, loi = $('qtLoiDoi');
-    if(moi.length < 10){ loi.textContent = 'Mật khẩu mới cần ít nhất 10 ký tự.'; return; }
+    if(moi.length < 6){ loi.textContent = 'Mật khẩu mới cần ít nhất 6 ký tự.'; return; }
     if(moi !== $('qtMkMoi2').value){ loi.textContent = 'Hai lần nhập mật khẩu mới không khớp.'; return; }
     loi.textContent = 'Đang kiểm tra...';
     bam(cu, QT.salt, QT.lap || LAP).then(function(h){

@@ -1,7 +1,6 @@
-
 # Tài khoản quản trị cho tab "Dự toán tương lai" (trang Công cụ).
 # Chỉ lưu bản băm PBKDF2-SHA256 của mật khẩu, KHÔNG lưu mật khẩu. Đổi mật khẩu: đăng nhập > Đổi mật khẩu > dán đoạn mới vào đây.
 ten: hieu.quach
-salt: "4Bw5vmEwtG3BRvdgAbfBow=="
+salt: "PoaRS7SeyrGuJUYl6Dna1Q=="
 lap: 310000
-bam: "zJ02Wy6IV8JppPhqlA7nsM+HbVXKXe6ww7QJwWDSb7k="
+bam: "5/w2q80KiM0S3gbARbzkrRSJWNUfHi80RSBXy4D+q3A="
