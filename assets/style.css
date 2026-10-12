@@ -514,6 +514,12 @@ footer.site{padding-block:56px calc(36px + env(safe-area-inset-bottom,0px)); bor
 .dt-form-nguon #dtNguonLai{flex:0 1 90px; min-width:0;}
 .dt-form-nguon #dtNguonKy{flex:1 1 150px; min-width:0;}
 .dt-nguon-txt{margin-top:10px;}
+.dt-form-thu #dtThuTen{flex:1 1 100%;}
+.dt-form-thu #dtThuTien{flex:1 1 140px; min-width:0;}
+.dt-form-thu #dtThuKhi{flex:1 1 140px; min-width:0;}
+.dt-can-doi{margin-top:10px; padding:10px 12px; border-radius:10px; font-size:14px; line-height:1.6; border:1px solid var(--border);}
+.dt-can-doi.dt-du{background:color-mix(in srgb, var(--good) 12%, var(--surface)); border-color:color-mix(in srgb, var(--good) 40%, var(--border));}
+.dt-can-doi.dt-thieu{background:color-mix(in srgb, var(--critical) 10%, var(--surface)); border-color:color-mix(in srgb, var(--critical) 40%, var(--border));}
 .dt-sum{font-size:14px; color:var(--ink-soft); line-height:1.6;}
 /* Công cụ: đăng nhập quản trị cho tab Dự toán tương lai */
 /* .btn/.qt-form/.qt-ket-qua đặt display riêng nên đè mất thuộc tính hidden -> ẩn lại cho đúng (vd nút Đăng nhập sau khi đã vào) */

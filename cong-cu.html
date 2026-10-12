@@ -234,6 +234,24 @@ permalink: /cong-cu/
         </form>
       </div>
       <div class="field">
+        <label>Thu nhập hằng tháng <output id="oDtThu"></output></label>
+        <ul class="clean dt-list" id="dtThuList" aria-live="polite"></ul>
+        <form class="goal-form dt-form dt-form-thu" id="dtThuForm">
+          <label class="sr-only" for="dtThuTen">Tên khoản thu</label>
+          <input id="dtThuTen" type="text" maxlength="60" placeholder="Khoản thu, vd: Lương" autocomplete="off" required>
+          <label class="sr-only" for="dtThuTien">Số tiền mỗi tháng (đồng)</label>
+          <input id="dtThuTien" class="tabular" type="text" inputmode="numeric" placeholder="Mỗi tháng, vd: 20.000.000" autocomplete="off" required>
+          <label class="sr-only" for="dtThuKhi">Có khi nào</label>
+          <select id="dtThuKhi">
+            <option value="truoc">Đến khi nghỉ hưu</option>
+            <option value="sau">Sau khi nghỉ hưu</option>
+            <option value="ca_doi">Cả đời</option>
+          </select>
+          <button class="btn btn-accent" type="submit">Thêm</button>
+        </form>
+        <p class="hint">"Đến khi nghỉ hưu" (lương, thưởng chia theo tháng) dùng để cân đối xem có đủ tiền tiết kiệm không. "Sau khi nghỉ hưu" (lương hưu) và "Cả đời" (cho thuê nhà, cổ tức…) được trừ thẳng vào chi tiêu sau nghỉ hưu, tăng theo lạm phát như chi tiêu.</p>
+      </div>
+      <div class="field">
         <label>Nguồn tiền hiện có <output id="oDtNguon"></output></label>
         <ul class="clean dt-list" id="dtNguonList" aria-live="polite"></ul>
         <form class="goal-form dt-form dt-form-nguon" id="dtNguonForm">
@@ -269,13 +287,14 @@ permalink: /cong-cu/
           <div class="kpi"><span>Quỹ cần có khi nghỉ hưu</span><b id="dtQuy" class="tabular">–</b></div>
         </div>
         <p class="dt-sum dt-nguon-txt" id="dtNguonTxt" hidden></p>
+        <p class="dt-can-doi" id="dtCanDoi" hidden></p>
       </div>
       <div>
         <p class="dt-nhom">Nếu nghỉ làm ngay từ hôm nay</p>
         <div class="kpis">
           <div class="kpi"><span id="dtCanNhan">Số tiền cần có ngay hôm nay</span><b id="dtCan" class="tabular">–</b></div>
           <div class="kpi"><span>Tổng chi tiêu đến <span id="dtDenTxt">90</span> tuổi</span><b id="dtTong" class="tabular">–</b></div>
-          <div class="kpi"><span>Phần tiền lãi ngân hàng gánh giúp</span><b id="dtLaiGanh" class="tabular">–</b></div>
+          <div class="kpi"><span id="dtLaiGanhNhan">Phần tiền lãi ngân hàng gánh giúp</span><b id="dtLaiGanh" class="tabular">–</b></div>
         </div>
       </div>
       <p class="dt-sum" id="dtTomTat"></p>
@@ -334,6 +353,9 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
   var tt = ttBanDau && Array.isArray(ttBanDau.khoan) ? ttBanDau : {khoan: MAU.slice(), tuoi: 30, huu: 60, den: 90, lai: 5, lp: 0};
   if(tt.huu === undefined) tt.huu = 60;
   if(!Array.isArray(tt.nguon)) tt.nguon = [];      // nguồn tiền hiện có: {ten, tien, lai (%/năm), ky (tháng, 0 = không kỳ hạn)}
+  if(!Array.isArray(tt.thu)) tt.thu = [];          // thu nhập hằng tháng: {ten, tien (/tháng), khi: truoc|sau|ca_doi}
+  var NHAN_KHI = {truoc: 'đến khi nghỉ hưu', sau: 'sau khi nghỉ hưu', ca_doi: 'cả đời'};
+  var elT = {list: $('dtThuList'), form: $('dtThuForm'), ten: $('dtThuTen'), tien: $('dtThuTien'), khi: $('dtThuKhi')};
   var elN = {list: $('dtNguonList'), form: $('dtNguonForm'), ten: $('dtNguonTen'), tien: $('dtNguonTien'), lai: $('dtNguonLai'), ky: $('dtNguonKy')};
   var LAI_KHONG_KY_HAN = 0.1;                       // %/năm khi rút trước hạn
   // Giá trị 1 nguồn tiền sau 'thang' tháng, tính như ngân hàng:
@@ -370,6 +392,26 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
       xoa.addEventListener('click', function(){ tt.khoan.splice(i, 1); luu(); veDanhSach(); tinh(); });
       li.appendChild(ten); li.appendChild(gt); li.appendChild(xoa);
       el.list.appendChild(li);
+    });
+  }
+
+  function veThu(){
+    elT.list.innerHTML = '';
+    if(!tt.thu.length){
+      var r = document.createElement('li'); r.className = 'goal-empty'; r.textContent = 'Chưa có khoản thu nào. Thêm ở ô bên dưới (không bắt buộc).';
+      elT.list.appendChild(r); return;
+    }
+    tt.thu.forEach(function(n, i){
+      var li = document.createElement('li'); li.className = 'dt-item';
+      var ten = document.createElement('span'); ten.className = 'dt-ten'; ten.textContent = n.ten;
+      var gt = document.createElement('span'); gt.className = 'dt-gt tabular';
+      gt.textContent = tien(n.tien) + '/tháng · ' + NHAN_KHI[n.khi];
+      var xoa = document.createElement('button'); xoa.type = 'button'; xoa.className = 'goal-del';
+      xoa.setAttribute('aria-label', 'Xoá khoản thu ' + n.ten);
+      xoa.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+      xoa.addEventListener('click', function(){ tt.thu.splice(i, 1); luu(); veThu(); tinh(); });
+      li.appendChild(ten); li.appendChild(gt); li.appendChild(xoa);
+      elT.list.appendChild(li);
     });
   }
 
@@ -414,12 +456,19 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     var g = Math.pow(1 + lpNam / 100, 1 / 12) - 1;       // lạm phát tháng tương đương
     // chi tiêu tháng thứ k (tính từ hôm nay, đã cộng lạm phát)
     var chiK = function(k){ return chiThang * Math.pow(1 + g, k); };
-    // (1) Nghỉ làm ngay hôm nay: số tiền cần có = tổng chi tiêu từng tháng chiết khấu về hiện tại (rút đầu tháng)
+    // Thu nhập: 'truoc' + 'ca_doi' dùng cân đối khi còn đi làm; 'sau' + 'ca_doi' trừ vào chi tiêu sau nghỉ hưu
+    // (tăng theo lạm phát như chi tiêu). Chi tiêu ròng không âm: thu nhiều hơn chi thì phần dư không cộng vào quỹ.
+    var tongThu = function(loai){ return tt.thu.reduce(function(s, n){ return s + (loai.indexOf(n.khi) >= 0 ? n.tien : 0); }, 0); };
+    var thuDiLam = tongThu(['truoc', 'ca_doi']), thuHuu = tongThu(['sau', 'ca_doi']);
+    var chiRong = function(k){ return Math.max(0, (chiThang - thuHuu) * Math.pow(1 + g, k)); };
+    $('oDtThu').textContent = tt.thu.length ? (thuDiLam ? tien(thuDiLam) + '/tháng khi đi làm' : '') +
+      (thuDiLam && thuHuu ? ' · ' : '') + (thuHuu ? tien(thuHuu) + '/tháng khi nghỉ hưu' : '') : '';
+    // (1) Nghỉ làm ngay hôm nay: số tiền cần có = chi tiêu ròng (đã trừ thu nhập sau nghỉ hưu) chiết khấu về hiện tại
     var can = 0, tong = 0;
-    for(var k = 0; k < T; k++){ tong += chiK(k); can += chiK(k) / Math.pow(1 + i, k); }
-    // (2) Quỹ cần có lúc nghỉ hưu = chi tiêu từ tháng R tới T chiết khấu về thời điểm nghỉ hưu
+    for(var k = 0; k < T; k++){ tong += chiK(k); can += chiRong(k) / Math.pow(1 + i, k); }
+    // (2) Quỹ cần có lúc nghỉ hưu = chi tiêu ròng từ tháng R tới T chiết khấu về thời điểm nghỉ hưu
     var quy = 0;
-    for(k = R; k < T; k++) quy += chiK(k) / Math.pow(1 + i, k - R);
+    for(k = R; k < T; k++) quy += chiRong(k) / Math.pow(1 + i, k - R);
     // Nguồn tiền hiện có: mỗi khoản lãi kép theo lãi suất riêng tới lúc nghỉ hưu, rồi gộp vào quỹ hưu trí
     var coSan = tt.nguon.reduce(function(s, n){ return s + n.tien; }, 0);
     var coSanLucHuu = tt.nguon.reduce(function(s, n){ return s + giaTriNguon(n, R); }, 0);
@@ -433,6 +482,7 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     $('dtCan').textContent = tien(coSan ? Math.abs(canThieu) : can);
     $('dtTong').textContent = tien(tong);
     $('dtLaiGanh').textContent = tien(tong - can);
+    $('dtLaiGanhNhan').textContent = thuHuu ? 'Phần thu nhập sau nghỉ hưu và tiền lãi gánh giúp' : 'Phần tiền lãi ngân hàng gánh giúp';
     $('dtQuy').textContent = tien(quy);
     if(R){
       $('dtNgay').textContent = tien(tkThang / ngayThang);
@@ -440,6 +490,16 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     } else {
       $('dtNgay').textContent = '–'; $('dtThang').textContent = '–';
     }
+    var cd = $('dtCanDoi');
+    if(thuDiLam && R){
+      var conDu = thuDiLam - chiThang, can_tk = isFinite(tkThang) ? tkThang : 0, chenh = conDu - can_tk;
+      cd.hidden = false;
+      cd.className = 'dt-can-doi ' + (chenh >= 0 ? 'dt-du' : 'dt-thieu');
+      cd.textContent = 'Cân đối khi còn đi làm: thu nhập ' + tien(thuDiLam) + '/tháng − chi tiêu ' + tien(chiThang) + '/tháng = còn dư ' +
+        tien(conDu) + '/tháng; cần tiết kiệm ' + tien(can_tk) + '/tháng. ' +
+        (chenh >= 0 ? 'ĐỦ - sau khi tiết kiệm vẫn dư khoảng ' + tien(chenh) + '/tháng (' + tien(chenh / ngayThang) + '/ngày).'
+                    : 'THIẾU khoảng ' + tien(-chenh) + '/tháng (' + tien(-chenh / ngayThang) + '/ngày) - cần tăng thu nhập, giảm chi tiêu hoặc nghỉ hưu muộn hơn.');
+    } else { cd.hidden = true; }
     var nt = $('dtNguonTxt');
     if(tt.nguon.length && R){
       nt.hidden = false;
@@ -466,12 +526,12 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
       if(m <= R){
         tk = tk * (1 + i) + tkThang;
         du = tk + tt.nguon.reduce(function(s, n){ return s + giaTriNguon(n, m); }, 0);
-      } else du = (du - chiK(m - 1)) * (1 + i);
+      } else du = (du - chiRong(m - 1)) * (1 + i);
       if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du), tichLuy: m <= R});
     }
     if(!R){                                              // đã nghỉ hưu: rút dần từ tiền đang có (không có thì từ số tiền cần có)
       du = coSan || can; rows = [];
-      for(m = 1; m <= T; m++){ du = (du - chiK(m - 1)) * (1 + i); if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du), tichLuy: false}); }
+      for(m = 1; m <= T; m++){ du = (du - chiRong(m - 1)) * (1 + i); if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du), tichLuy: false}); }
     }
     var W = 600, H = 220, gap = rows.length > 40 ? 1 : (rows.length > 25 ? 2 : 4);
     var bw = Math.max(1, (W - gap * (rows.length - 1)) / rows.length);
@@ -518,7 +578,20 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     elN.tien.value = d ? Number(d).toLocaleString('vi-VN') : '';
   });
   [el.tuoi, el.huu, el.den, el.lai, el.lp].forEach(function(o){ o.addEventListener('input', function(){ luu(); tinh(); }); });
-  veDanhSach(); veNguon(); tinh();
+  elT.form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var ten = elT.ten.value.trim(), soTien = Number(String(elT.tien.value).replace(/[^\d]/g, ''));
+    if(!ten){ elT.ten.focus(); return; }
+    if(!soTien){ elT.tien.focus(); return; }
+    tt.thu.push({ten: ten, tien: soTien, khi: elT.khi.value});
+    elT.ten.value = ''; elT.tien.value = ''; elT.ten.focus();
+    luu(); veThu(); tinh();
+  });
+  elT.tien.addEventListener('input', function(){
+    var d = elT.tien.value.replace(/[^\d]/g, '');
+    elT.tien.value = d ? Number(d).toLocaleString('vi-VN') : '';
+  });
+  veDanhSach(); veThu(); veNguon(); tinh();
 };
 </script>
 
