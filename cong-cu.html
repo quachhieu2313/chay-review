@@ -431,6 +431,26 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     ghi(tt);
   }
 
+  // Chế độ sửa cho 1 form: bấm ✎ ở 1 dòng -> đổ dữ liệu lên form, nút "Thêm" thành "Lưu" + hiện "Huỷ"
+  function cheDoSua(form, nhapLai, ve){
+    var nut = form.querySelector('button[type=submit]'), nhanThem = nut.textContent;
+    var huy = document.createElement('button'); huy.type = 'button'; huy.className = 'btn btn-ghost'; huy.textContent = 'Huỷ'; huy.hidden = true;
+    form.appendChild(huy);
+    var o = {chiSo: -1};
+    o.bat = function(i, mucTieu){ o.chiSo = i; nhapLai(mucTieu); nut.textContent = 'Lưu'; huy.hidden = false; ve(); };
+    o.tat = function(){ o.chiSo = -1; nhapLai(null); nut.textContent = nhanThem; huy.hidden = true; ve(); };
+    o.daXoa = function(i){ if(i === o.chiSo) o.tat(); else if(i < o.chiSo) o.chiSo--; };   // giữ đúng dòng đang sửa khi xoá dòng khác
+    huy.addEventListener('click', o.tat);
+    return o;
+  }
+  function nutSua(ten, onClick){
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'goal-del dt-sua';
+    b.setAttribute('aria-label', 'Sửa ' + ten); b.title = 'Sửa';
+    b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
   function veDanhSach(){
     el.list.innerHTML = '';
     if(!tt.khoan.length){
@@ -446,8 +466,9 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
       var xoa = document.createElement('button'); xoa.type = 'button'; xoa.className = 'goal-del';
       xoa.setAttribute('aria-label', 'Xoá khoản ' + k.ten);
       xoa.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>';
-      xoa.addEventListener('click', function(){ tt.khoan.splice(i, 1); luu(); veDanhSach(); tinh(); });
-      li.appendChild(ten); li.appendChild(gt); li.appendChild(xoa);
+      xoa.addEventListener('click', function(){ tt.khoan.splice(i, 1); suaKhoan.daXoa(i); luu(); veDanhSach(); tinh(); });
+      if(i === suaKhoan.chiSo) li.classList.add('dt-dang-sua');
+      li.appendChild(ten); li.appendChild(gt); li.appendChild(nutSua(k.ten, function(){ suaKhoan.bat(i, k); })); li.appendChild(xoa);
       el.list.appendChild(li);
     });
   }
@@ -466,8 +487,9 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
       var xoa = document.createElement('button'); xoa.type = 'button'; xoa.className = 'goal-del';
       xoa.setAttribute('aria-label', 'Xoá khoản thu ' + n.ten);
       xoa.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>';
-      xoa.addEventListener('click', function(){ tt.thu.splice(i, 1); luu(); veThu(); tinh(); });
-      li.appendChild(ten); li.appendChild(gt); li.appendChild(xoa);
+      xoa.addEventListener('click', function(){ tt.thu.splice(i, 1); suaThu.daXoa(i); luu(); veThu(); tinh(); });
+      if(i === suaThu.chiSo) li.classList.add('dt-dang-sua');
+      li.appendChild(ten); li.appendChild(gt); li.appendChild(nutSua(n.ten, function(){ suaThu.bat(i, n); })); li.appendChild(xoa);
       elT.list.appendChild(li);
     });
   }
@@ -486,8 +508,9 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
       var xoa = document.createElement('button'); xoa.type = 'button'; xoa.className = 'goal-del';
       xoa.setAttribute('aria-label', 'Xoá nguồn ' + n.ten);
       xoa.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>';
-      xoa.addEventListener('click', function(){ tt.nguon.splice(i, 1); luu(); veNguon(); tinh(); });
-      li.appendChild(ten); li.appendChild(gt); li.appendChild(xoa);
+      xoa.addEventListener('click', function(){ tt.nguon.splice(i, 1); suaNguon.daXoa(i); luu(); veNguon(); tinh(); });
+      if(i === suaNguon.chiSo) li.classList.add('dt-dang-sua');
+      li.appendChild(ten); li.appendChild(gt); li.appendChild(nutSua(n.ten, function(){ suaNguon.bat(i, n); })); li.appendChild(xoa);
       elN.list.appendChild(li);
     });
   }
@@ -645,7 +668,8 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     e.preventDefault();
     var ten = el.ten.value.trim(), soTien = Number(String(el.tien.value).replace(/[^\d]/g, ''));
     if(!ten || !soTien) { (ten ? el.tien : el.ten).focus(); return; }
-    tt.khoan.push({ten: ten, tien: soTien, ky: el.ky.value});
+    var moi = {ten: ten, tien: soTien, ky: el.ky.value};
+    if(suaKhoan.chiSo >= 0){ tt.khoan[suaKhoan.chiSo] = moi; suaKhoan.tat(); } else tt.khoan.push(moi);
     el.ten.value = ''; el.tien.value = ''; el.ten.focus();
     luu(); veDanhSach(); tinh();
   });
@@ -661,7 +685,8 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     if(!ten){ elN.ten.focus(); return; }
     if(!soTien){ elN.tien.focus(); return; }
     if(!isFinite(lai) || elN.lai.value.trim() === '' || lai > 50){ elN.lai.focus(); return; }
-    tt.nguon.push({ten: ten, tien: soTien, lai: lai, ky: Number(elN.ky.value) || 0});
+    var moiN = {ten: ten, tien: soTien, lai: lai, ky: Number(elN.ky.value) || 0};
+    if(suaNguon.chiSo >= 0){ tt.nguon[suaNguon.chiSo] = moiN; suaNguon.tat(); } else tt.nguon.push(moiN);
     elN.ten.value = ''; elN.tien.value = ''; elN.lai.value = ''; elN.ten.focus();
     luu(); veNguon(); tinh();
   });
@@ -675,7 +700,8 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     var ten = elT.ten.value.trim(), soTien = Number(String(elT.tien.value).replace(/[^\d]/g, ''));
     if(!ten){ elT.ten.focus(); return; }
     if(!soTien){ elT.tien.focus(); return; }
-    tt.thu.push({ten: ten, tien: soTien, khi: elT.khi.value});
+    var moiT = {ten: ten, tien: soTien, khi: elT.khi.value};
+    if(suaThu.chiSo >= 0){ tt.thu[suaThu.chiSo] = moiT; suaThu.tat(); } else tt.thu.push(moiT);
     elT.ten.value = ''; elT.tien.value = ''; elT.ten.focus();
     luu(); veThu(); tinh();
   });
@@ -690,6 +716,19 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
   }
   [elB.luong, elB.luongCu].forEach(function(o){ o.addEventListener('input', function(){ o.value = dinhDang(docSo(o)); }); });
   [elB.bat, elB.gioi, elB.luong, elB.luongCu, elB.tuNam].forEach(function(o){ o.addEventListener('input', luuBh); o.addEventListener('change', luuBh); });
+  var suaKhoan = cheDoSua(el.form, function(k){
+    el.ten.value = k ? k.ten : ''; el.tien.value = k ? Number(k.tien).toLocaleString('vi-VN') : ''; if(k) el.ky.value = k.ky;
+    if(k) el.ten.focus();
+  }, function(){ veDanhSach(); });
+  var suaThu = cheDoSua(elT.form, function(n){
+    elT.ten.value = n ? n.ten : ''; elT.tien.value = n ? Number(n.tien).toLocaleString('vi-VN') : ''; if(n) elT.khi.value = n.khi;
+    if(n) elT.ten.focus();
+  }, function(){ veThu(); });
+  var suaNguon = cheDoSua(elN.form, function(n){
+    elN.ten.value = n ? n.ten : ''; elN.tien.value = n ? Number(n.tien).toLocaleString('vi-VN') : '';
+    elN.lai.value = n ? String(n.lai).replace('.', ',') : ''; if(n) elN.ky.value = String(Number(n.ky) || 0);
+    if(n) elN.ten.focus();
+  }, function(){ veNguon(); });
   veDanhSach(); veThu(); veNguon(); tinh();
 };
 </script>
