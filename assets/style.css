@@ -511,6 +511,8 @@ footer.site{padding-block:56px calc(36px + env(safe-area-inset-bottom,0px)); bor
 .dt-form #dtTien{flex:1 1 120px; min-width:0;}
 .dt-sum{font-size:14px; color:var(--ink-soft); line-height:1.6;}
 /* Công cụ: đăng nhập quản trị cho tab Dự toán tương lai */
+/* .btn/.qt-form/.qt-ket-qua đặt display riêng nên đè mất thuộc tính hidden -> ẩn lại cho đúng (vd nút Đăng nhập sau khi đã vào) */
+.btn[hidden], .qt-form[hidden], .qt-ket-qua[hidden], .qt-thanh[hidden]{display:none;}
 .qt-mo{margin-top:12px; margin-left:8px; padding:6px 12px; font-size:12.5px; vertical-align:top;}
 .qt-mo svg{width:14px; height:14px;}
 .qt-card{max-width:520px; padding:26px; margin-bottom:20px;}
