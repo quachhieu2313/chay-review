@@ -232,14 +232,14 @@ permalink: /cong-cu/
           </select>
           <label class="sr-only" for="dtKhi">Áp dụng khi nào</label>
           <select id="dtKhi">
-            <option value="ca_doi">Cả đời</option>
-            <option value="truoc">Đến khi nghỉ hưu</option>
-            <option value="sau">Sau khi nghỉ hưu</option>
+            <option value="ca_doi">Cả đời (từ nay đến 90 tuổi)</option>
+            <option value="truoc">Từ nay đến khi nghỉ hưu (60 tuổi)</option>
+            <option value="sau">Từ nghỉ hưu đến cuối đời (60 → 90 tuổi)</option>
           </select>
           <button class="btn btn-accent" type="submit">Thêm</button>
         </form>
         <div class="dt-goi-y" id="dtGoiY" aria-label="Gợi ý khoản chi thường gặp"><span>Gợi ý thêm:</span></div>
-        <p class="hint">Chọn "Đến khi nghỉ hưu" cho khoản sẽ hết khi về hưu (vd thuê nhà, gửi xe đi làm, biếu bố mẹ), "Sau khi nghỉ hưu" cho khoản chỉ có lúc già (vd thuốc men, người chăm sóc). Bấm một gợi ý để điền nhanh tên khoản rồi nhập số tiền.</p>
+        <p class="hint">Chọn "Từ nay đến khi nghỉ hưu" cho khoản sẽ hết khi về hưu (vd thuê nhà, gửi xe đi làm, biếu bố mẹ), "Từ nghỉ hưu đến cuối đời" cho khoản chỉ có lúc già (vd thuốc men, người chăm sóc). Bấm một gợi ý để điền nhanh tên khoản rồi nhập số tiền.</p>
       </div>
       <div class="field">
         <label>Thu nhập hằng tháng <output id="oDtThu"></output></label>
@@ -251,9 +251,9 @@ permalink: /cong-cu/
           <input id="dtThuTien" class="tabular" type="text" inputmode="numeric" placeholder="Mỗi tháng, vd: 20.000.000" autocomplete="off" required>
           <label class="sr-only" for="dtThuKhi">Có khi nào</label>
           <select id="dtThuKhi">
-            <option value="truoc">Đến khi nghỉ hưu</option>
-            <option value="sau">Sau khi nghỉ hưu</option>
-            <option value="ca_doi">Cả đời</option>
+            <option value="truoc">Từ nay đến khi nghỉ hưu (60 tuổi)</option>
+            <option value="sau">Từ nghỉ hưu đến cuối đời (60 → 90 tuổi)</option>
+            <option value="ca_doi">Cả đời (từ nay đến 90 tuổi)</option>
           </select>
           <button class="btn btn-accent" type="submit">Thêm</button>
         </form>
@@ -363,7 +363,7 @@ permalink: /cong-cu/
 window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
   var HE_SO_THANG = {ngay: 365 / 12, tuan: 52 / 12, thang: 1, nam: 1 / 12};
   var NHAN_KY = {ngay: 'ngày', tuan: 'tuần', thang: 'tháng', nam: 'năm'};
-  var NHAN_KHI_CHI = {ca_doi: 'cả đời', truoc: 'đến khi nghỉ hưu', sau: 'sau khi nghỉ hưu'};
+  var NHAN_KHI_CHI = {ca_doi: 'cả đời', truoc: 'đến khi nghỉ hưu', sau: 'từ nghỉ hưu đến cuối đời'};
   // Các khoản chi một người thường quên: [tên, kỳ, giai đoạn]
   var GOI_Y = [
     ['Thuê nhà', 'thang', 'truoc'], ['Điện, nước, gas', 'thang', 'ca_doi'], ['Điện thoại, internet', 'thang', 'ca_doi'],
@@ -395,7 +395,7 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
   if(tt.huu === undefined) tt.huu = 60;
   if(!Array.isArray(tt.nguon)) tt.nguon = [];      // nguồn tiền hiện có: {ten, tien, lai (%/năm), ky (tháng, 0 = không kỳ hạn)}
   if(!Array.isArray(tt.thu)) tt.thu = [];          // thu nhập hằng tháng: {ten, tien (/tháng), khi: truoc|sau|ca_doi}
-  var NHAN_KHI = {truoc: 'đến khi nghỉ hưu', sau: 'sau khi nghỉ hưu', ca_doi: 'cả đời'};
+  var NHAN_KHI = {truoc: 'đến khi nghỉ hưu', sau: 'từ nghỉ hưu đến cuối đời', ca_doi: 'cả đời'};
   if(!tt.bh || typeof tt.bh !== 'object') tt.bh = {bat: false, gioi: 'nam', luong: 0, luongCu: 0, tuNam: 0};
   var elB = {bat: $('dtBh'), o: $('dtBhO'), gioi: $('dtBhGioi'), luong: $('dtBhLuong'), luongCu: $('dtBhLuongCu'), tuNam: $('dtBhTuNam'), ghiChu: $('dtBhGhiChu')};
   var NAM_NAY = new Date().getFullYear() + new Date().getMonth() / 12;   // vd tháng 10/2026 -> 2026,75
@@ -540,6 +540,14 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     $('oDtLp').textContent = so(lpNam, 1) + '%';
     $('dtDenTxt').textContent = isFinite(den) ? den : '–';
     $('dtHuuTxt').textContent = isFinite(huu) ? huu : '–';
+    // Ghi rõ khoảng tuổi vào các lựa chọn giai đoạn của chi tiêu và thu nhập
+    if(isFinite(huu) && isFinite(den)){
+      var NHAN_GD = {ca_doi: 'Cả đời (từ nay đến ' + den + ' tuổi)', truoc: 'Từ nay đến khi nghỉ hưu (' + huu + ' tuổi)',
+                     sau: 'Từ nghỉ hưu đến cuối đời (' + huu + ' → ' + den + ' tuổi)'};
+      ['dtKhi', 'dtThuKhi'].forEach(function(id){
+        Array.prototype.forEach.call($(id).options, function(o){ if(NHAN_GD[o.value]) o.textContent = NHAN_GD[o.value]; });
+      });
+    }
     // Chi tiêu theo giai đoạn: khi còn đi làm = cả đời + đến khi nghỉ hưu; sau nghỉ hưu = cả đời + sau khi nghỉ hưu
     var tongChi = function(loai){ return tt.khoan.reduce(function(s, k){ return s + (loai.indexOf(k.khi || 'ca_doi') >= 0 ? k.tien * HE_SO_THANG[k.ky] : 0); }, 0); };
     var chiThang = tongChi(['ca_doi', 'truoc']), chiSau = tongChi(['ca_doi', 'sau']);
