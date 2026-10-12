@@ -333,6 +333,7 @@ permalink: /cong-cu/
         <div class="chart-legend" style="margin-bottom:12px;">
           <span><i style="background:var(--ink-soft);opacity:.45"></i>Đang tích luỹ (còn đi làm)</span>
           <span><i style="background:var(--accent)"></i>Đang rút ra chi tiêu (đã nghỉ hưu)</span>
+          <span id="dtChuThichHuu" hidden><i style="background:var(--good)"></i>Đang rút, đã có lương hưu BHXH</span>
         </div>
         <div class="bars"><svg id="dtSvg" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Biểu đồ số tiền còn lại theo từng tuổi"></svg></div>
         <div class="bars-axis"><span id="dtTrucDau"></span><span id="dtTrucGiua"></span><span id="dtTrucCuoi"></span></div>
@@ -672,11 +673,11 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
         tk = tk * (1 + i) + tkThang;
         du = tk + tt.nguon.reduce(function(s, n){ return s + giaTriNguon(n, m); }, 0);
       } else du = (du - chiRong(m - 1)) * (1 + i);
-      if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du), tichLuy: m <= R});
+      if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du), tichLuy: m <= R, coHuu: m > R && bh.luongHuu > 0 && m > thangNhanHuu});
     }
     if(!R){                                              // đã nghỉ hưu: rút dần từ tiền đang có (không có thì từ số tiền cần có)
       du = coSan || can; rows = [];
-      for(m = 1; m <= T; m++){ du = (du - chiRong(m - 1)) * (1 + i); if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du), tichLuy: false}); }
+      for(m = 1; m <= T; m++){ du = (du - chiRong(m - 1)) * (1 + i); if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du), tichLuy: false, coHuu: bh.luongHuu > 0 && m > thangNhanHuu}); }
     }
     var W = 600, H = 220, gap = rows.length > 40 ? 1 : (rows.length > 25 ? 2 : 4);
     var bw = Math.max(1, (W - gap * (rows.length - 1)) / rows.length);
@@ -685,9 +686,18 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     rows.forEach(function(r, j){
       var h = r.du / max * H, x = j * (bw + gap);
       out += '<rect x="' + x.toFixed(1) + '" y="' + (H - h).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2" ' +
-        (r.tichLuy ? 'fill="var(--ink-soft)" opacity=".45"' : 'fill="var(--accent)"') +
-        '><title>' + r.tuoi + ' tuổi: ' + (r.tichLuy ? 'đã tích luỹ ' : 'còn ') + tien(r.du) + '</title></rect>';
+        (r.tichLuy ? 'fill="var(--ink-soft)" opacity=".45"' : (r.coHuu ? 'fill="var(--good)"' : 'fill="var(--accent)"')) +
+        '><title>' + r.tuoi + ' tuổi: ' + (r.tichLuy ? 'đã tích luỹ ' : 'còn ') + tien(r.du) + (r.coHuu ? ' (đã có lương hưu)' : '') + '</title></rect>';
     });
+    // Vạch đánh dấu tuổi bắt đầu nhận lương hưu (khi nghỉ làm trước tuổi nghỉ hưu theo luật thì đoạn trước vạch giảm nhanh hơn)
+    var dauHuu = -1;
+    rows.forEach(function(r, j){ if(dauHuu < 0 && r.coHuu) dauHuu = j; });
+    $('dtChuThichHuu').hidden = dauHuu < 0;
+    if(dauHuu > 0){
+      var xv = (dauHuu * (bw + gap) - gap / 2).toFixed(1);
+      out += '<line x1="' + xv + '" x2="' + xv + '" y1="0" y2="' + H + '" stroke="var(--good)" stroke-width="1.5" stroke-dasharray="4 3"/>' +
+        '<text x="' + (Number(xv) + 4) + '" y="12" font-size="11" fill="var(--ink-soft)">Lương hưu từ ' + nhanTuoi(bh.tuoiNhan) + '</text>';
+    }
     svg.innerHTML = out;
     $('dtTrucDau').textContent = (tuoi + 1) + ' tuổi';
     $('dtTrucGiua').textContent = (R && huu < den ? huu : Math.round((tuoi + den) / 2)) + ' tuổi';
