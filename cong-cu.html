@@ -258,15 +258,19 @@ permalink: /cong-cu/
               <select id="dtBhGioi" class="dt-input"><option value="nam">Nam</option><option value="nu">Nữ</option></select>
             </div>
             <div class="field">
-              <label for="dtBhLuong">Lương đóng BHXH/tháng</label>
-              <input id="dtBhLuong" class="dt-input tabular" type="text" inputmode="numeric" placeholder="Để trống = tổng lương">
+              <label for="dtBhTuNam">Bắt đầu đóng từ năm</label>
+              <input id="dtBhTuNam" class="dt-input tabular" type="number" min="1970" max="2100" step="1" placeholder="vd: 2019" inputmode="numeric">
             </div>
             <div class="field">
-              <label for="dtBhNam">Số năm đã đóng</label>
-              <input id="dtBhNam" class="dt-input tabular" type="number" min="0" max="50" step="1" value="0" inputmode="numeric">
+              <label for="dtBhLuongCu">Lương đóng các năm trước</label>
+              <input id="dtBhLuongCu" class="dt-input tabular" type="text" inputmode="numeric" placeholder="Bình quân, vd: 13.000.000">
+            </div>
+            <div class="field">
+              <label for="dtBhLuong">Lương đóng hiện tại</label>
+              <input id="dtBhLuong" class="dt-input tabular" type="text" inputmode="numeric" placeholder="Để trống = tổng lương">
             </div>
           </div>
-          <p class="hint" id="dtBhGhiChu" hidden>Khoản thu "Đến khi nghỉ hưu" coi là lương trước khi đóng BHXH; cân đối dùng lương sau khi trừ 10,5% (BHXH 8%, BHYT 1,5%, BHTN 1%), chưa trừ thuế TNCN. Lương hưu ước tính theo Luật BHXH 2024: nữ 45% với 15 năm đóng, nam 40% với 15 năm (+1%/năm tới 45% ở năm 20), sau đó mỗi năm +2%, tối đa 75%; dưới 15 năm không có lương hưu. Lương hưu nhận từ tuổi nghỉ hưu theo luật (nam 62, nữ 60), tăng theo lạm phát. Chỉ là ước tính - kiểm tra lại trên VssID.</p>
+          <p class="hint" id="dtBhGhiChu" hidden>Khoản thu "Đến khi nghỉ hưu" coi là lương trước khi đóng BHXH; cân đối dùng lương sau khi trừ 10,5% (BHXH 8%, BHYT 1,5%, BHTN 1%), chưa trừ thuế TNCN. Lương hưu ước tính theo Luật BHXH 2024: nữ 45% với 15 năm đóng, nam 40% với 15 năm (+1%/năm tới 45% ở năm 20), sau đó mỗi năm +2%, tối đa 75%; dưới 15 năm không có lương hưu. Mức hưởng tính trên bình quân lương đóng cả quá trình (lương các năm trước và lương hiện tại cho các năm còn đóng, theo giá hôm nay, chưa tính hệ số trượt giá nên hơi thấp hơn thực tế). Số năm lẻ: 1-6 tháng tính nửa năm, 7-11 tháng tính một năm. Lương hưu nhận từ tuổi nghỉ hưu theo luật của năm bạn đạt tuổi (nam: 61 tuổi 6 tháng năm 2026, thêm 3 tháng mỗi năm, 62 tuổi từ 2028; nữ: 57 tuổi năm 2026, thêm 4 tháng mỗi năm, 60 tuổi từ 2035; chưa tính trường hợp được nghỉ sớm do công việc nặng nhọc, độc hại), tăng theo lạm phát. Chỉ là ước tính - kiểm tra lại trên VssID.</p>
         </div>
       </div>
       <div class="field">
@@ -374,13 +378,34 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
   if(!Array.isArray(tt.nguon)) tt.nguon = [];      // nguồn tiền hiện có: {ten, tien, lai (%/năm), ky (tháng, 0 = không kỳ hạn)}
   if(!Array.isArray(tt.thu)) tt.thu = [];          // thu nhập hằng tháng: {ten, tien (/tháng), khi: truoc|sau|ca_doi}
   var NHAN_KHI = {truoc: 'đến khi nghỉ hưu', sau: 'sau khi nghỉ hưu', ca_doi: 'cả đời'};
-  if(!tt.bh || typeof tt.bh !== 'object') tt.bh = {bat: false, gioi: 'nam', luong: 0, daDong: 0};
-  var elB = {bat: $('dtBh'), o: $('dtBhO'), gioi: $('dtBhGioi'), luong: $('dtBhLuong'), nam: $('dtBhNam'), ghiChu: $('dtBhGhiChu')};
+  if(!tt.bh || typeof tt.bh !== 'object') tt.bh = {bat: false, gioi: 'nam', luong: 0, luongCu: 0, tuNam: 0};
+  var elB = {bat: $('dtBh'), o: $('dtBhO'), gioi: $('dtBhGioi'), luong: $('dtBhLuong'), luongCu: $('dtBhLuongCu'), tuNam: $('dtBhTuNam'), ghiChu: $('dtBhGhiChu')};
+  var NAM_NAY = new Date().getFullYear() + new Date().getMonth() / 12;   // vd tháng 10/2026 -> 2026,75
+  var dinhDang = function(v){ return v ? Number(v).toLocaleString('vi-VN') : ''; };
+  var docSo = function(o){ return Number(String(o.value).replace(/[^\d]/g, '')) || 0; };
   elB.bat.checked = !!tt.bh.bat; elB.gioi.value = tt.bh.gioi || 'nam';
-  elB.luong.value = tt.bh.luong ? Number(tt.bh.luong).toLocaleString('vi-VN') : ''; elB.nam.value = tt.bh.daDong || 0;
+  elB.luong.value = dinhDang(tt.bh.luong); elB.luongCu.value = dinhDang(tt.bh.luongCu);
+  // dữ liệu bản trước lưu "số năm đã đóng" -> đổi ra năm bắt đầu đóng
+  elB.tuNam.value = tt.bh.tuNam || (tt.bh.daDong ? Math.round(NAM_NAY - tt.bh.daDong) : '');
   var BH_TY_LE_DONG = 0.105;                 // người lao động: BHXH 8% + BHYT 1,5% + BHTN 1%
   var BH_TRAN = 20 * 2340000;                // trần lương đóng = 20 lần lương cơ sở (2,34 triệu từ 01/07/2024)
-  var BH_TUOI_HUU = {nam: 62, nu: 60};       // tuổi nghỉ hưu theo luật (lộ trình hoàn tất 2028 với nam, 2035 với nữ)
+  // Tuổi nghỉ hưu theo luật (điều kiện lao động bình thường) của năm đạt tuổi, lộ trình BLLĐ 2019:
+  // nam 60 tuổi 3 tháng năm 2021, mỗi năm +3 tháng, 62 tuổi từ 2028; nữ 55 tuổi 4 tháng năm 2021, mỗi năm +4 tháng, 60 tuổi từ 2035.
+  function tuoiHuuLuat(gioi, nam){
+    return gioi === 'nu' ? Math.min(60, 55 + 4 * Math.max(0, nam - 2020) / 12) : Math.min(62, 60 + 3 * Math.max(0, nam - 2020) / 12);
+  }
+  // Tuổi bắt đầu nhận lương hưu: tuổi t nhỏ nhất mà t >= tuổi luật của năm đạt tuổi t (năm sinh = năm nay - tuổi)
+  function tuoiNhanHuu(gioi, tuoi){
+    var namSinh = NAM_NAY - tuoi;
+    for(var t = 55; t <= 70; t += 1 / 12){ if(t + 1e-9 >= tuoiHuuLuat(gioi, Math.floor(namSinh + t))) return Math.round(t * 12) / 12; }
+    return gioi === 'nu' ? 60 : 62;
+  }
+  // Làm tròn số năm đóng theo luật: lẻ 1-6 tháng = nửa năm, 7-11 tháng = một năm
+  function lamTronNam(nam){
+    var tron = Math.floor(nam), le = Math.round((nam - tron) * 12);
+    return tron + (le === 0 ? 0 : (le <= 6 ? 0.5 : 1));
+  }
+  function nhanTuoi(t){ var nam = Math.floor(t), thang = Math.round((t - nam) * 12); return nam + ' tuổi' + (thang ? ' ' + thang + ' tháng' : ''); }
   // Tỷ lệ hưởng lương hưu theo Luật BHXH 2024
   function tyLeHuu(gioi, nam){
     if(nam < 15) return 0;
@@ -496,15 +521,23 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     var bh = {dong: 0, luongHuu: 0, tuoiNhan: 0, soNam: 0, tyLe: 0, luongDong: 0};
     elB.o.hidden = !elB.bat.checked; elB.ghiChu.hidden = !elB.bat.checked;
     if(elB.bat.checked){
-      var luongNhap = Number(String(elB.luong.value).replace(/[^\d]/g, '')) || tongThu(['truoc']);
-      bh.luongDong = Math.min(luongNhap, BH_TRAN);
-      bh.dong = bh.luongDong * BH_TY_LE_DONG;
-      bh.soNam = Math.max(0, Math.floor(Number(elB.nam.value) || 0)) + Math.max(0, Math.min(huu, den) - tuoi);
+      var luongNay = Math.min(docSo(elB.luong) || tongThu(['truoc']), BH_TRAN);
+      var luongCu = Math.min(docSo(elB.luongCu) || luongNay, BH_TRAN);
+      var tuNam = Number(elB.tuNam.value) || 0;
+      var namDaDong = tuNam ? Math.max(0, NAM_NAY - tuNam) : 0;              // tính tới tháng hiện tại
+      var namConDong = Math.max(0, Math.min(huu, den) - tuoi);
+      bh.luongDong = luongNay;
+      bh.dong = luongNay * BH_TY_LE_DONG;
+      bh.namDaDong = namDaDong;
+      bh.soNam = lamTronNam(namDaDong + namConDong);
+      // bình quân tiền lương đóng cả quá trình (theo giá hôm nay)
+      bh.binhQuan = (namDaDong + namConDong) ? (luongCu * namDaDong + luongNay * namConDong) / (namDaDong + namConDong) : luongNay;
       bh.tyLe = tyLeHuu(elB.gioi.value, bh.soNam);
-      bh.luongHuu = bh.luongDong * bh.tyLe;
-      bh.tuoiNhan = Math.max(BH_TUOI_HUU[elB.gioi.value], huu);
+      bh.luongHuu = bh.binhQuan * bh.tyLe;
+      bh.tuoiLuat = tuoiNhanHuu(elB.gioi.value, tuoi);
+      bh.tuoiNhan = Math.max(bh.tuoiLuat, huu);
     }
-    var thangNhanHuu = (bh.tuoiNhan - tuoi) * 12;
+    var thangNhanHuu = Math.round((bh.tuoiNhan - tuoi) * 12);
     var chiRong = function(k){ return Math.max(0, (chiThang - thuHuu - (bh.luongHuu && k >= thangNhanHuu ? bh.luongHuu : 0)) * Math.pow(1 + g, k)); };
     $('oDtThu').textContent = tt.thu.length ? (thuDiLam ? tien(thuDiLam) + '/tháng khi đi làm' : '') +
       (thuDiLam && thuHuu ? ' · ' : '') + (thuHuu ? tien(thuHuu) + '/tháng khi nghỉ hưu' : '') : '';
@@ -539,9 +572,12 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     if(elB.bat.checked){
       bk.hidden = false;
       bk.textContent = !bh.luongDong ? 'BHXH: nhập lương đóng BHXH hoặc thêm khoản thu "Đến khi nghỉ hưu" để tính.' :
-        'BHXH: mỗi tháng đóng ' + tien(bh.dong) + ' (10,5% của ' + tien(bh.luongDong) + '). Tới ' + huu + ' tuổi đóng khoảng ' + bh.soNam + ' năm → ' +
-        (bh.tyLe ? 'tỷ lệ hưởng ' + Math.round(bh.tyLe * 100) + '%, lương hưu khoảng ' + tien(bh.luongHuu) + '/tháng (theo giá hôm nay), nhận từ ' + bh.tuoiNhan + ' tuổi' +
-                   (bh.tuoiNhan > huu ? '; từ ' + huu + ' đến ' + bh.tuoiNhan + ' tuổi chưa có lương hưu, chi bằng quỹ tự tích luỹ' : '') + '.'
+        'BHXH: mỗi tháng đóng ' + tien(bh.dong) + ' (10,5% của ' + tien(bh.luongDong) + ').' +
+        (bh.namDaDong ? ' Đã đóng khoảng ' + so(bh.namDaDong, 1) + ' năm,' : '') + ' tới ' + huu + ' tuổi tổng cộng ' + so(bh.soNam, 1) + ' năm, ' +
+        'bình quân lương đóng ' + tien(bh.binhQuan) + ' → ' +
+        (bh.tyLe ? 'tỷ lệ hưởng ' + so(bh.tyLe * 100, 0) + '%, lương hưu khoảng ' + tien(bh.luongHuu) + '/tháng (theo giá hôm nay). Tuổi nghỉ hưu theo luật của bạn: ' +
+                   nhanTuoi(bh.tuoiLuat) + '; nhận lương hưu từ ' + nhanTuoi(bh.tuoiNhan) +
+                   (bh.tuoiNhan > huu ? ' - từ ' + huu + ' tuổi tới lúc đó chưa có lương hưu, chi bằng quỹ tự tích luỹ' : '') + '.'
                  : 'chưa đủ 15 năm nên không có lương hưu hằng tháng.');
     } else { bk.hidden = true; }
     var cd = $('dtCanDoi');
@@ -648,15 +684,12 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     elT.tien.value = d ? Number(d).toLocaleString('vi-VN') : '';
   });
   function luuBh(){
-    tt.bh = {bat: elB.bat.checked, gioi: elB.gioi.value, luong: Number(String(elB.luong.value).replace(/[^\d]/g, '')) || 0,
-             daDong: Math.max(0, Math.floor(Number(elB.nam.value) || 0))};
+    tt.bh = {bat: elB.bat.checked, gioi: elB.gioi.value, luong: docSo(elB.luong), luongCu: docSo(elB.luongCu),
+             tuNam: Number(elB.tuNam.value) || 0};
     luu(); tinh();
   }
-  elB.luong.addEventListener('input', function(){
-    var d = elB.luong.value.replace(/[^\d]/g, '');
-    elB.luong.value = d ? Number(d).toLocaleString('vi-VN') : '';
-  });
-  [elB.bat, elB.gioi, elB.luong, elB.nam].forEach(function(o){ o.addEventListener('input', luuBh); o.addEventListener('change', luuBh); });
+  [elB.luong, elB.luongCu].forEach(function(o){ o.addEventListener('input', function(){ o.value = dinhDang(docSo(o)); }); });
+  [elB.bat, elB.gioi, elB.luong, elB.luongCu, elB.tuNam].forEach(function(o){ o.addEventListener('input', luuBh); o.addEventListener('change', luuBh); });
   veDanhSach(); veThu(); veNguon(); tinh();
 };
 </script>

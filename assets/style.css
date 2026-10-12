@@ -519,7 +519,7 @@ footer.site{padding-block:56px calc(36px + env(safe-area-inset-bottom,0px)); bor
 .dt-form-thu #dtThuKhi{flex:1 1 140px; min-width:0;}
 .dt-bhxh{margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);}
 .dt-check{display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; cursor:pointer;}
-.dt-bh-o{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:10px;}
+.dt-bh-o{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:10px;}
 .dt-bh-o[hidden]{display:none;}
 .dt-bh-o .field label{font-size:12px;}
 .dt-bh-kq{margin-top:10px;}
