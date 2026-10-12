@@ -512,6 +512,7 @@ footer.site{padding-block:56px calc(36px + env(safe-area-inset-bottom,0px)); bor
 .dt-form-nguon #dtNguonTen{flex:1 1 100%;}
 .dt-form-nguon #dtNguonTien{flex:1 1 120px; min-width:0;}
 .dt-form-nguon #dtNguonLai{flex:0 1 90px; min-width:0;}
+.dt-form-nguon #dtNguonKy{flex:1 1 150px; min-width:0;}
 .dt-nguon-txt{margin-top:10px;}
 .dt-sum{font-size:14px; color:var(--ink-soft); line-height:1.6;}
 /* Công cụ: đăng nhập quản trị cho tab Dự toán tương lai */

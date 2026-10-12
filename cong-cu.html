@@ -243,9 +243,21 @@ permalink: /cong-cu/
           <input id="dtNguonTien" class="tabular" type="text" inputmode="numeric" placeholder="Số tiền, vd: 200.000.000" autocomplete="off" required>
           <label class="sr-only" for="dtNguonLai">Lãi suất %/năm</label>
           <input id="dtNguonLai" class="tabular" type="text" inputmode="decimal" placeholder="Lãi %/năm" autocomplete="off" required>
+          <label class="sr-only" for="dtNguonKy">Kỳ hạn gửi</label>
+          <select id="dtNguonKy">
+            <option value="0">Không kỳ hạn</option>
+            <option value="1">Kỳ hạn 1 tháng</option>
+            <option value="3">Kỳ hạn 3 tháng</option>
+            <option value="6" selected>Kỳ hạn 6 tháng</option>
+            <option value="9">Kỳ hạn 9 tháng</option>
+            <option value="12">Kỳ hạn 12 tháng</option>
+            <option value="18">Kỳ hạn 18 tháng</option>
+            <option value="24">Kỳ hạn 24 tháng</option>
+            <option value="36">Kỳ hạn 36 tháng</option>
+          </select>
           <button class="btn btn-accent" type="submit">Thêm</button>
         </form>
-        <p class="hint">Tiền đang có sẵn (sổ tiết kiệm, tiền gửi, quỹ…) kèm lãi suất của từng khoản. Mỗi khoản tự sinh lãi tới lúc nghỉ hưu và được trừ vào số tiền cần tiết kiệm.</p>
+        <p class="hint">Tiền đang có sẵn (sổ tiết kiệm, tiền gửi, quỹ…): nhập lãi suất niêm yết %/năm và kỳ hạn gửi. Có kỳ hạn: đến hạn lãi nhập vào gốc và tự tái tục; phần tháng lẻ chưa tròn kỳ lúc nghỉ hưu coi như rút trước hạn, chỉ hưởng lãi không kỳ hạn 0,1%/năm. Không kỳ hạn: lãi nhập gốc hằng tháng. Mỗi khoản được trừ vào số tiền cần tiết kiệm.</p>
       </div>
     </div>
     <div class="calc-result">
@@ -321,8 +333,19 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
 
   var tt = ttBanDau && Array.isArray(ttBanDau.khoan) ? ttBanDau : {khoan: MAU.slice(), tuoi: 30, huu: 60, den: 90, lai: 5, lp: 0};
   if(tt.huu === undefined) tt.huu = 60;
-  if(!Array.isArray(tt.nguon)) tt.nguon = [];      // nguồn tiền hiện có: {ten, tien, lai (%/năm)}
-  var elN = {list: $('dtNguonList'), form: $('dtNguonForm'), ten: $('dtNguonTen'), tien: $('dtNguonTien'), lai: $('dtNguonLai')};
+  if(!Array.isArray(tt.nguon)) tt.nguon = [];      // nguồn tiền hiện có: {ten, tien, lai (%/năm), ky (tháng, 0 = không kỳ hạn)}
+  var elN = {list: $('dtNguonList'), form: $('dtNguonForm'), ten: $('dtNguonTen'), tien: $('dtNguonTien'), lai: $('dtNguonLai'), ky: $('dtNguonKy')};
+  var LAI_KHONG_KY_HAN = 0.1;                       // %/năm khi rút trước hạn
+  // Giá trị 1 nguồn tiền sau 'thang' tháng, tính như ngân hàng:
+  //  - có kỳ hạn k tháng: mỗi kỳ lãi = gốc * lãi năm * k/12, đến hạn nhập gốc và tái tục; tháng lẻ chưa tròn kỳ
+  //    coi như rút trước hạn -> chỉ hưởng lãi không kỳ hạn (lãi đơn)
+  //  - không kỳ hạn: lãi nhập gốc hằng tháng (lãi năm / 12)
+  function giaTriNguon(n, thang){
+    var r = n.lai / 100, k = Number(n.ky) || 0;
+    if(!k) return n.tien * Math.pow(1 + r / 12, thang);
+    var kyTron = Math.floor(thang / k), le = thang - kyTron * k;
+    return n.tien * Math.pow(1 + r * k / 12, kyTron) * (1 + LAI_KHONG_KY_HAN / 100 * le / 12);
+  }
   el.tuoi.value = tt.tuoi; el.huu.value = tt.huu; el.den.value = tt.den; el.lai.value = tt.lai; el.lp.value = tt.lp;
   function luu(){
     tt.tuoi = Number(el.tuoi.value); tt.huu = Number(el.huu.value); tt.den = Number(el.den.value); tt.lai = Number(el.lai.value); tt.lp = Number(el.lp.value);
@@ -360,7 +383,7 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
       var li = document.createElement('li'); li.className = 'dt-item';
       var ten = document.createElement('span'); ten.className = 'dt-ten'; ten.textContent = n.ten;
       var gt = document.createElement('span'); gt.className = 'dt-gt tabular';
-      gt.textContent = tien(n.tien) + ' · ' + so(n.lai, 1) + '%/năm';
+      gt.textContent = tien(n.tien) + ' · ' + so(n.lai, 1) + '%/năm · ' + (Number(n.ky) ? 'kỳ hạn ' + n.ky + ' tháng' : 'không kỳ hạn');
       var xoa = document.createElement('button'); xoa.type = 'button'; xoa.className = 'goal-del';
       xoa.setAttribute('aria-label', 'Xoá nguồn ' + n.ten);
       xoa.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>';
@@ -398,9 +421,8 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     var quy = 0;
     for(k = R; k < T; k++) quy += chiK(k) / Math.pow(1 + i, k - R);
     // Nguồn tiền hiện có: mỗi khoản lãi kép theo lãi suất riêng tới lúc nghỉ hưu, rồi gộp vào quỹ hưu trí
-    var laiThangNguon = tt.nguon.map(function(n){ return Math.pow(1 + n.lai / 100, 1 / 12) - 1; });
     var coSan = tt.nguon.reduce(function(s, n){ return s + n.tien; }, 0);
-    var coSanLucHuu = tt.nguon.reduce(function(s, n, j){ return s + n.tien * Math.pow(1 + laiThangNguon[j], R); }, 0);
+    var coSanLucHuu = tt.nguon.reduce(function(s, n){ return s + giaTriNguon(n, R); }, 0);
     var thieu = Math.max(0, quy - coSanLucHuu), du_ = Math.max(0, coSanLucHuu - quy);
     $('oDtNguon').textContent = tt.nguon.length ? tien(coSan) : '';
     // (3) Tiết kiệm cố định cuối mỗi tháng trong R tháng để bù phần còn thiếu: S * ((1+i)^R - 1) / i = thieu
@@ -439,12 +461,11 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     }
     $('dtTomTat').textContent = tomTat;
     // Biểu đồ: số dư cuối mỗi năm - tích luỹ tới tuổi nghỉ hưu rồi rút dần về 0
-    var du = 0, rows = [], nguonCon = tt.nguon.map(function(n){ return n.tien; }), tk = 0;
+    var du = 0, rows = [], tk = 0;
     for(var m = 1; m <= T; m++){
       if(m <= R){
-        nguonCon = nguonCon.map(function(v, j){ return v * (1 + laiThangNguon[j]); });
         tk = tk * (1 + i) + tkThang;
-        du = tk + nguonCon.reduce(function(s, v){ return s + v; }, 0);
+        du = tk + tt.nguon.reduce(function(s, n){ return s + giaTriNguon(n, m); }, 0);
       } else du = (du - chiK(m - 1)) * (1 + i);
       if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du), tichLuy: m <= R});
     }
@@ -488,7 +509,7 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     if(!ten){ elN.ten.focus(); return; }
     if(!soTien){ elN.tien.focus(); return; }
     if(!isFinite(lai) || elN.lai.value.trim() === '' || lai > 50){ elN.lai.focus(); return; }
-    tt.nguon.push({ten: ten, tien: soTien, lai: lai});
+    tt.nguon.push({ten: ten, tien: soTien, lai: lai, ky: Number(elN.ky.value) || 0});
     elN.ten.value = ''; elN.tien.value = ''; elN.lai.value = ''; elN.ten.focus();
     luu(); veNguon(); tinh();
   });
