@@ -1,0 +1,8 @@
+# Tài khoản quản trị cho tab "Dự toán tương lai" (trang Công cụ).
+# Chỉ lưu bản băm PBKDF2-SHA256 của mật khẩu, KHÔNG lưu mật khẩu.
+# Chưa có mật khẩu (bam rỗng): bấm "Đăng nhập" trên trang Công cụ để đặt mật khẩu lần đầu, trang sẽ đưa ra
+# đoạn mới để dán đè lên file này. Đổi mật khẩu: đăng nhập > Đổi mật khẩu > dán đoạn mới vào đây.
+ten: hieu.quach
+salt: ""
+lap: 310000
+bam: ""

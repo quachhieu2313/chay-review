@@ -12,8 +12,12 @@ permalink: /cong-cu/
   <div class="seg" id="ccTab" role="tablist" aria-label="Chọn công cụ" style="margin-top:14px;">
     <button type="button" role="tab" id="tabLaiKep" data-t="lai-kep" aria-controls="panLaiKep" aria-selected="true">Lãi kép</button>
     <button type="button" role="tab" id="tabMucTieu" data-t="muc-tieu" aria-controls="panMucTieu" aria-selected="false">Mục tiêu hôm nay</button>
-    <button type="button" role="tab" id="tabDuToan" data-t="du-toan" aria-controls="panDuToan" aria-selected="false">Dự toán tương lai</button>
+    <button type="button" role="tab" id="tabDuToan" data-t="du-toan" aria-controls="panDuToan" aria-selected="false" hidden>Dự toán tương lai</button>
   </div>
+  <button type="button" class="btn btn-ghost qt-mo" id="qtMo" aria-controls="panDangNhap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    Đăng nhập
+  </button>
 </section>
 
 <div id="panLaiKep" role="tabpanel" aria-labelledby="tabLaiKep">
@@ -135,8 +139,55 @@ permalink: /cong-cu/
 </section>
 </div>
 
+<div id="panDangNhap" hidden>
+<section class="wrap">
+  <div class="card qt-card">
+    <form id="qtFormDN" class="qt-form" autocomplete="on">
+      <h2>Đăng nhập quản trị</h2>
+      <p class="qt-mo-ta">Dành riêng cho chủ trang để dùng công cụ Dự toán tương lai. Dữ liệu được mã hoá bằng mật khẩu và chỉ lưu trên trình duyệt này.</p>
+      <label for="qtTen">Tài khoản</label>
+      <input id="qtTen" class="dt-input" type="text" autocomplete="username" required>
+      <label for="qtMk">Mật khẩu</label>
+      <input id="qtMk" class="dt-input" type="password" autocomplete="current-password" required>
+      <p class="qt-loi" id="qtLoiDN" role="alert"></p>
+      <div class="qt-nut"><button class="btn btn-accent" type="submit">Đăng nhập</button><button class="btn btn-ghost" type="button" id="qtDong">Đóng</button></div>
+    </form>
+    <form id="qtFormTao" class="qt-form" hidden>
+      <h2>Đặt mật khẩu quản trị lần đầu</h2>
+      <p class="qt-mo-ta">Trang chưa có mật khẩu quản trị. Đặt mật khẩu cho tài khoản <b id="qtTenTao"></b> (ít nhất 10 ký tự). Mật khẩu không được gửi đi đâu; trang chỉ tạo ra một đoạn mã băm để bạn dán vào GitHub.</p>
+      <label for="qtMkTao">Mật khẩu mới</label>
+      <input id="qtMkTao" class="dt-input" type="password" autocomplete="new-password" minlength="10" required>
+      <label for="qtMkTao2">Nhập lại mật khẩu</label>
+      <input id="qtMkTao2" class="dt-input" type="password" autocomplete="new-password" minlength="10" required>
+      <p class="qt-loi" id="qtLoiTao" role="alert"></p>
+      <div class="qt-nut"><button class="btn btn-accent" type="submit">Tạo mã băm</button></div>
+    </form>
+    <div id="qtKetQuaTao" class="qt-ket-qua" hidden></div>
+  </div>
+</section>
+</div>
+
 <div id="panDuToan" role="tabpanel" aria-labelledby="tabDuToan" hidden>
 <section class="wrap">
+  <div class="qt-thanh">
+    <span>Đang đăng nhập: <b id="qtDangLa"></b> · dữ liệu mã hoá, chỉ lưu trên trình duyệt này</span>
+    <button class="btn btn-ghost" type="button" id="qtMoDoiMk">Đổi mật khẩu</button>
+    <button class="btn btn-ghost" type="button" id="qtThoat">Đăng xuất</button>
+  </div>
+  <div class="card qt-card" id="qtKhungDoiMk" hidden>
+    <form id="qtFormDoi" class="qt-form">
+      <h2>Đổi mật khẩu</h2>
+      <label for="qtMkCu">Mật khẩu hiện tại</label>
+      <input id="qtMkCu" class="dt-input" type="password" autocomplete="current-password" required>
+      <label for="qtMkMoi">Mật khẩu mới (ít nhất 10 ký tự)</label>
+      <input id="qtMkMoi" class="dt-input" type="password" autocomplete="new-password" minlength="10" required>
+      <label for="qtMkMoi2">Nhập lại mật khẩu mới</label>
+      <input id="qtMkMoi2" class="dt-input" type="password" autocomplete="new-password" minlength="10" required>
+      <p class="qt-loi" id="qtLoiDoi" role="alert"></p>
+      <div class="qt-nut"><button class="btn btn-accent" type="submit">Đổi mật khẩu</button></div>
+    </form>
+    <div id="qtKetQuaDoi" class="qt-ket-qua" hidden></div>
+  </div>
   <div class="card calc" id="duToan">
     <div class="calc-form">
       <div class="dt-row">
@@ -229,9 +280,10 @@ permalink: /cong-cu/
 </div>
 
 <script>
-// DỰ TOÁN TƯƠNG LAI: số tiền cần có sẵn hôm nay để đủ chi tiêu tới tuổi dự kiến sống, với lãi suất ngân hàng
-(function(){
-  var KHOA = 'kcn-du-toan';
+// DỰ TOÁN TƯƠNG LAI: số tiền cần có sẵn hôm nay để đủ chi tiêu tới tuổi dự kiến sống, với lãi suất ngân hàng.
+// Chỉ khởi động sau khi đăng nhập quản trị (xem script QUẢN TRỊ bên dưới): nhận dữ liệu đã giải mã và hàm ghi
+// (mã hoá rồi lưu) - không tự đọc/ghi localStorage dạng chữ thường.
+window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
   var HE_SO_THANG = {ngay: 365 / 12, tuan: 52 / 12, thang: 1, nam: 1 / 12};
   var NHAN_KY = {ngay: 'ngày', tuan: 'tuần', thang: 'tháng', nam: 'năm'};
   var MAU = [
@@ -252,14 +304,12 @@ permalink: /cong-cu/
     return so(Math.round(d)) + ' đ';
   }
 
-  var tt = null;
-  try { tt = JSON.parse(localStorage.getItem(KHOA) || 'null'); } catch(e) { tt = null; }
-  if(!tt || !Array.isArray(tt.khoan)) tt = {khoan: MAU.slice(), tuoi: 30, huu: 60, den: 90, lai: 5, lp: 0};
+  var tt = ttBanDau && Array.isArray(ttBanDau.khoan) ? ttBanDau : {khoan: MAU.slice(), tuoi: 30, huu: 60, den: 90, lai: 5, lp: 0};
   if(tt.huu === undefined) tt.huu = 60;
   el.tuoi.value = tt.tuoi; el.huu.value = tt.huu; el.den.value = tt.den; el.lai.value = tt.lai; el.lp.value = tt.lp;
   function luu(){
     tt.tuoi = Number(el.tuoi.value); tt.huu = Number(el.huu.value); tt.den = Number(el.den.value); tt.lai = Number(el.lai.value); tt.lp = Number(el.lp.value);
-    try { localStorage.setItem(KHOA, JSON.stringify(tt)); } catch(e) {}
+    ghi(tt);
   }
 
   function veDanhSach(){
@@ -377,6 +427,179 @@ permalink: /cong-cu/
   });
   [el.tuoi, el.huu, el.den, el.lai, el.lp].forEach(function(o){ o.addEventListener('input', function(){ luu(); tinh(); }); });
   veDanhSach(); tinh();
+};
+</script>
+
+<script>
+// QUẢN TRỊ: đăng nhập để thấy tab Dự toán tương lai. Trang tĩnh (GitHub Pages) nên đây là bảo vệ phía trình duyệt:
+// repo chỉ chứa bản băm PBKDF2 của mật khẩu (_data/quan_tri.yml); dữ liệu chi tiêu mã hoá AES-GCM bằng khoá sinh từ
+// mật khẩu và chỉ lưu localStorage của trình duyệt. Mã nguồn công cụ vẫn công khai, dữ liệu của chủ trang thì không.
+(function(){
+  var QT = {{ site.data.quan_tri | jsonify }} || {};
+  var KHOA_DL = 'kcn-du-toan-mh', KHOA_CU = 'kcn-du-toan', KHOA_PHIEN = 'kcn-qt-phien';
+  var LAP = 310000;
+  var URL_SUA = 'https://github.com/quachhieu2313/chay-review/edit/main/_data/quan_tri.yml';
+  var $ = function(id){ return document.getElementById(id); };
+  if(!window.crypto || !crypto.subtle || !window.TextEncoder){ $('qtMo').hidden = true; return; }
+  var enc = new TextEncoder(), dec = new TextDecoder();
+
+  function b64(buf){ var a = new Uint8Array(buf), s = ''; for(var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
+  function unb64(t){ var s = atob(t), a = new Uint8Array(s.length); for(var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; }
+  function ngauNhien(n){ return crypto.getRandomValues(new Uint8Array(n)); }
+  function goc(mk){ return crypto.subtle.importKey('raw', enc.encode(mk), 'PBKDF2', false, ['deriveBits', 'deriveKey']); }
+  function bam(mk, salt, lap){
+    return goc(mk).then(function(k){ return crypto.subtle.deriveBits({name: 'PBKDF2', salt: unb64(salt), iterations: lap, hash: 'SHA-256'}, k, 256); }).then(b64);
+  }
+  function khoaAes(mk, salt){
+    return goc(mk).then(function(k){
+      return crypto.subtle.deriveKey({name: 'PBKDF2', salt: unb64(salt), iterations: LAP, hash: 'SHA-256'}, k, {name: 'AES-GCM', length: 256}, true, ['encrypt', 'decrypt']);
+    });
+  }
+  function maHoa(khoa, saltDl, obj){
+    var iv = ngauNhien(12);
+    return crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, khoa, enc.encode(JSON.stringify(obj))).then(function(ct){
+      return {v: 1, salt: saltDl, iv: b64(iv), ct: b64(ct)};
+    });
+  }
+  function giaiMa(khoa, goi){
+    return crypto.subtle.decrypt({name: 'AES-GCM', iv: unb64(goi.iv)}, khoa, unb64(goi.ct)).then(function(b){ return JSON.parse(dec.decode(b)); });
+  }
+  function docGoi(){ try { return JSON.parse(localStorage.getItem(KHOA_DL) || 'null'); } catch(e) { return null; } }
+  function doanYaml(ten, salt, h){
+    return '# Tài khoản quản trị cho tab "Dự toán tương lai" (trang Công cụ).\n' +
+      '# Chỉ lưu bản băm PBKDF2-SHA256 của mật khẩu, KHÔNG lưu mật khẩu. Đổi mật khẩu: đăng nhập > Đổi mật khẩu > dán đoạn mới vào đây.\n' +
+      'ten: ' + ten + '\nsalt: "' + salt + '"\nlap: ' + LAP + '\nbam: "' + h + '"\n';
+  }
+  function hienYaml(khung, yaml, loiDan){
+    khung.innerHTML = '';
+    var p = document.createElement('p'); p.textContent = loiDan; khung.appendChild(p);
+    var ta = document.createElement('textarea'); ta.readOnly = true; ta.rows = 6; ta.value = yaml; khung.appendChild(ta);
+    var nut = document.createElement('div'); nut.className = 'qt-nut';
+    var chep = document.createElement('button'); chep.type = 'button'; chep.className = 'btn btn-accent'; chep.textContent = 'Chép đoạn này';
+    chep.addEventListener('click', function(){
+      ta.select();
+      try { navigator.clipboard.writeText(yaml); } catch(e) { document.execCommand('copy'); }
+      chep.textContent = 'Đã chép';
+    });
+    var mo = document.createElement('a'); mo.className = 'btn btn-ghost'; mo.href = URL_SUA; mo.target = '_blank'; mo.rel = 'noopener';
+    mo.textContent = 'Mở file trên GitHub để dán';
+    nut.appendChild(chep); nut.appendChild(mo); khung.appendChild(nut);
+    khung.hidden = false;
+  }
+  function luuPhien(ten, khoa, salt){
+    crypto.subtle.exportKey('raw', khoa).then(function(raw){
+      try { sessionStorage.setItem(KHOA_PHIEN, JSON.stringify({ten: ten, k: b64(raw), salt: salt})); } catch(e) {}
+    });
+  }
+
+  var phien = null;   // {ten, khoa (CryptoKey), salt}
+  function ghiDuLieu(tt){
+    if(!phien) return;
+    maHoa(phien.khoa, phien.salt, tt).then(function(goi){ try { localStorage.setItem(KHOA_DL, JSON.stringify(goi)); } catch(e) {} });
+  }
+  function vaoTab(ten, khoa, salt){
+    var goi = docGoi();
+    return (goi ? giaiMa(khoa, goi) : Promise.resolve(null)).then(function(tt){
+      phien = {ten: ten, khoa: khoa, salt: salt};
+      if(!tt){   // chưa có dữ liệu mã hoá: chuyển dữ liệu chữ thường của bản cũ (nếu có) sang dạng mã hoá rồi xoá bản cũ
+        try { tt = JSON.parse(localStorage.getItem(KHOA_CU) || 'null'); } catch(e) { tt = null; }
+        try { localStorage.removeItem(KHOA_CU); } catch(e) {}
+      }
+      luuPhien(ten, khoa, salt);
+      window.KCN_daDangNhap = true;
+      $('tabDuToan').hidden = false; $('qtMo').hidden = true; $('panDangNhap').hidden = true;
+      $('qtDangLa').textContent = ten;
+      window.KCN_khoiDongDuToan(tt, ghiDuLieu);
+      if(tt) ghiDuLieu(tt);   // lưu ngay bản mã hoá (nhất là khi vừa chuyển từ dữ liệu chữ thường của bản cũ)
+    });
+  }
+
+  // Mở khung đăng nhập (chưa có mật khẩu trên repo thì mở khung đặt mật khẩu lần đầu)
+  $('qtMo').addEventListener('click', function(){
+    var chuaCo = !QT.bam;
+    $('qtFormDN').hidden = chuaCo; $('qtFormTao').hidden = !chuaCo; $('qtKetQuaTao').hidden = true;
+    $('qtTenTao').textContent = QT.ten || 'hieu.quach';
+    $('panDangNhap').hidden = false;
+    (chuaCo ? $('qtMkTao') : $('qtTen')).focus();
+  });
+  $('qtDong').addEventListener('click', function(){ $('panDangNhap').hidden = true; });
+
+  // Đăng nhập: so bản băm với _data/quan_tri.yml, rồi sinh khoá giải mã dữ liệu trên trình duyệt này
+  $('qtFormDN').addEventListener('submit', function(e){
+    e.preventDefault();
+    var ten = $('qtTen').value.trim(), mk = $('qtMk').value, loi = $('qtLoiDN');
+    loi.textContent = 'Đang kiểm tra...';
+    bam(mk, QT.salt, QT.lap || LAP).then(function(h){
+      if(ten !== QT.ten || h !== QT.bam){ loi.textContent = 'Sai tài khoản hoặc mật khẩu.'; return; }
+      var goi = docGoi(), salt = goi ? goi.salt : b64(ngauNhien(16));
+      return khoaAes(mk, salt).then(function(k){ return vaoTab(ten, k, salt); }).then(function(){
+        loi.textContent = ''; $('qtMk').value = '';
+        window.KCN_chonTab('du-toan', true);
+      });
+    }).catch(function(){
+      loi.textContent = 'Mật khẩu đúng nhưng không giải mã được dữ liệu cũ trên trình duyệt này (dữ liệu được mã hoá bằng mật khẩu trước khi đổi?).';
+    });
+  });
+
+  // Đặt mật khẩu lần đầu: chỉ tạo đoạn băm để dán vào _data/quan_tri.yml (trang tĩnh không tự ghi lên GitHub được)
+  $('qtFormTao').addEventListener('submit', function(e){
+    e.preventDefault();
+    var mk = $('qtMkTao').value, loi = $('qtLoiTao');
+    if(mk.length < 10){ loi.textContent = 'Mật khẩu cần ít nhất 10 ký tự.'; return; }
+    if(mk !== $('qtMkTao2').value){ loi.textContent = 'Hai lần nhập không khớp.'; return; }
+    loi.textContent = 'Đang tạo...';
+    var salt = b64(ngauNhien(16)), ten = QT.ten || 'hieu.quach';
+    bam(mk, salt, LAP).then(function(h){
+      loi.textContent = '';
+      $('qtFormTao').hidden = true; $('qtMkTao').value = ''; $('qtMkTao2').value = '';
+      hienYaml($('qtKetQuaTao'), doanYaml(ten, salt, h),
+        'Dán toàn bộ đoạn dưới đây đè lên nội dung file _data/quan_tri.yml trên GitHub rồi bấm Commit. Khoảng 1-2 phút sau, tải lại trang này và đăng nhập bằng ' + ten + ' cùng mật khẩu vừa đặt.');
+    });
+  });
+
+  // Đổi mật khẩu: mã hoá lại dữ liệu trên trình duyệt này bằng mật khẩu mới + đưa đoạn băm mới để dán vào GitHub
+  $('qtMoDoiMk').addEventListener('click', function(){
+    $('qtKhungDoiMk').hidden = !$('qtKhungDoiMk').hidden; $('qtKetQuaDoi').hidden = true; $('qtFormDoi').hidden = false;
+  });
+  $('qtFormDoi').addEventListener('submit', function(e){
+    e.preventDefault();
+    var cu = $('qtMkCu').value, moi = $('qtMkMoi').value, loi = $('qtLoiDoi');
+    if(moi.length < 10){ loi.textContent = 'Mật khẩu mới cần ít nhất 10 ký tự.'; return; }
+    if(moi !== $('qtMkMoi2').value){ loi.textContent = 'Hai lần nhập mật khẩu mới không khớp.'; return; }
+    loi.textContent = 'Đang kiểm tra...';
+    bam(cu, QT.salt, QT.lap || LAP).then(function(h){
+      if(h !== QT.bam){ loi.textContent = 'Mật khẩu hiện tại không đúng.'; return; }
+      var goi = docGoi(), saltMoi = b64(ngauNhien(16)), saltBam = b64(ngauNhien(16));
+      var lay = goi ? giaiMa(phien.khoa, goi) : Promise.resolve(null);
+      return Promise.all([lay, khoaAes(moi, saltMoi), bam(moi, saltBam, LAP)]).then(function(kq){
+        phien.khoa = kq[1]; phien.salt = saltMoi;
+        if(kq[0]) ghiDuLieu(kq[0]);
+        luuPhien(phien.ten, kq[1], saltMoi);
+        loi.textContent = '';
+        ['qtMkCu', 'qtMkMoi', 'qtMkMoi2'].forEach(function(id){ $(id).value = ''; });
+        $('qtFormDoi').hidden = true;
+        hienYaml($('qtKetQuaDoi'), doanYaml(phien.ten, saltBam, kq[2]),
+          'Dữ liệu trên trình duyệt này đã được mã hoá lại bằng mật khẩu mới. Dán đoạn dưới đây đè lên file _data/quan_tri.yml trên GitHub rồi Commit; sau khi trang cập nhật (1-2 phút), lần đăng nhập sau dùng mật khẩu mới.');
+      });
+    });
+  });
+
+  // Đăng xuất: quên khoá trong phiên, ẩn tab
+  $('qtThoat').addEventListener('click', function(){
+    try { sessionStorage.removeItem(KHOA_PHIEN); } catch(e) {}
+    if(history.replaceState) history.replaceState(null, '', '#lai-kep');
+    location.reload();
+  });
+
+  // Tải lại trang trong cùng phiên trình duyệt: dùng lại khoá đã lưu trong sessionStorage (đóng tab là mất)
+  var cu = null;
+  try { cu = JSON.parse(sessionStorage.getItem(KHOA_PHIEN) || 'null'); } catch(e) { cu = null; }
+  if(cu && QT.bam && cu.ten === QT.ten){
+    crypto.subtle.importKey('raw', unb64(cu.k), {name: 'AES-GCM'}, true, ['encrypt', 'decrypt'])
+      .then(function(k){ return vaoTab(cu.ten, k, cu.salt); })
+      .then(function(){ if(location.hash.slice(1) === 'du-toan') window.KCN_chonTab('du-toan', false); })
+      .catch(function(){ try { sessionStorage.removeItem(KHOA_PHIEN); } catch(e) {} });
+  }
 })();
 </script>
 
@@ -389,7 +612,7 @@ permalink: /cong-cu/
   };
   var nut = document.querySelectorAll('#ccTab button');
   function chon(k, doiHash){
-    if(!TAB[k]) k = 'lai-kep';
+    if(!TAB[k] || (k === 'du-toan' && !window.KCN_daDangNhap)) k = 'lai-kep';
     Object.keys(TAB).forEach(function(t){ document.getElementById(TAB[t].pan).hidden = t !== k; });
     Array.prototype.forEach.call(nut, function(b){ b.setAttribute('aria-selected', b.getAttribute('data-t') === k ? 'true' : 'false'); });
     document.getElementById('ccTieuDe').textContent = TAB[k].tieu_de;
@@ -397,6 +620,7 @@ permalink: /cong-cu/
     document.title = TAB[k].tieu_de + ' | ' + document.title.split(' | ').slice(-1)[0];
     if(doiHash && history.replaceState) history.replaceState(null, '', '#' + k);
   }
+  window.KCN_chonTab = chon;
   Array.prototype.forEach.call(nut, function(b){ b.addEventListener('click', function(){ chon(b.getAttribute('data-t'), true); }); });
   window.addEventListener('hashchange', function(){ chon(location.hash.slice(1), false); });
   chon(location.hash.slice(1), false);
