@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Công cụ lãi kép và mục tiêu hôm nay
-description: Hai công cụ miễn phí trong một trang - máy tính lãi kép cho khoản đầu tư đều đặn hằng tháng, và bảng mục tiêu hôm nay giữ chuỗi ngày kỷ luật. Lưu ngay trên trình duyệt của bạn.
+title: Công cụ lãi kép, mục tiêu hôm nay và dự toán tương lai
+description: Ba công cụ miễn phí trong một trang - máy tính lãi kép cho khoản đầu tư đều đặn hằng tháng, bảng mục tiêu hôm nay giữ chuỗi ngày kỷ luật, và dự toán số tiền cần để dành cho chi tiêu tới cuối đời. Lưu ngay trên trình duyệt của bạn.
 nav: cong-cu
 permalink: /cong-cu/
 ---
@@ -12,6 +12,7 @@ permalink: /cong-cu/
   <div class="seg" id="ccTab" role="tablist" aria-label="Chọn công cụ" style="margin-top:14px;">
     <button type="button" role="tab" id="tabLaiKep" data-t="lai-kep" aria-controls="panLaiKep" aria-selected="true">Lãi kép</button>
     <button type="button" role="tab" id="tabMucTieu" data-t="muc-tieu" aria-controls="panMucTieu" aria-selected="false">Mục tiêu hôm nay</button>
+    <button type="button" role="tab" id="tabDuToan" data-t="du-toan" aria-controls="panDuToan" aria-selected="false">Dự toán tương lai</button>
   </div>
 </section>
 
@@ -134,11 +135,213 @@ permalink: /cong-cu/
 </section>
 </div>
 
+<div id="panDuToan" role="tabpanel" aria-labelledby="tabDuToan" hidden>
+<section class="wrap">
+  <div class="card calc" id="duToan">
+    <div class="calc-form">
+      <div class="dt-row">
+        <div class="field">
+          <label for="dtTuoi">Tuổi hiện tại</label>
+          <input id="dtTuoi" class="dt-input tabular" type="number" min="0" max="120" step="1" value="30" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="dtDen">Dự kiến sống đến</label>
+          <input id="dtDen" class="dt-input tabular" type="number" min="1" max="130" step="1" value="90" inputmode="numeric">
+        </div>
+      </div>
+      <div class="field">
+        <label for="dtLai">Lãi suất ngân hàng mỗi năm <output id="oDtLai"></output></label>
+        <input id="dtLai" type="range" min="0" max="12" step="0.1" value="5">
+        <p class="hint">Lãi tiết kiệm kỳ hạn 12 tháng thường khoảng 4–6%/năm.</p>
+      </div>
+      <div class="field">
+        <label for="dtLp">Lạm phát mỗi năm (tuỳ chọn) <output id="oDtLp"></output></label>
+        <input id="dtLp" type="range" min="0" max="10" step="0.1" value="0">
+        <p class="hint">Để 0% nếu chỉ muốn tính theo giá hôm nay. Lạm phát ở Việt Nam vài năm gần đây khoảng 3–4%/năm.</p>
+      </div>
+      <div class="field">
+        <label>Các khoản chi tiêu <output id="oDtThang"></output></label>
+        <ul class="clean dt-list" id="dtList" aria-live="polite"></ul>
+        <form class="goal-form dt-form" id="dtForm">
+          <label class="sr-only" for="dtTen">Tên khoản chi</label>
+          <input id="dtTen" type="text" maxlength="60" placeholder="Khoản chi, vd: Ăn uống" autocomplete="off" required>
+          <label class="sr-only" for="dtTien">Số tiền (đồng)</label>
+          <input id="dtTien" class="tabular" type="text" inputmode="numeric" placeholder="Số tiền, vd: 150.000" autocomplete="off" required>
+          <label class="sr-only" for="dtKy">Mỗi</label>
+          <select id="dtKy">
+            <option value="ngay">/ ngày</option>
+            <option value="tuan">/ tuần</option>
+            <option value="thang">/ tháng</option>
+            <option value="nam">/ năm</option>
+          </select>
+          <button class="btn btn-accent" type="submit">Thêm</button>
+        </form>
+      </div>
+    </div>
+    <div class="calc-result">
+      <div class="kpis">
+        <div class="kpi main"><span>Số tiền nên để dành từ hôm nay</span><b id="dtCan" class="tabular">–</b></div>
+        <div class="kpi"><span>Tổng chi tiêu đến <span id="dtDenTxt">90</span> tuổi</span><b id="dtTong" class="tabular">–</b></div>
+        <div class="kpi"><span>Phần tiền lãi ngân hàng gánh giúp</span><b id="dtLaiGanh" class="tabular">–</b></div>
+      </div>
+      <p class="dt-sum" id="dtTomTat"></p>
+      <div>
+        <div class="chart-legend" style="margin-bottom:12px;">
+          <span><i style="background:var(--accent)"></i>Số tiền còn lại trong tài khoản cuối mỗi năm</span>
+        </div>
+        <div class="bars"><svg id="dtSvg" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Biểu đồ số tiền còn lại theo từng tuổi"></svg></div>
+        <div class="bars-axis"><span id="dtTrucDau"></span><span id="dtTrucGiua"></span><span id="dtTrucCuoi"></span></div>
+      </div>
+      <p class="calc-note">Giả định gửi toàn bộ số tiền vào ngân hàng với lãi suất không đổi, gộp lãi hằng tháng, đầu mỗi tháng rút ra đúng số chi tiêu của tháng đó (tăng theo lạm phát nếu có) và hết tiền đúng năm cuối. Chưa tính thuế, phí, chi phí y tế bất thường hay lương hưu. Chỉ dùng để minh hoạ, không phải tư vấn tài chính.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section wrap">
+  <div class="explain">
+    <div>
+      <h2>Con số này được tính thế nào?</h2>
+      <p>Mỗi khoản chi được đổi ra số tiền trung bình một tháng (một ngày tính 365/12 ngày mỗi tháng). Số tiền nên để dành là khoản tiền nếu có sẵn hôm nay và gửi ngân hàng, mỗi tháng rút ra chi tiêu thì vừa đủ tới năm cuối. Vì phần tiền chưa tiêu vẫn sinh lãi, số tiền cần có ít hơn tổng chi tiêu cộng dồn.</p>
+    </div>
+    <div>
+      <h2>Vì sao nên tính cả lạm phát?</h2>
+      <p>Giá cả tăng dần theo năm nên cùng một bữa ăn, 30 năm nữa sẽ tốn nhiều tiền hơn hôm nay. Khi lạm phát cao gần bằng lãi suất, tiền lãi gần như chỉ đủ bù trượt giá và số tiền cần để dành tiến sát tổng chi tiêu. Hãy thử kéo thanh lạm phát để thấy sự khác biệt.</p>
+    </div>
+  </div>
+</section>
+</div>
+
+<script>
+// DỰ TOÁN TƯƠNG LAI: số tiền cần có sẵn hôm nay để đủ chi tiêu tới tuổi dự kiến sống, với lãi suất ngân hàng
+(function(){
+  var KHOA = 'kcn-du-toan';
+  var HE_SO_THANG = {ngay: 365 / 12, tuan: 52 / 12, thang: 1, nam: 1 / 12};
+  var NHAN_KY = {ngay: 'ngày', tuan: 'tuần', thang: 'tháng', nam: 'năm'};
+  var MAU = [
+    {ten: 'Ăn uống', tien: 150000, ky: 'ngay'},
+    {ten: 'Đi lại', tien: 40000, ky: 'ngay'},
+    {ten: 'Nhà ở, điện nước, internet', tien: 5000000, ky: 'thang'}
+  ];
+  var $ = function(id){ return document.getElementById(id); };
+  var el = {tuoi: $('dtTuoi'), den: $('dtDen'), lai: $('dtLai'), lp: $('dtLp'), list: $('dtList'), form: $('dtForm'),
+            ten: $('dtTen'), tien: $('dtTien'), ky: $('dtKy')};
+  if(!el.form) return;
+
+  function so(n, d){ return n.toLocaleString('vi-VN', {minimumFractionDigits: d || 0, maximumFractionDigits: d || 0}); }
+  function tien(d){
+    var a = Math.abs(d);
+    if(a >= 1e9) return so(d / 1e9, 2) + ' tỷ';
+    if(a >= 1e6) return so(d / 1e6, 1) + ' triệu';
+    return so(Math.round(d)) + ' đ';
+  }
+
+  var tt = null;
+  try { tt = JSON.parse(localStorage.getItem(KHOA) || 'null'); } catch(e) { tt = null; }
+  if(!tt || !Array.isArray(tt.khoan)) tt = {khoan: MAU.slice(), tuoi: 30, den: 90, lai: 5, lp: 0};
+  el.tuoi.value = tt.tuoi; el.den.value = tt.den; el.lai.value = tt.lai; el.lp.value = tt.lp;
+  function luu(){
+    tt.tuoi = Number(el.tuoi.value); tt.den = Number(el.den.value); tt.lai = Number(el.lai.value); tt.lp = Number(el.lp.value);
+    try { localStorage.setItem(KHOA, JSON.stringify(tt)); } catch(e) {}
+  }
+
+  function veDanhSach(){
+    el.list.innerHTML = '';
+    if(!tt.khoan.length){
+      var r = document.createElement('li'); r.className = 'goal-empty'; r.textContent = 'Chưa có khoản chi nào. Thêm ở ô bên dưới.';
+      el.list.appendChild(r); return;
+    }
+    tt.khoan.forEach(function(k, i){
+      var li = document.createElement('li'); li.className = 'dt-item';
+      var ten = document.createElement('span'); ten.className = 'dt-ten'; ten.textContent = k.ten;
+      var gt = document.createElement('span'); gt.className = 'dt-gt tabular';
+      gt.textContent = so(k.tien) + ' đ / ' + NHAN_KY[k.ky];
+      gt.title = '≈ ' + tien(k.tien * HE_SO_THANG[k.ky]) + ' mỗi tháng';
+      var xoa = document.createElement('button'); xoa.type = 'button'; xoa.className = 'goal-del';
+      xoa.setAttribute('aria-label', 'Xoá khoản ' + k.ten);
+      xoa.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+      xoa.addEventListener('click', function(){ tt.khoan.splice(i, 1); luu(); veDanhSach(); tinh(); });
+      li.appendChild(ten); li.appendChild(gt); li.appendChild(xoa);
+      el.list.appendChild(li);
+    });
+  }
+
+  function tinh(){
+    var tuoi = Math.floor(Number(el.tuoi.value)), den = Math.floor(Number(el.den.value));
+    var laiNam = Number(el.lai.value), lpNam = Number(el.lp.value);
+    $('oDtLai').textContent = so(laiNam, 1) + '%';
+    $('oDtLp').textContent = so(lpNam, 1) + '%';
+    $('dtDenTxt').textContent = isFinite(den) ? den : '–';
+    var chiThang = tt.khoan.reduce(function(s, k){ return s + k.tien * HE_SO_THANG[k.ky]; }, 0);
+    $('oDtThang').textContent = '≈ ' + tien(chiThang) + '/tháng';
+    var svg = $('dtSvg');
+    if(!isFinite(tuoi) || !isFinite(den) || den <= tuoi || tuoi < 0){
+      ['dtCan', 'dtTong', 'dtLaiGanh'].forEach(function(id){ $(id).textContent = '–'; });
+      $('dtTomTat').textContent = 'Tuổi dự kiến sống đến phải lớn hơn tuổi hiện tại.';
+      svg.innerHTML = ''; return;
+    }
+    var thang = (den - tuoi) * 12;
+    var i = Math.pow(1 + laiNam / 100, 1 / 12) - 1;      // lãi suất tháng tương đương
+    var g = Math.pow(1 + lpNam / 100, 1 / 12) - 1;       // lạm phát tháng tương đương
+    // Số tiền cần có hôm nay = tổng chi tiêu từng tháng chiết khấu về hiện tại (rút đầu tháng)
+    var can = 0, tong = 0, chi = chiThang, ck = 1;
+    for(var k = 0; k < thang; k++){
+      tong += chi; can += chi * ck;
+      chi *= 1 + g; ck /= 1 + i;
+    }
+    // Mô phỏng số dư: gửi 'can', đầu tháng rút chi tiêu, cuối tháng cộng lãi
+    var du = can, rows = [];
+    chi = chiThang;
+    for(var m = 1; m <= thang; m++){
+      du = (du - chi) * (1 + i); chi *= 1 + g;
+      if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du)});
+    }
+    $('dtCan').textContent = tien(can);
+    $('dtTong').textContent = tien(tong);
+    $('dtLaiGanh').textContent = tien(tong - can);
+    $('dtTomTat').textContent = 'Chi tiêu hiện tại khoảng ' + tien(chiThang / (365 / 12)) + '/ngày, ' + tien(chiThang) + '/tháng, ' +
+      tien(chiThang * 12) + '/năm. Còn ' + (den - tuoi) + ' năm (từ ' + tuoi + ' đến ' + den + ' tuổi). Với lãi suất ' + so(laiNam, 1) +
+      '%/năm' + (lpNam ? ' và lạm phát ' + so(lpNam, 1) + '%/năm' : '') + ', bạn cần có khoảng ' + tien(can) +
+      ' từ hôm nay, gửi ngân hàng và rút dần để chi tiêu là vừa đủ tới năm ' + den + ' tuổi.';
+    // Biểu đồ cột: số dư cuối mỗi năm
+    var W = 600, H = 220, gap = rows.length > 40 ? 1 : (rows.length > 25 ? 2 : 4);
+    var bw = Math.max(1, (W - gap * (rows.length - 1)) / rows.length);
+    var max = rows.reduce(function(s, r){ return Math.max(s, r.du); }, 1);
+    var out = '';
+    rows.forEach(function(r, j){
+      var h = r.du / max * H, x = j * (bw + gap);
+      out += '<rect x="' + x.toFixed(1) + '" y="' + (H - h).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) +
+        '" rx="2" fill="var(--accent)"><title>' + r.tuoi + ' tuổi: còn ' + tien(r.du) + '</title></rect>';
+    });
+    svg.innerHTML = out;
+    $('dtTrucDau').textContent = (tuoi + 1) + ' tuổi';
+    $('dtTrucGiua').textContent = Math.round((tuoi + den) / 2) + ' tuổi';
+    $('dtTrucCuoi').textContent = den + ' tuổi';
+  }
+
+  el.form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var ten = el.ten.value.trim(), soTien = Number(String(el.tien.value).replace(/[^\d]/g, ''));
+    if(!ten || !soTien) { (ten ? el.tien : el.ten).focus(); return; }
+    tt.khoan.push({ten: ten, tien: soTien, ky: el.ky.value});
+    el.ten.value = ''; el.tien.value = ''; el.ten.focus();
+    luu(); veDanhSach(); tinh();
+  });
+  // Hiện dấu chấm phân cách hàng nghìn khi gõ số tiền
+  el.tien.addEventListener('input', function(){
+    var d = el.tien.value.replace(/[^\d]/g, '');
+    el.tien.value = d ? Number(d).toLocaleString('vi-VN') : '';
+  });
+  [el.tuoi, el.den, el.lai, el.lp].forEach(function(o){ o.addEventListener('input', function(){ luu(); tinh(); }); });
+  veDanhSach(); tinh();
+})();
+</script>
+
 <script>
 (function(){
   var TAB = {
     'lai-kep': {tieu_de: 'Máy tính lãi kép', mo_ta: 'Kéo các thanh trượt để xem tiền của bạn lớn lên thế nào nếu đầu tư đều đặn mỗi tháng. Đơn vị: triệu đồng.', pan: 'panLaiKep'},
-    'muc-tieu': {tieu_de: 'Mục tiêu hôm nay', mo_ta: 'Viết ra tối đa ba việc cụ thể, làm xong thì tích. Mỗi ngày có ít nhất một việc hoàn thành, chuỗi kỷ luật của bạn dài thêm một ngày.', pan: 'panMucTieu'}
+    'muc-tieu': {tieu_de: 'Mục tiêu hôm nay', mo_ta: 'Viết ra tối đa ba việc cụ thể, làm xong thì tích. Mỗi ngày có ít nhất một việc hoàn thành, chuỗi kỷ luật của bạn dài thêm một ngày.', pan: 'panMucTieu'},
+    'du-toan': {tieu_de: 'Dự toán tương lai', mo_ta: 'Liệt kê các khoản chi tiêu của bạn, nhập tuổi hiện tại, tuổi dự kiến sống đến và lãi suất ngân hàng để biết cần để dành bao nhiêu tiền cho cả quãng đời còn lại. Lưu ngay trên trình duyệt của bạn.', pan: 'panDuToan'}
   };
   var nut = document.querySelectorAll('#ccTab button');
   function chon(k, doiHash){
