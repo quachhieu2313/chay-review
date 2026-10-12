@@ -497,7 +497,10 @@ footer.site{padding-block:56px calc(36px + env(safe-area-inset-bottom,0px)); bor
 /* Công cụ: tab đang chọn (khung tab dùng aria-selected, .seg cũ chỉ tô aria-pressed) */
 .seg button[aria-selected="true"]{background:var(--surface); color:var(--accent-strong); box-shadow:0 1px 2px rgba(0,0,0,.08);}
 /* Công cụ: Dự toán tương lai */
-.dt-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.dt-row{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+.dt-row .field label{font-size:12px;}
+.dt-hint{margin-top:-8px;}
+.dt-nhom{font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:8px; text-transform:uppercase; letter-spacing:.04em;}
 .dt-input{width:100%; border:1px solid var(--border); background:var(--surface-sunk); color:var(--ink); border-radius:10px; padding:9px 11px; font-size:14px;}
 .dt-list{max-height:240px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;}
 .dt-item{display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface-sunk);}

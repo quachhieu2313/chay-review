@@ -145,10 +145,15 @@ permalink: /cong-cu/
           <input id="dtTuoi" class="dt-input tabular" type="number" min="0" max="120" step="1" value="30" inputmode="numeric">
         </div>
         <div class="field">
-          <label for="dtDen">Dự kiến sống đến</label>
+          <label for="dtHuu">Nghỉ hưu ở tuổi</label>
+          <input id="dtHuu" class="dt-input tabular" type="number" min="0" max="130" step="1" value="60" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="dtDen">Sống đến tuổi</label>
           <input id="dtDen" class="dt-input tabular" type="number" min="1" max="130" step="1" value="90" inputmode="numeric">
         </div>
       </div>
+      <p class="hint dt-hint">Tiết kiệm đều từ hôm nay tới tuổi nghỉ hưu, sau đó sống bằng số tiền đã tích luỹ tới tuổi cuối.</p>
       <div class="field">
         <label for="dtLai">Lãi suất ngân hàng mỗi năm <output id="oDtLai"></output></label>
         <input id="dtLai" type="range" min="0" max="12" step="0.1" value="5">
@@ -179,20 +184,32 @@ permalink: /cong-cu/
       </div>
     </div>
     <div class="calc-result">
-      <div class="kpis">
-        <div class="kpi main"><span>Số tiền nên để dành từ hôm nay</span><b id="dtCan" class="tabular">–</b></div>
-        <div class="kpi"><span>Tổng chi tiêu đến <span id="dtDenTxt">90</span> tuổi</span><b id="dtTong" class="tabular">–</b></div>
-        <div class="kpi"><span>Phần tiền lãi ngân hàng gánh giúp</span><b id="dtLaiGanh" class="tabular">–</b></div>
+      <div>
+        <p class="dt-nhom">Tiết kiệm từ hôm nay tới khi nghỉ hưu ở <span id="dtHuuTxt">60</span> tuổi</p>
+        <div class="kpis">
+          <div class="kpi main"><span>Mỗi ngày cần tiết kiệm</span><b id="dtNgay" class="tabular">–</b></div>
+          <div class="kpi"><span>Tương đương mỗi tháng</span><b id="dtThang" class="tabular">–</b></div>
+          <div class="kpi"><span>Quỹ cần có khi nghỉ hưu</span><b id="dtQuy" class="tabular">–</b></div>
+        </div>
+      </div>
+      <div>
+        <p class="dt-nhom">Nếu nghỉ làm ngay từ hôm nay</p>
+        <div class="kpis">
+          <div class="kpi"><span>Số tiền cần có ngay hôm nay</span><b id="dtCan" class="tabular">–</b></div>
+          <div class="kpi"><span>Tổng chi tiêu đến <span id="dtDenTxt">90</span> tuổi</span><b id="dtTong" class="tabular">–</b></div>
+          <div class="kpi"><span>Phần tiền lãi ngân hàng gánh giúp</span><b id="dtLaiGanh" class="tabular">–</b></div>
+        </div>
       </div>
       <p class="dt-sum" id="dtTomTat"></p>
       <div>
         <div class="chart-legend" style="margin-bottom:12px;">
-          <span><i style="background:var(--accent)"></i>Số tiền còn lại trong tài khoản cuối mỗi năm</span>
+          <span><i style="background:var(--ink-soft);opacity:.45"></i>Đang tích luỹ (còn đi làm)</span>
+          <span><i style="background:var(--accent)"></i>Đang rút ra chi tiêu (đã nghỉ hưu)</span>
         </div>
         <div class="bars"><svg id="dtSvg" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Biểu đồ số tiền còn lại theo từng tuổi"></svg></div>
         <div class="bars-axis"><span id="dtTrucDau"></span><span id="dtTrucGiua"></span><span id="dtTrucCuoi"></span></div>
       </div>
-      <p class="calc-note">Giả định gửi toàn bộ số tiền vào ngân hàng với lãi suất không đổi, gộp lãi hằng tháng, đầu mỗi tháng rút ra đúng số chi tiêu của tháng đó (tăng theo lạm phát nếu có) và hết tiền đúng năm cuối. Chưa tính thuế, phí, chi phí y tế bất thường hay lương hưu. Chỉ dùng để minh hoạ, không phải tư vấn tài chính.</p>
+      <p class="calc-note">Giả định lãi suất không đổi, gộp lãi hằng tháng; khi còn đi làm, cuối mỗi tháng gửi thêm một khoản tiết kiệm cố định; khi đã nghỉ hưu, đầu mỗi tháng rút ra đúng số chi tiêu của tháng đó (tăng theo lạm phát nếu có) và hết tiền đúng năm cuối. Khoản tiết kiệm giữ nguyên số tiền qua các năm; nếu có lạm phát, nên tăng dần theo thu nhập. Chưa tính thuế, phí, chi phí y tế bất thường hay lương hưu. Chỉ dùng để minh hoạ, không phải tư vấn tài chính.</p>
     </div>
   </div>
 </section>
@@ -201,7 +218,7 @@ permalink: /cong-cu/
   <div class="explain">
     <div>
       <h2>Con số này được tính thế nào?</h2>
-      <p>Mỗi khoản chi được đổi ra số tiền trung bình một tháng (một ngày tính 365/12 ngày mỗi tháng). Số tiền nên để dành là khoản tiền nếu có sẵn hôm nay và gửi ngân hàng, mỗi tháng rút ra chi tiêu thì vừa đủ tới năm cuối. Vì phần tiền chưa tiêu vẫn sinh lãi, số tiền cần có ít hơn tổng chi tiêu cộng dồn.</p>
+      <p>Mỗi khoản chi được đổi ra số tiền trung bình một tháng (một tháng tính 365/12 ngày). Quỹ cần có khi nghỉ hưu là khoản tiền mà gửi ngân hàng rồi mỗi tháng rút ra chi tiêu thì vừa đủ tới tuổi cuối; vì phần chưa tiêu vẫn sinh lãi nên quỹ này ít hơn tổng chi tiêu. Số tiền tiết kiệm mỗi tháng là khoản gửi đều từ hôm nay tới lúc nghỉ hưu, có lãi kép, để vừa đủ quỹ đó; chia cho số ngày trong tháng ra số tiền mỗi ngày.</p>
     </div>
     <div>
       <h2>Vì sao nên tính cả lạm phát?</h2>
@@ -223,7 +240,7 @@ permalink: /cong-cu/
     {ten: 'Nhà ở, điện nước, internet', tien: 5000000, ky: 'thang'}
   ];
   var $ = function(id){ return document.getElementById(id); };
-  var el = {tuoi: $('dtTuoi'), den: $('dtDen'), lai: $('dtLai'), lp: $('dtLp'), list: $('dtList'), form: $('dtForm'),
+  var el = {tuoi: $('dtTuoi'), huu: $('dtHuu'), den: $('dtDen'), lai: $('dtLai'), lp: $('dtLp'), list: $('dtList'), form: $('dtForm'),
             ten: $('dtTen'), tien: $('dtTien'), ky: $('dtKy')};
   if(!el.form) return;
 
@@ -237,10 +254,11 @@ permalink: /cong-cu/
 
   var tt = null;
   try { tt = JSON.parse(localStorage.getItem(KHOA) || 'null'); } catch(e) { tt = null; }
-  if(!tt || !Array.isArray(tt.khoan)) tt = {khoan: MAU.slice(), tuoi: 30, den: 90, lai: 5, lp: 0};
-  el.tuoi.value = tt.tuoi; el.den.value = tt.den; el.lai.value = tt.lai; el.lp.value = tt.lp;
+  if(!tt || !Array.isArray(tt.khoan)) tt = {khoan: MAU.slice(), tuoi: 30, huu: 60, den: 90, lai: 5, lp: 0};
+  if(tt.huu === undefined) tt.huu = 60;
+  el.tuoi.value = tt.tuoi; el.huu.value = tt.huu; el.den.value = tt.den; el.lai.value = tt.lai; el.lp.value = tt.lp;
   function luu(){
-    tt.tuoi = Number(el.tuoi.value); tt.den = Number(el.den.value); tt.lai = Number(el.lai.value); tt.lp = Number(el.lp.value);
+    tt.tuoi = Number(el.tuoi.value); tt.huu = Number(el.huu.value); tt.den = Number(el.den.value); tt.lai = Number(el.lai.value); tt.lp = Number(el.lp.value);
     try { localStorage.setItem(KHOA, JSON.stringify(tt)); } catch(e) {}
   }
 
@@ -266,55 +284,81 @@ permalink: /cong-cu/
   }
 
   function tinh(){
-    var tuoi = Math.floor(Number(el.tuoi.value)), den = Math.floor(Number(el.den.value));
+    var tuoi = Math.floor(Number(el.tuoi.value)), huu = Math.floor(Number(el.huu.value)), den = Math.floor(Number(el.den.value));
     var laiNam = Number(el.lai.value), lpNam = Number(el.lp.value);
     $('oDtLai').textContent = so(laiNam, 1) + '%';
     $('oDtLp').textContent = so(lpNam, 1) + '%';
     $('dtDenTxt').textContent = isFinite(den) ? den : '–';
+    $('dtHuuTxt').textContent = isFinite(huu) ? huu : '–';
     var chiThang = tt.khoan.reduce(function(s, k){ return s + k.tien * HE_SO_THANG[k.ky]; }, 0);
+    var ngayThang = 365 / 12;
     $('oDtThang').textContent = '≈ ' + tien(chiThang) + '/tháng';
     var svg = $('dtSvg');
-    if(!isFinite(tuoi) || !isFinite(den) || den <= tuoi || tuoi < 0){
-      ['dtCan', 'dtTong', 'dtLaiGanh'].forEach(function(id){ $(id).textContent = '–'; });
-      $('dtTomTat').textContent = 'Tuổi dự kiến sống đến phải lớn hơn tuổi hiện tại.';
-      svg.innerHTML = ''; return;
+    var hetSo = function(){ ['dtNgay', 'dtThang', 'dtQuy', 'dtCan', 'dtTong', 'dtLaiGanh'].forEach(function(id){ $(id).textContent = '–'; }); svg.innerHTML = ''; };
+    if(!isFinite(tuoi) || !isFinite(den) || !isFinite(huu) || den <= tuoi || tuoi < 0){
+      hetSo(); $('dtTomTat').textContent = 'Tuổi "sống đến" phải lớn hơn tuổi hiện tại.'; return;
     }
-    var thang = (den - tuoi) * 12;
+    huu = Math.min(Math.max(huu, tuoi), den);            // tuổi nghỉ hưu nằm trong [tuổi hiện tại, tuổi cuối]
+    var T = (den - tuoi) * 12, R = (huu - tuoi) * 12;    // số tháng tới tuổi cuối / tới lúc nghỉ hưu
     var i = Math.pow(1 + laiNam / 100, 1 / 12) - 1;      // lãi suất tháng tương đương
     var g = Math.pow(1 + lpNam / 100, 1 / 12) - 1;       // lạm phát tháng tương đương
-    // Số tiền cần có hôm nay = tổng chi tiêu từng tháng chiết khấu về hiện tại (rút đầu tháng)
-    var can = 0, tong = 0, chi = chiThang, ck = 1;
-    for(var k = 0; k < thang; k++){
-      tong += chi; can += chi * ck;
-      chi *= 1 + g; ck /= 1 + i;
-    }
-    // Mô phỏng số dư: gửi 'can', đầu tháng rút chi tiêu, cuối tháng cộng lãi
-    var du = can, rows = [];
-    chi = chiThang;
-    for(var m = 1; m <= thang; m++){
-      du = (du - chi) * (1 + i); chi *= 1 + g;
-      if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du)});
-    }
+    // chi tiêu tháng thứ k (tính từ hôm nay, đã cộng lạm phát)
+    var chiK = function(k){ return chiThang * Math.pow(1 + g, k); };
+    // (1) Nghỉ làm ngay hôm nay: số tiền cần có = tổng chi tiêu từng tháng chiết khấu về hiện tại (rút đầu tháng)
+    var can = 0, tong = 0;
+    for(var k = 0; k < T; k++){ tong += chiK(k); can += chiK(k) / Math.pow(1 + i, k); }
+    // (2) Quỹ cần có lúc nghỉ hưu = chi tiêu từ tháng R tới T chiết khấu về thời điểm nghỉ hưu
+    var quy = 0;
+    for(k = R; k < T; k++) quy += chiK(k) / Math.pow(1 + i, k - R);
+    // (3) Tiết kiệm cố định cuối mỗi tháng trong R tháng để đạt quỹ: S * ((1+i)^R - 1) / i = quy
+    var heSo = R ? (i > 0 ? (Math.pow(1 + i, R) - 1) / i : R) : 0;
+    var tkThang = R ? quy / heSo : NaN;
     $('dtCan').textContent = tien(can);
     $('dtTong').textContent = tien(tong);
     $('dtLaiGanh').textContent = tien(tong - can);
-    $('dtTomTat').textContent = 'Chi tiêu hiện tại khoảng ' + tien(chiThang / (365 / 12)) + '/ngày, ' + tien(chiThang) + '/tháng, ' +
-      tien(chiThang * 12) + '/năm. Còn ' + (den - tuoi) + ' năm (từ ' + tuoi + ' đến ' + den + ' tuổi). Với lãi suất ' + so(laiNam, 1) +
-      '%/năm' + (lpNam ? ' và lạm phát ' + so(lpNam, 1) + '%/năm' : '') + ', bạn cần có khoảng ' + tien(can) +
-      ' từ hôm nay, gửi ngân hàng và rút dần để chi tiêu là vừa đủ tới năm ' + den + ' tuổi.';
-    // Biểu đồ cột: số dư cuối mỗi năm
+    $('dtQuy').textContent = tien(quy);
+    if(R){
+      $('dtNgay').textContent = tien(tkThang / ngayThang);
+      $('dtThang').textContent = tien(tkThang);
+    } else {
+      $('dtNgay').textContent = '–'; $('dtThang').textContent = '–';
+    }
+    var tomTat = 'Chi tiêu hiện tại khoảng ' + tien(chiThang / ngayThang) + '/ngày, ' + tien(chiThang) + '/tháng, ' + tien(chiThang * 12) + '/năm. ';
+    if(!R){
+      tomTat += 'Bạn đã tới tuổi nghỉ hưu: cần có sẵn khoảng ' + tien(can) + ' để chi tiêu tới ' + den + ' tuổi.';
+    } else if(huu >= den){
+      tomTat += 'Tuổi nghỉ hưu bằng tuổi cuối nên không cần quỹ hưu trí.';
+    } else {
+      tomTat += 'Từ ' + tuoi + ' đến ' + huu + ' tuổi (' + (huu - tuoi) + ' năm), mỗi ngày để dành khoảng ' + tien(tkThang / ngayThang) +
+        ' (' + tien(tkThang) + '/tháng) gửi ngân hàng lãi ' + so(laiNam, 1) + '%/năm' + (lpNam ? ', lạm phát ' + so(lpNam, 1) + '%/năm' : '') +
+        ' thì lúc nghỉ hưu có khoảng ' + tien(quy) + ', đủ chi tiêu tới ' + den + ' tuổi. Tổng số tiền bạn tự bỏ ra là ' +
+        tien(tkThang * R) + ', phần còn lại do lãi ngân hàng sinh ra.';
+    }
+    $('dtTomTat').textContent = tomTat;
+    // Biểu đồ: số dư cuối mỗi năm - tích luỹ tới tuổi nghỉ hưu rồi rút dần về 0
+    var du = 0, rows = [];
+    for(var m = 1; m <= T; m++){
+      if(m <= R) du = du * (1 + i) + tkThang;
+      else du = (du - chiK(m - 1)) * (1 + i);
+      if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du), tichLuy: m <= R});
+    }
+    if(!R){                                              // đã nghỉ hưu: rút dần từ số tiền cần có hôm nay
+      du = can; rows = [];
+      for(m = 1; m <= T; m++){ du = (du - chiK(m - 1)) * (1 + i); if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du), tichLuy: false}); }
+    }
     var W = 600, H = 220, gap = rows.length > 40 ? 1 : (rows.length > 25 ? 2 : 4);
     var bw = Math.max(1, (W - gap * (rows.length - 1)) / rows.length);
     var max = rows.reduce(function(s, r){ return Math.max(s, r.du); }, 1);
     var out = '';
     rows.forEach(function(r, j){
       var h = r.du / max * H, x = j * (bw + gap);
-      out += '<rect x="' + x.toFixed(1) + '" y="' + (H - h).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) +
-        '" rx="2" fill="var(--accent)"><title>' + r.tuoi + ' tuổi: còn ' + tien(r.du) + '</title></rect>';
+      out += '<rect x="' + x.toFixed(1) + '" y="' + (H - h).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2" ' +
+        (r.tichLuy ? 'fill="var(--ink-soft)" opacity=".45"' : 'fill="var(--accent)"') +
+        '><title>' + r.tuoi + ' tuổi: ' + (r.tichLuy ? 'đã tích luỹ ' : 'còn ') + tien(r.du) + '</title></rect>';
     });
     svg.innerHTML = out;
     $('dtTrucDau').textContent = (tuoi + 1) + ' tuổi';
-    $('dtTrucGiua').textContent = Math.round((tuoi + den) / 2) + ' tuổi';
+    $('dtTrucGiua').textContent = (R && huu < den ? huu : Math.round((tuoi + den) / 2)) + ' tuổi';
     $('dtTrucCuoi').textContent = den + ' tuổi';
   }
 
@@ -331,7 +375,7 @@ permalink: /cong-cu/
     var d = el.tien.value.replace(/[^\d]/g, '');
     el.tien.value = d ? Number(d).toLocaleString('vi-VN') : '';
   });
-  [el.tuoi, el.den, el.lai, el.lp].forEach(function(o){ o.addEventListener('input', function(){ luu(); tinh(); }); });
+  [el.tuoi, el.huu, el.den, el.lai, el.lp].forEach(function(o){ o.addEventListener('input', function(){ luu(); tinh(); }); });
   veDanhSach(); tinh();
 })();
 </script>
@@ -341,7 +385,7 @@ permalink: /cong-cu/
   var TAB = {
     'lai-kep': {tieu_de: 'Máy tính lãi kép', mo_ta: 'Kéo các thanh trượt để xem tiền của bạn lớn lên thế nào nếu đầu tư đều đặn mỗi tháng. Đơn vị: triệu đồng.', pan: 'panLaiKep'},
     'muc-tieu': {tieu_de: 'Mục tiêu hôm nay', mo_ta: 'Viết ra tối đa ba việc cụ thể, làm xong thì tích. Mỗi ngày có ít nhất một việc hoàn thành, chuỗi kỷ luật của bạn dài thêm một ngày.', pan: 'panMucTieu'},
-    'du-toan': {tieu_de: 'Dự toán tương lai', mo_ta: 'Liệt kê các khoản chi tiêu của bạn, nhập tuổi hiện tại, tuổi dự kiến sống đến và lãi suất ngân hàng để biết cần để dành bao nhiêu tiền cho cả quãng đời còn lại. Lưu ngay trên trình duyệt của bạn.', pan: 'panDuToan'}
+    'du-toan': {tieu_de: 'Dự toán tương lai', mo_ta: 'Liệt kê các khoản chi tiêu của bạn, nhập tuổi hiện tại, tuổi nghỉ hưu, tuổi dự kiến sống đến và lãi suất ngân hàng để biết mỗi ngày cần tiết kiệm bao nhiêu cho tuổi già. Lưu ngay trên trình duyệt của bạn.', pan: 'panDuToan'}
   };
   var nut = document.querySelectorAll('#ccTab button');
   function chon(k, doiHash){
