@@ -509,6 +509,10 @@ footer.site{padding-block:56px calc(36px + env(safe-area-inset-bottom,0px)); bor
 .dt-form{flex-wrap:wrap; margin-top:10px;}
 .dt-form #dtTen{flex:1 1 100%;}
 .dt-form #dtTien{flex:1 1 120px; min-width:0;}
+.dt-form-nguon #dtNguonTen{flex:1 1 100%;}
+.dt-form-nguon #dtNguonTien{flex:1 1 120px; min-width:0;}
+.dt-form-nguon #dtNguonLai{flex:0 1 90px; min-width:0;}
+.dt-nguon-txt{margin-top:10px;}
 .dt-sum{font-size:14px; color:var(--ink-soft); line-height:1.6;}
 /* Công cụ: đăng nhập quản trị cho tab Dự toán tương lai */
 /* .btn/.qt-form/.qt-ket-qua đặt display riêng nên đè mất thuộc tính hidden -> ẩn lại cho đúng (vd nút Đăng nhập sau khi đã vào) */
