@@ -214,6 +214,7 @@ permalink: /cong-cu/
         <label for="dtLp">Lạm phát mỗi năm (tuỳ chọn) <output id="oDtLp"></output></label>
         <input id="dtLp" type="range" min="0" max="10" step="0.1" value="0">
         <p class="hint">Để 0% nếu chỉ muốn tính theo giá hôm nay. Lạm phát ở Việt Nam vài năm gần đây khoảng 3–4%/năm.</p>
+        <label class="dt-check dt-check-nho"><input type="checkbox" id="dtTkTang"> Tăng tiền tiết kiệm mỗi năm theo lạm phát (bắt đầu ít hơn, tăng dần như thu nhập)</label>
       </div>
       <div class="field">
         <label>Các khoản chi tiêu <output id="oDtThang"></output></label>
@@ -314,7 +315,7 @@ permalink: /cong-cu/
         <div class="kpis">
           <div class="kpi main"><span>Mỗi ngày cần tiết kiệm</span><b id="dtNgay" class="tabular">–</b></div>
           <div class="kpi"><span>Tương đương mỗi tháng</span><b id="dtThang" class="tabular">–</b></div>
-          <div class="kpi"><span>Quỹ cần có khi nghỉ hưu</span><b id="dtQuy" class="tabular">–</b></div>
+          <div class="kpi"><span>Quỹ cần có khi nghỉ hưu</span><b id="dtQuy" class="tabular">–</b><small class="dt-kpi-phu" id="dtQuyNay"></small></div>
         </div>
         <p class="dt-sum dt-nguon-txt" id="dtNguonTxt" hidden></p>
         <p class="dt-sum dt-bh-kq" id="dtBhKq" hidden></p>
@@ -335,8 +336,8 @@ permalink: /cong-cu/
           <span><i style="background:var(--accent)"></i>Đang rút ra chi tiêu (đã nghỉ hưu)</span>
           <span id="dtChuThichHuu" hidden><i style="background:var(--good)"></i>Đang rút, đã có lương hưu BHXH</span>
         </div>
-        <div class="bars"><svg id="dtSvg" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Biểu đồ số tiền còn lại theo từng tuổi"></svg></div>
-        <div class="bars-axis"><span id="dtTrucDau"></span><span id="dtTrucGiua"></span><span id="dtTrucCuoi"></span></div>
+        <div class="bars"><svg id="dtSvg" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Biểu đồ số tiền còn lại theo từng tuổi"></svg><span class="dt-vach-nhan" id="dtVachNhan" hidden></span></div>
+        <div class="bars-axis dt-truc"><span id="dtTrucDau"></span><span id="dtTrucGiua" class="dt-truc-giua"></span><span id="dtTrucCuoi"></span></div>
       </div>
       <p class="calc-note">Giả định lãi suất không đổi, gộp lãi hằng tháng; khi còn đi làm, cuối mỗi tháng gửi thêm một khoản tiết kiệm cố định; khi đã nghỉ hưu, đầu mỗi tháng rút ra đúng số chi tiêu của tháng đó (tăng theo lạm phát nếu có) và hết tiền đúng năm cuối. Khoản tiết kiệm giữ nguyên số tiền qua các năm; nếu có lạm phát, nên tăng dần theo thu nhập. Chưa tính thuế, phí, chi phí y tế bất thường hay lương hưu. Chỉ dùng để minh hoạ, không phải tư vấn tài chính.</p>
     </div>
@@ -445,8 +446,10 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     return n.tien * Math.pow(1 + r * k / 12, kyTron) * (1 + LAI_KHONG_KY_HAN / 100 * le / 12);
   }
   el.tuoi.value = tt.tuoi; el.huu.value = tt.huu; el.den.value = tt.den; el.lai.value = tt.lai; el.lp.value = tt.lp;
+  $('dtTkTang').checked = !!tt.tkTang;
   function luu(){
     tt.tuoi = Number(el.tuoi.value); tt.huu = Number(el.huu.value); tt.den = Number(el.den.value); tt.lai = Number(el.lai.value); tt.lp = Number(el.lp.value);
+    tt.tkTang = $('dtTkTang').checked;
     ghi(tt);
   }
 
@@ -589,14 +592,20 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
       bh.luongHuu = bh.binhQuan * bh.tyLe;
       bh.tuoiLuat = tuoiNhanHuu(elB.gioi.value, tuoi);
       bh.tuoiNhan = Math.max(bh.tuoiLuat, huu);
+      // Nhóm "nghỉ làm ngay": chỉ có số năm ĐÃ đóng (ngừng đóng từ hôm nay), bình quân = lương các năm trước
+      bh.tyLeNgay = tyLeHuu(elB.gioi.value, lamTronNam(namDaDong));
+      bh.luongHuuNgay = (namDaDong ? luongCu : luongNay) * bh.tyLeNgay;
     }
     var thangNhanHuu = Math.round((bh.tuoiNhan - tuoi) * 12);
     var chiRong = function(k){ return Math.max(0, (chiSau - thuHuu - (bh.luongHuu && k >= thangNhanHuu ? bh.luongHuu : 0)) * Math.pow(1 + g, k)); };
+    // chi tiêu ròng nếu nghỉ làm ngay hôm nay: lương hưu chỉ tính theo số năm đã đóng, nhận từ tuổi nghỉ hưu theo luật
+    var thangHuuNgay = Math.round(((bh.tuoiLuat || 0) - tuoi) * 12);
+    var chiRongNgay = function(k){ return Math.max(0, (chiSau - thuHuu - (bh.luongHuuNgay && k >= thangHuuNgay ? bh.luongHuuNgay : 0)) * Math.pow(1 + g, k)); };
     $('oDtThu').textContent = tt.thu.length ? (thuDiLam ? tien(thuDiLam) + '/tháng khi đi làm' : '') +
       (thuDiLam && thuHuu ? ' · ' : '') + (thuHuu ? tien(thuHuu) + '/tháng khi nghỉ hưu' : '') : '';
     // (1) Nghỉ làm ngay hôm nay: số tiền cần có = chi tiêu ròng (đã trừ thu nhập sau nghỉ hưu) chiết khấu về hiện tại
     var can = 0, tong = 0;
-    for(var k = 0; k < T; k++){ tong += chiSau * Math.pow(1 + g, k); can += chiRong(k) / Math.pow(1 + i, k); }
+    for(var k = 0; k < T; k++){ tong += chiSau * Math.pow(1 + g, k); can += chiRongNgay(k) / Math.pow(1 + i, k); }
     // (2) Quỹ cần có lúc nghỉ hưu = chi tiêu ròng từ tháng R tới T chiết khấu về thời điểm nghỉ hưu
     var quy = 0;
     for(k = R; k < T; k++) quy += chiRong(k) / Math.pow(1 + i, k - R);
@@ -606,18 +615,27 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     var thieu = Math.max(0, quy - coSanLucHuu), du_ = Math.max(0, coSanLucHuu - quy);
     $('oDtNguon').textContent = tt.nguon.length ? tien(coSan) : '';
     // (3) Tiết kiệm cố định cuối mỗi tháng trong R tháng để bù phần còn thiếu: S * ((1+i)^R - 1) / i = thieu
-    var heSo = R ? (i > 0 ? (Math.pow(1 + i, R) - 1) / i : R) : 0;
-    var tkThang = R ? thieu / heSo : NaN;
+    // Tiết kiệm tăng theo lạm phát: tháng m gửi S0*(1+g)^(m-1), giá trị lúc nghỉ hưu = S0 * Σ (1+g)^(m-1) (1+i)^(R-m)
+    var tkTang = $('dtTkTang').checked && g > 0;
+    var heSo = 0;
+    if(R){
+      if(tkTang){ for(var mm = 1; mm <= R; mm++) heSo += Math.pow(1 + g, mm - 1) * Math.pow(1 + i, R - mm); }
+      else heSo = i > 0 ? (Math.pow(1 + i, R) - 1) / i : R;
+    }
+    var tkThang = R ? thieu / heSo : NaN;                 // số tiền tháng ĐẦU (tăng dần nếu chọn tăng theo lạm phát)
+    var tkTongBoRa = 0;
+    for(mm = 1; mm <= R; mm++) tkTongBoRa += tkThang * (tkTang ? Math.pow(1 + g, mm - 1) : 1);
     var canThieu = can - coSan;
     $('dtCanNhan').textContent = coSan ? (canThieu > 0 ? 'Còn thiếu (đã trừ tiền đang có)' : 'Tiền đang có đã đủ, dư') : 'Số tiền cần có ngay hôm nay';
     $('dtCan').textContent = tien(coSan ? Math.abs(canThieu) : can);
     $('dtTong').textContent = tien(tong);
     $('dtLaiGanh').textContent = tien(tong - can);
-    $('dtLaiGanhNhan').textContent = thuHuu ? 'Phần thu nhập sau nghỉ hưu và tiền lãi gánh giúp' : 'Phần tiền lãi ngân hàng gánh giúp';
+    $('dtLaiGanhNhan').textContent = (thuHuu || bh.luongHuuNgay) ? 'Phần thu nhập, lương hưu và tiền lãi gánh giúp' : 'Phần tiền lãi ngân hàng gánh giúp';
     $('dtQuy').textContent = tien(quy);
+    $('dtQuyNay').textContent = g > 0 && R ? '≈ ' + tien(quy / Math.pow(1 + g, R)) + ' theo giá hôm nay' : '';
     if(R){
-      $('dtNgay').textContent = tien(tkThang / ngayThang);
-      $('dtThang').textContent = tien(tkThang);
+      $('dtNgay').textContent = tien(tkThang / ngayThang) + (tkTang ? ' (năm đầu)' : '');
+      $('dtThang').textContent = tien(tkThang) + (tkTang ? ', tăng ' + so(lpNam, 1) + '%/năm' : '');
     } else {
       $('dtNgay').textContent = '–'; $('dtThang').textContent = '–';
     }
@@ -663,21 +681,23 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
       tomTat += 'Từ ' + tuoi + ' đến ' + huu + ' tuổi (' + (huu - tuoi) + ' năm), mỗi ngày để dành khoảng ' + tien(tkThang / ngayThang) +
         ' (' + tien(tkThang) + '/tháng) gửi ngân hàng lãi ' + so(laiNam, 1) + '%/năm' + (lpNam ? ', lạm phát ' + so(lpNam, 1) + '%/năm' : '') +
         ' thì lúc nghỉ hưu có khoảng ' + tien(quy) + (coSan ? ' (tính cả nguồn tiền hiện có)' : '') + ', đủ chi tiêu tới ' + den +
-        ' tuổi. Tổng số tiền bạn tự bỏ thêm là ' + tien(tkThang * R) + ', phần còn lại do lãi sinh ra' + (coSan ? ' và từ tiền đang có.' : '.');
+        ' tuổi' + (g > 0 ? ' (≈ ' + tien(quy / Math.pow(1 + g, R)) + ' theo giá hôm nay)' : '') +
+        (tkTang ? '. Số tiết kiệm trên là của năm đầu, mỗi năm sau tăng thêm ' + so(lpNam, 1) + '% theo lạm phát' : '') +
+        '. Tổng số tiền bạn tự bỏ thêm là ' + tien(tkTongBoRa) + ', phần còn lại do lãi sinh ra' + (coSan ? ' và từ tiền đang có.' : '.');
     }
     $('dtTomTat').textContent = tomTat;
     // Biểu đồ: số dư cuối mỗi năm - tích luỹ tới tuổi nghỉ hưu rồi rút dần về 0
     var du = 0, rows = [], tk = 0;
     for(var m = 1; m <= T; m++){
       if(m <= R){
-        tk = tk * (1 + i) + tkThang;
+        tk = tk * (1 + i) + tkThang * (tkTang ? Math.pow(1 + g, m - 1) : 1);
         du = tk + tt.nguon.reduce(function(s, n){ return s + giaTriNguon(n, m); }, 0);
       } else du = (du - chiRong(m - 1)) * (1 + i);
       if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du), tichLuy: m <= R, coHuu: m > R && bh.luongHuu > 0 && m > thangNhanHuu});
     }
     if(!R){                                              // đã nghỉ hưu: rút dần từ tiền đang có (không có thì từ số tiền cần có)
       du = coSan || can; rows = [];
-      for(m = 1; m <= T; m++){ du = (du - chiRong(m - 1)) * (1 + i); if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du), tichLuy: false, coHuu: bh.luongHuu > 0 && m > thangNhanHuu}); }
+      for(m = 1; m <= T; m++){ du = (du - chiRongNgay(m - 1)) * (1 + i); if(m % 12 === 0) rows.push({tuoi: tuoi + m / 12, du: Math.max(0, du), tichLuy: false, coHuu: bh.luongHuu > 0 && m > thangNhanHuu}); }
     }
     var W = 600, H = 220, gap = rows.length > 40 ? 1 : (rows.length > 25 ? 2 : 4);
     var bw = Math.max(1, (W - gap * (rows.length - 1)) / rows.length);
@@ -693,15 +713,22 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     var dauHuu = -1;
     rows.forEach(function(r, j){ if(dauHuu < 0 && r.coHuu) dauHuu = j; });
     $('dtChuThichHuu').hidden = dauHuu < 0;
+    var vn = $('dtVachNhan');
+    vn.hidden = !(dauHuu > 0);
     if(dauHuu > 0){
-      var xv = (dauHuu * (bw + gap) - gap / 2).toFixed(1);
-      out += '<line x1="' + xv + '" x2="' + xv + '" y1="0" y2="' + H + '" stroke="var(--good)" stroke-width="1.5" stroke-dasharray="4 3"/>' +
-        '<text x="' + (Number(xv) + 4) + '" y="12" font-size="11" fill="var(--ink-soft)">Lương hưu từ ' + nhanTuoi(bh.tuoiNhan) + '</text>';
+      var xv = dauHuu * (bw + gap) - gap / 2;
+      out += '<line x1="' + xv.toFixed(1) + '" x2="' + xv.toFixed(1) + '" y1="0" y2="' + H + '" stroke="var(--good)" stroke-width="1.5" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>';
+      vn.textContent = 'Lương hưu từ ' + nhanTuoi(bh.tuoiNhan);
+      vn.style.left = (xv / W * 100).toFixed(2) + '%';
+      vn.classList.toggle('dt-vach-trai', xv / W > 0.6);   // gần mép phải thì đặt chữ sang trái vạch
     }
     svg.innerHTML = out;
+    // Trục: nhãn giữa đặt ĐÚNG vị trí tuổi nghỉ hưu (trước đây luôn nằm chính giữa dù tuổi nghỉ hưu không ở giữa)
     $('dtTrucDau').textContent = (tuoi + 1) + ' tuổi';
-    $('dtTrucGiua').textContent = (R && huu < den ? huu : Math.round((tuoi + den) / 2)) + ' tuổi';
     $('dtTrucCuoi').textContent = den + ' tuổi';
+    var tg = $('dtTrucGiua'), coMoc = R && huu < den;
+    tg.textContent = coMoc ? huu + ' tuổi' : '';
+    tg.style.left = coMoc ? ((huu - tuoi - 0.5) / (den - tuoi) * 100).toFixed(2) + '%' : '';
   }
 
   el.form.addEventListener('submit', function(e){
@@ -734,7 +761,7 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     var d = elN.tien.value.replace(/[^\d]/g, '');
     elN.tien.value = d ? Number(d).toLocaleString('vi-VN') : '';
   });
-  [el.tuoi, el.huu, el.den, el.lai, el.lp].forEach(function(o){ o.addEventListener('input', function(){ luu(); tinh(); }); });
+  [el.tuoi, el.huu, el.den, el.lai, el.lp, $('dtTkTang')].forEach(function(o){ o.addEventListener('input', function(){ luu(); tinh(); }); o.addEventListener('change', function(){ luu(); tinh(); }); });
   elT.form.addEventListener('submit', function(e){
     e.preventDefault();
     var ten = elT.ten.value.trim(), soTien = Number(String(elT.tien.value).replace(/[^\d]/g, ''));
