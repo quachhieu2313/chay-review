@@ -9,7 +9,7 @@ image: /assets/img/og-etf.png
 <section class="page-head wrap">
   <p class="eyebrow">Thời sự</p>
   <h1>Tin kinh tế, chứng khoán mới nhất</h1>
-  <p>Gom tin từ CafeF, Vietstock, VnEconomy, VnExpress, Tuổi Trẻ, Thanh Niên, Dân trí, VietNamNet và CNBC, Bloomberg, Financial Times, MarketWatch, Investing.com, BBC, New York Times, The Guardian. Bấm vào tin để đọc bài gốc trên báo.</p>
+  <p>Gom tin từ CafeF, Vietstock, VnEconomy, VnExpress, Tuổi Trẻ, Thanh Niên, Dân trí, VietNamNet và CNBC, Bloomberg, Financial Times, MarketWatch, Investing.com, BBC, New York Times, The Guardian. Tin thế giới được dịch tự động sang tiếng Việt (có thể chưa sát nghĩa), tiêu đề tiếng Anh gốc ghi nhỏ bên dưới. Bấm vào tin để đọc bài gốc trên báo.</p>
 </section>
 
 <div class="wrap" id="tsPage">
@@ -58,7 +58,7 @@ image: /assets/img/og-etf.png
       if(st.pv && t.pham_vi !== st.pv) return false;
       if(st.cd && t.chu_de.indexOf(st.cd) < 0) return false;
       if(tu.length){
-        var nd = t._tim || (t._tim = boDau(t.tieu_de + ' ' + t.mo_ta + ' ' + t.nguon));
+        var nd = t._tim || (t._tim = boDau(t.tieu_de + ' ' + (t.tieu_de_goc || '') + ' ' + t.mo_ta + ' ' + t.nguon));
         for(var i = 0; i < tu.length; i++) if(nd.indexOf(tu[i]) < 0) return false;
       }
       return true;
@@ -86,7 +86,8 @@ image: /assets/img/og-etf.png
       h += '<li class="ts-item' + (t.anh ? '' : ' ts-noimg') + '"><a href="' + esc(t.link) + '" target="_blank" rel="noopener nofollow">' +
         (t.anh ? '<img src="' + esc(t.anh) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">' : '') +
         '<div><p class="ts-src"><b>' + esc(t.nguon) + '</b> <span class="ts-flag">' + (t.pham_vi === 'vn' ? 'VN' : 'Thế giới') + '</span> · <time datetime="' + esc(t.thoi_gian) + '">' +
-        luc(t.thoi_gian) + '</time>' + nhan + '</p><h3>' + esc(t.tieu_de) + '</h3>' + (t.mo_ta ? '<p class="ts-sum">' + esc(t.mo_ta) + '</p>' : '') + '</div></a></li>';
+        luc(t.thoi_gian) + '</time>' + nhan + (t.tieu_de_goc ? '<span class="ts-tag ts-dich" title="Dịch tự động từ tiếng Anh">Dịch tự động</span>' : '') +
+        '</p><h3>' + esc(t.tieu_de) + '</h3>' + (t.tieu_de_goc ? '<p class="ts-goc" lang="en">' + esc(t.tieu_de_goc) + '</p>' : '') + (t.mo_ta ? '<p class="ts-sum">' + esc(t.mo_ta) + '</p>' : '') + '</div></a></li>';
     });
     $('tsList').innerHTML = h || '<li class="ts-empty">Không có tin phù hợp bộ lọc.</li>';
     $('tsThem').hidden = ds.length <= st.hien;

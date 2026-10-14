@@ -692,6 +692,8 @@ footer.site{padding-block:56px calc(36px + env(safe-area-inset-bottom,0px)); bor
 .ts-src b{color:var(--ink-soft);}
 .ts-flag{font-size:11px; font-weight:600; border:1px solid var(--border); border-radius:6px; padding:0 5px;}
 .ts-tag{font-size:11px; font-weight:600; background:var(--accent-tint); color:var(--accent-ink); border-radius:6px; padding:1px 6px;}
+.ts-goc{font-size:12.5px; line-height:1.4; color:var(--muted); font-style:italic; margin:3px 0 0; overflow-wrap:anywhere;}
+.ts-dich{background:var(--surface-sunk); color:var(--muted);}
 .ts-sum{font-size:13.5px; line-height:1.5; color:var(--ink-soft); margin:4px 0 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
 .ts-empty{color:var(--muted); padding:20px 0;}
 .ts-more{text-align:center; margin:16px 0;}

@@ -171,6 +171,65 @@ def _gan_chu_de(tin):
     return cd
 
 
+DICH_URL = "https://translate.googleapis.com/translate_a/single"
+
+
+def _dich_mot(tieu_de, mo_ta):
+    # Dịch tiêu đề + tóm tắt trong 1 lần gọi (ngăn bằng xuống dòng, dịch vụ giữ nguyên dòng)
+    van_ban = tieu_de + ("\n" + mo_ta if mo_ta else "")
+    r = requests.get(DICH_URL, params={"client": "gtx", "sl": "auto", "tl": "vi", "dt": "t", "q": van_ban},
+                     headers={"User-Agent": UA}, timeout=20)
+    r.raise_for_status()
+    ket_qua = "".join(s[0] for s in (r.json()[0] or []) if s and s[0])
+    dong = ket_qua.split("\n", 1)
+    td = dong[0].strip()
+    mt = dong[1].strip() if len(dong) > 1 else ""
+    if not td:
+        raise ValueError("bản dịch rỗng")
+    return td, mt
+
+
+def dich_tin_the_gioi(tin, cu):
+    """Dịch tin thế giới sang tiếng Việt. `cu`: link -> (tiêu đề VN, tóm tắt VN, tiêu đề gốc) của lần chạy trước,
+    tin đã dịch rồi thì dùng lại, chỉ gọi dịch tin mới. Dịch lỗi thì để nguyên tiếng Anh."""
+    can_dich = []
+    for t in tin:
+        if t["pham_vi"] != "tg":
+            continue
+        da = cu.get(t["link"])
+        if da and da[2] == t["tieu_de"]:
+            t["tieu_de_goc"], t["tieu_de"], t["mo_ta"] = t["tieu_de"], da[0], da[1] or t["mo_ta"]
+        else:
+            can_dich.append(t)
+
+    def lam(t):
+        for lan in range(3):
+            try:
+                return _dich_mot(t["tieu_de"], t["mo_ta"])
+            except Exception:
+                time.sleep(1 + lan * 2)
+        return None
+
+    loi = 0
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        for t, kq in zip(can_dich, ex.map(lam, can_dich)):
+            if kq:
+                t["tieu_de_goc"], t["tieu_de"], t["mo_ta"] = t["tieu_de"], kq[0], kq[1] or t["mo_ta"]
+            else:
+                loi += 1
+    print("Dịch: %d tin mới, %d dùng lại bản dịch cũ, %d lỗi (giữ tiếng Anh)" % (
+        len(can_dich) - loi, sum(1 for t in tin if t["pham_vi"] == "tg") - len(can_dich), loi))
+
+
+def _doc_ban_dich_cu():
+    try:
+        with open(RA, encoding="utf-8") as f:
+            return {t["link"]: (t["tieu_de"], t.get("mo_ta", ""), t["tieu_de_goc"])
+                    for t in json.load(f).get("tin", []) if t.get("tieu_de_goc")}
+    except Exception:
+        return {}
+
+
 def _khoa_trung(tieu_de):
     t = re.sub(r"[^\w]+", " ", tieu_de.lower()).strip()
     return hashlib.md5(t.encode("utf-8")).hexdigest()[:12]
@@ -210,6 +269,8 @@ def main():
     if not tin:
         print("Không lấy được tin nào, giữ nguyên file cũ.")
         return 1
+    # chủ đề đã gắn theo tiếng Anh gốc ở trên; giờ mới dịch để hiển thị
+    dich_tin_the_gioi(tin, _doc_ban_dich_cu())
     du_lieu = {
         "cap_nhat": datetime.now(VN_TZ).isoformat(timespec="minutes"),
         "giu_gio": GIU_GIO,
