@@ -1428,3 +1428,29 @@ body.modal-open{overflow:hidden;}
 .cp-links{display:flex; flex-wrap:wrap; gap:6px 18px; margin-top:10px; font-size:13px; font-weight:650;}
 body.cp-open{overflow:hidden;}
 @media (max-width:640px){.cp-modal{padding:8px;} .cp-box{padding:12px;} .cp-chart{height:300px;}}
+
+/* ===== Thanh menu 8 tab: không để tab nào bị che ===== */
+header.site .wrap.nav-row{max-width:1280px;}
+.nav-row{gap:20px;}
+nav.primary{gap:16px; overflow-x:auto; scrollbar-width:none;}
+nav.primary::-webkit-scrollbar{display:none;}
+/* màn hình chưa đủ rộng: ô tìm mã thu thành nút kính lúp (bấm mới mở ô) */
+@media (min-width:1021px) and (max-width:1360px){
+  .search-toggle{display:inline-grid;}
+  .search-wrap{display:none; position:absolute; top:100%; right:16px; width:320px; padding:10px 12px; background:var(--surface);
+    border:1px solid var(--border); border-radius:0 0 12px 12px; box-shadow:var(--shadow);}
+  .search-wrap.open{display:block;}
+  .search-wrap .search{display:flex; width:100%;}
+  .search-wrap .search input{width:100%;}
+}
+/* hẹp hơn nữa: gom menu vào nút ☰ */
+@media (max-width:1140px){
+  nav.primary{
+    display:none; position:absolute; top:100%; left:0; right:0; flex-direction:column; gap:0; overflow:visible;
+    background:var(--surface); border-bottom:1px solid var(--border); padding:8px 20px 14px; box-shadow:var(--shadow);
+  }
+  nav.primary.open{display:flex;}
+  nav.primary a{padding-block:12px; border-bottom:1px solid var(--border);}
+  nav.primary a:last-child{border-bottom:none;}
+  .nav-toggle{display:inline-grid;}
+}
