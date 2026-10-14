@@ -283,7 +283,7 @@ permalink: /cong-cu/
             <button class="btn btn-accent" type="submit">Thêm</button>
           </form>
           <div class="dt-goi-y" id="dtThuNamGoiY" aria-label="Gợi ý khoản thu theo năm"><span>Gợi ý thêm:</span></div>
-          <p class="hint">"Tháng lương" = tổng thu nhập hằng tháng "đến khi nghỉ hưu" ở trên. Mỗi khoản được chia đều cho 12 tháng rồi cộng vào thu nhập để cân đối (chưa dùng để tính BHXH). Công cụ không tự trừ thuế TNCN: nhập số thực nhận nếu muốn sát thực tế.</p>
+          <p class="hint">Khoản nhận đều mỗi tháng nhưng không phải lương (vd tiền ăn) nhập ở đây với số lần là 12. "Tháng lương" = tổng thu nhập hằng tháng "đến khi nghỉ hưu" ở trên. Mỗi khoản được chia đều cho 12 tháng rồi cộng vào thu nhập để cân đối (chưa dùng để tính BHXH). Công cụ không tự trừ thuế TNCN: nhập số thực nhận nếu muốn sát thực tế.</p>
         </div>
         <div class="dt-ty-le">
           <label for="dtTyLe">Dùng bao nhiêu % lương thực nhận cho chi tiêu và để dành</label>
@@ -910,7 +910,8 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     {ten: 'Tiền đồ', kieu: 'tien', gia: 3000000, lan: 1, khi: 'truoc'},
     {ten: 'Lì xì Tết', kieu: 'tien', gia: 1000000, lan: 1, khi: 'truoc'},
     {ten: 'Tiền lễ (500 nghìn mỗi dịp)', kieu: 'tien', gia: 500000, lan: 4, khi: 'truoc'},
-    {ten: 'Sinh nhật', kieu: 'tien', gia: 500000, lan: 1, khi: 'truoc'}
+    {ten: 'Sinh nhật', kieu: 'tien', gia: 500000, lan: 1, khi: 'truoc'},
+    {ten: 'Tiền ăn (1,3 triệu mỗi tháng)', kieu: 'tien', gia: 1300000, lan: 12, khi: 'truoc'}
   ];
   GOI_Y_NAM.forEach(function(g){
     var b = document.createElement('button'); b.type = 'button'; b.className = 'dt-chip'; b.textContent = '+ ' + g.ten;
@@ -923,7 +924,7 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     $('dtThuNamGoiY').appendChild(b);
   });
   var bTatCa = document.createElement('button'); bTatCa.type = 'button'; bTatCa.className = 'btn btn-ghost'; bTatCa.textContent = 'Thêm đủ bộ phúc lợi trên';
-  bTatCa.title = 'Thêm cả 6 khoản (bỏ qua khoản đã có cùng tên). Số lần tiền lễ mặc định 4 dịp/năm, sửa lại nếu khác.';
+  bTatCa.title = 'Thêm cả 7 khoản (bỏ qua khoản đã có cùng tên). Tiền lễ mặc định 4 dịp/năm, tiền ăn 12 tháng/năm; sửa lại nếu khác.';
   bTatCa.addEventListener('click', function(){
     GOI_Y_NAM.forEach(function(g){ if(!tt.thuNam.some(function(n){ return n.ten === g.ten; })) tt.thuNam.push(Object.assign({}, g)); });
     luu(); veThuNam(); tinh();
