@@ -259,6 +259,32 @@ permalink: /cong-cu/
           <button class="btn btn-accent" type="submit">Thêm</button>
         </form>
         <p class="hint">"Đến khi nghỉ hưu" (lương, thưởng chia theo tháng) dùng để cân đối xem có đủ tiền tiết kiệm không. "Sau khi nghỉ hưu" (lương hưu) và "Cả đời" (cho thuê nhà, cổ tức…) được trừ thẳng vào chi tiêu sau nghỉ hưu, tăng theo lạm phát như chi tiêu.</p>
+        <div class="field" style="margin-top:16px">
+          <label>Thu nhập hằng năm: lương tháng 13, thưởng, phụ cấp <output id="oDtThuNam"></output></label>
+          <ul class="clean dt-list" id="dtThuNamList" aria-live="polite"></ul>
+          <form class="goal-form dt-form dt-form-thu" id="dtThuNamForm">
+            <label class="sr-only" for="dtTnTen">Tên khoản</label>
+            <input id="dtTnTen" type="text" maxlength="60" placeholder="Khoản thu theo năm, vd: Thưởng cuối năm" autocomplete="off" required>
+            <label class="sr-only" for="dtTnKieu">Cách tính</label>
+            <select id="dtTnKieu">
+              <option value="luong">Tính theo số tháng lương</option>
+              <option value="tien">Số tiền cố định mỗi lần</option>
+            </select>
+            <label class="sr-only" for="dtTnGia">Số tháng lương hoặc số tiền</label>
+            <input id="dtTnGia" class="tabular" type="text" inputmode="decimal" placeholder="Số tháng lương, vd: 3" autocomplete="off" required>
+            <label class="sr-only" for="dtTnLan">Số lần mỗi năm</label>
+            <input id="dtTnLan" class="tabular" type="text" inputmode="numeric" value="1" placeholder="Lần/năm" autocomplete="off" style="max-width:90px" title="Số lần nhận mỗi năm">
+            <label class="sr-only" for="dtTnKhi">Có khi nào</label>
+            <select id="dtTnKhi">
+              <option value="truoc">Từ nay đến khi nghỉ hưu</option>
+              <option value="sau">Từ nghỉ hưu đến cuối đời</option>
+              <option value="ca_doi">Cả đời</option>
+            </select>
+            <button class="btn btn-accent" type="submit">Thêm</button>
+          </form>
+          <div class="dt-goi-y" id="dtThuNamGoiY" aria-label="Gợi ý khoản thu theo năm"><span>Gợi ý thêm:</span></div>
+          <p class="hint">"Tháng lương" = tổng thu nhập hằng tháng "đến khi nghỉ hưu" ở trên. Mỗi khoản được chia đều cho 12 tháng rồi cộng vào thu nhập để cân đối (chưa dùng để tính BHXH). Công cụ không tự trừ thuế TNCN: nhập số thực nhận nếu muốn sát thực tế.</p>
+        </div>
         <div class="dt-ty-le">
           <label for="dtTyLe">Dùng bao nhiêu % lương thực nhận cho chi tiêu và để dành</label>
           <div class="dt-ty-le-o"><input id="dtTyLe" class="dt-input tabular" type="number" min="1" max="100" step="1" value="100" inputmode="numeric"><span>%</span></div>
@@ -403,6 +429,7 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
   if(tt.huu === undefined) tt.huu = 60;
   if(!Array.isArray(tt.nguon)) tt.nguon = [];      // nguồn tiền hiện có: {ten, tien, lai (%/năm), ky (tháng, 0 = không kỳ hạn)}
   if(!Array.isArray(tt.thu)) tt.thu = [];          // thu nhập hằng tháng: {ten, tien (/tháng), khi: truoc|sau|ca_doi}
+  if(!Array.isArray(tt.thuNam)) tt.thuNam = [];    // thu nhập hằng năm: {ten, kieu: luong|tien, gia (số tháng lương hoặc số tiền), lan (lần/năm), khi}
   var NHAN_KHI = {truoc: 'đến khi nghỉ hưu', sau: 'từ nghỉ hưu đến cuối đời', ca_doi: 'cả đời'};
   if(!tt.bh || typeof tt.bh !== 'object') tt.bh = {bat: false, gioi: 'nam', luong: 0, luongCu: 0, tuNam: 0};
   var elB = {bat: $('dtBh'), o: $('dtBhO'), gioi: $('dtBhGioi'), luong: $('dtBhLuong'), luongCu: $('dtBhLuongCu'), tuNam: $('dtBhTuNam'), ghiChu: $('dtBhGhiChu')};
@@ -439,6 +466,12 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     return Math.min(75, t) / 100;
   }
   var elT = {list: $('dtThuList'), form: $('dtThuForm'), ten: $('dtThuTen'), tien: $('dtThuTien'), khi: $('dtThuKhi')};
+  var elTN = {list: $('dtThuNamList'), form: $('dtThuNamForm'), ten: $('dtTnTen'), kieu: $('dtTnKieu'), gia: $('dtTnGia'), lan: $('dtTnLan'), khi: $('dtTnKhi')};
+  // "Tháng lương" làm cơ sở cho các khoản tính theo số tháng lương = tổng thu nhập hằng tháng đến khi nghỉ hưu
+  var luongCoSo = function(){ return tt.thu.reduce(function(s, n){ return s + (n.khi === 'truoc' ? n.tien : 0); }, 0); };
+  var tienNamCua = function(n){ return (n.kieu === 'luong' ? n.gia * luongCoSo() : n.gia) * (n.lan || 1); };
+  // Thu nhập hằng năm quy ra mỗi tháng (chia đều 12 tháng) theo giai đoạn
+  var thuNamThang = function(loai){ return tt.thuNam.reduce(function(s, n){ return s + (loai.indexOf(n.khi) >= 0 ? tienNamCua(n) / 12 : 0); }, 0); };
   var elN = {list: $('dtNguonList'), form: $('dtNguonForm'), ten: $('dtNguonTen'), tien: $('dtNguonTien'), lai: $('dtNguonLai'), ky: $('dtNguonKy')};
   var LAI_KHONG_KY_HAN = 0.1;                       // %/năm khi rút trước hạn
   // Giá trị 1 nguồn tiền sau 'thang' tháng, tính như ngân hàng:
@@ -524,6 +557,31 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     });
   }
 
+  function veThuNam(){
+    elTN.list.innerHTML = '';
+    var tongNam = thuNamThang(['truoc', 'sau', 'ca_doi']) * 12;
+    $('oDtThuNam').textContent = tt.thuNam.length ? '≈ ' + tien(tongNam) + '/năm' : '';
+    if(!tt.thuNam.length){
+      var r = document.createElement('li'); r.className = 'goal-empty'; r.textContent = 'Chưa có khoản thu theo năm nào. Dùng gợi ý bên dưới hoặc thêm ở ô bên dưới (không bắt buộc).';
+      elTN.list.appendChild(r); return;
+    }
+    tt.thuNam.forEach(function(n, i){
+      var li = document.createElement('li'); li.className = 'dt-item';
+      var ten = document.createElement('span'); ten.className = 'dt-ten'; ten.textContent = n.ten;
+      var gt = document.createElement('span'); gt.className = 'dt-gt tabular';
+      var nam = tienNamCua(n);
+      gt.textContent = (n.kieu === 'luong' ? so(n.gia, 1) + ' tháng lương' : tien(n.gia)) + (n.lan > 1 ? ' × ' + n.lan + ' lần' : '') + ' = ' + tien(nam) + '/năm · ' + NHAN_KHI[n.khi];
+      gt.title = '≈ ' + tien(nam / 12) + ' mỗi tháng';
+      var xoa = document.createElement('button'); xoa.type = 'button'; xoa.className = 'goal-del';
+      xoa.setAttribute('aria-label', 'Xoá khoản thu theo năm ' + n.ten);
+      xoa.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+      xoa.addEventListener('click', function(){ tt.thuNam.splice(i, 1); suaThuNam.daXoa(i); luu(); veThuNam(); tinh(); });
+      if(i === suaThuNam.chiSo) li.classList.add('dt-dang-sua');
+      li.appendChild(ten); li.appendChild(gt); li.appendChild(nutSua(n.ten, function(){ suaThuNam.bat(i, n); })); li.appendChild(xoa);
+      elTN.list.appendChild(li);
+    });
+  }
+
   function veNguon(){
     elN.list.innerHTML = '';
     if(!tt.nguon.length){
@@ -580,7 +638,8 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     // Thu nhập: 'truoc' + 'ca_doi' dùng cân đối khi còn đi làm; 'sau' + 'ca_doi' trừ vào chi tiêu sau nghỉ hưu
     // (tăng theo lạm phát như chi tiêu). Chi tiêu ròng không âm: thu nhiều hơn chi thì phần dư không cộng vào quỹ.
     var tongThu = function(loai){ return tt.thu.reduce(function(s, n){ return s + (loai.indexOf(n.khi) >= 0 ? n.tien : 0); }, 0); };
-    var thuDiLam = tongThu(['truoc', 'ca_doi']), thuHuu = tongThu(['sau', 'ca_doi']);
+    var thuDiLam = tongThu(['truoc', 'ca_doi']) + thuNamThang(['truoc', 'ca_doi']), thuHuu = tongThu(['sau', 'ca_doi']) + thuNamThang(['sau', 'ca_doi']);
+    $('oDtThuNam').textContent = tt.thuNam.length ? '≈ ' + tien(thuNamThang(['truoc', 'sau', 'ca_doi']) * 12) + '/năm' : '';
     // BHXH: tiền đóng hằng tháng (trừ vào thu nhập khi cân đối) + lương hưu ước tính từ tuổi nghỉ hưu theo luật
     var bh = {dong: 0, luongHuu: 0, tuoiNhan: 0, soNam: 0, tyLe: 0, luongDong: 0};
     elB.o.hidden = !elB.bat.checked; elB.ghiChu.hidden = !elB.bat.checked;
@@ -609,7 +668,7 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     // chi tiêu ròng nếu nghỉ làm ngay hôm nay: lương hưu chỉ tính theo số năm đã đóng, nhận từ tuổi nghỉ hưu theo luật
     var thangHuuNgay = Math.round(((bh.tuoiLuat || 0) - tuoi) * 12);
     var chiRongNgay = function(k){ return Math.max(0, (chiSau - thuHuu - (bh.luongHuuNgay && k >= thangHuuNgay ? bh.luongHuuNgay : 0)) * Math.pow(1 + g, k)); };
-    $('oDtThu').textContent = tt.thu.length ? (thuDiLam ? tien(thuDiLam) + '/tháng khi đi làm' : '') +
+    $('oDtThu').textContent = (tt.thu.length || tt.thuNam.length) ? (thuDiLam ? tien(thuDiLam) + '/tháng khi đi làm' : '') +
       (thuDiLam && thuHuu ? ' · ' : '') + (thuHuu ? tien(thuHuu) + '/tháng khi nghỉ hưu' : '') : '';
     // (1) Nghỉ làm ngay hôm nay: số tiền cần có = chi tiêu ròng (đã trừ thu nhập sau nghỉ hưu) chiết khấu về hiện tại
     var can = 0, tong = 0;
@@ -667,7 +726,7 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
       var conDu = nganSach - chiThang, can_tk = isFinite(tkThang) ? tkThang : 0, chenh = conDu - can_tk;
       cd.hidden = false;
       cd.className = 'dt-can-doi ' + (chenh >= 0 ? 'dt-du' : 'dt-thieu');
-      cd.textContent = 'Cân đối khi còn đi làm: thu nhập ' + tien(thuDiLam) + '/tháng' + (bh.dong ? ' − BHXH ' + tien(bh.dong) + ' = thực nhận ' + tien(thucNhan) : '') +
+      cd.textContent = 'Cân đối khi còn đi làm: thu nhập ' + tien(thuDiLam) + '/tháng' + (thuNamThang(['truoc', 'ca_doi']) ? ' (gồm thu theo năm ≈ ' + tien(thuNamThang(['truoc', 'ca_doi'])) + ')' : '') + (bh.dong ? ' − BHXH ' + tien(bh.dong) + ' = thực nhận ' + tien(thucNhan) : '') +
         (tyLe < 1 ? '; dùng ' + so(tyLe * 100, 0) + '% = ' + tien(nganSach) + ' (để riêng ' + tien(thucNhan - nganSach) + ')' : '') +
         ' − chi tiêu ' + tien(chiThang) + '/tháng = để dành được ' +
         tien(conDu) + '/tháng; cần tiết kiệm ' + tien(can_tk) + '/tháng' + (tkTang ? ' (năm đầu)' : '') + '. ' +
@@ -815,6 +874,61 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     var d = elT.tien.value.replace(/[^\d]/g, '');
     elT.tien.value = d ? Number(d).toLocaleString('vi-VN') : '';
   });
+  var dinhDangGia = function(){
+    if(elTN.kieu.value === 'tien'){ var d = elTN.gia.value.replace(/[^\d]/g, ''); elTN.gia.value = d ? Number(d).toLocaleString('vi-VN') : ''; }
+  };
+  var docGia = function(){
+    var t = String(elTN.gia.value).trim();
+    return elTN.kieu.value === 'tien' ? Number(t.replace(/[^\d]/g, '')) : Number(t.replace(',', '.').replace(/[^\d.]/g, ''));
+  };
+  elTN.gia.addEventListener('input', dinhDangGia);
+  elTN.kieu.addEventListener('change', function(){
+    elTN.gia.placeholder = elTN.kieu.value === 'luong' ? 'Số tháng lương, vd: 3' : 'Số tiền mỗi lần, vd: 1.000.000';
+    elTN.gia.value = '';
+  });
+  elTN.form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var ten = elTN.ten.value.trim(), gia = docGia(), lan = Math.max(1, Math.floor(Number(String(elTN.lan.value).replace(/[^\d]/g, '')) || 1));
+    if(!ten){ elTN.ten.focus(); return; }
+    if(!(gia > 0) || (elTN.kieu.value === 'luong' && gia > 36)){ elTN.gia.focus(); return; }
+    var moi = {ten: ten, kieu: elTN.kieu.value, gia: gia, lan: lan, khi: elTN.khi.value};
+    if(suaThuNam.chiSo >= 0){ tt.thuNam[suaThuNam.chiSo] = moi; suaThuNam.tat(); } else tt.thuNam.push(moi);
+    elTN.ten.value = ''; elTN.gia.value = ''; elTN.lan.value = '1'; elTN.ten.focus();
+    luu(); veThuNam(); tinh();
+  });
+  var suaThuNam = cheDoSua(elTN.form, function(n){
+    elTN.ten.value = n ? n.ten : ''; elTN.kieu.value = n ? n.kieu : 'luong';
+    elTN.gia.placeholder = elTN.kieu.value === 'luong' ? 'Số tháng lương, vd: 3' : 'Số tiền mỗi lần, vd: 1.000.000';
+    elTN.gia.value = n ? (n.kieu === 'tien' ? Number(n.gia).toLocaleString('vi-VN') : String(n.gia).replace('.', ',')) : '';
+    elTN.lan.value = n ? String(n.lan || 1) : '1'; if(n) elTN.khi.value = n.khi;
+    if(n) elTN.ten.focus();
+  }, function(){ veThuNam(); });
+  // Bộ phúc lợi thường gặp của công ty (chỉnh được từng khoản sau khi thêm)
+  var GOI_Y_NAM = [
+    {ten: 'Lương tháng 13', kieu: 'luong', gia: 1, lan: 1, khi: 'truoc'},
+    {ten: 'Thưởng cuối năm (trung bình 3 tháng lương)', kieu: 'luong', gia: 3, lan: 1, khi: 'truoc'},
+    {ten: 'Tiền đồ', kieu: 'tien', gia: 3000000, lan: 1, khi: 'truoc'},
+    {ten: 'Lì xì Tết', kieu: 'tien', gia: 1000000, lan: 1, khi: 'truoc'},
+    {ten: 'Tiền lễ (500 nghìn mỗi dịp)', kieu: 'tien', gia: 500000, lan: 4, khi: 'truoc'},
+    {ten: 'Sinh nhật', kieu: 'tien', gia: 500000, lan: 1, khi: 'truoc'}
+  ];
+  GOI_Y_NAM.forEach(function(g){
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'dt-chip'; b.textContent = '+ ' + g.ten;
+    b.title = 'Điền nhanh vào ô bên trên để chỉnh rồi bấm Thêm';
+    b.addEventListener('click', function(){
+      if(suaThuNam.chiSo >= 0) suaThuNam.tat();
+      elTN.ten.value = g.ten; elTN.kieu.value = g.kieu; elTN.kieu.dispatchEvent(new Event('change'));
+      elTN.gia.value = g.kieu === 'tien' ? Number(g.gia).toLocaleString('vi-VN') : String(g.gia); elTN.lan.value = String(g.lan); elTN.khi.value = g.khi; elTN.gia.focus();
+    });
+    $('dtThuNamGoiY').appendChild(b);
+  });
+  var bTatCa = document.createElement('button'); bTatCa.type = 'button'; bTatCa.className = 'btn btn-ghost'; bTatCa.textContent = 'Thêm đủ bộ phúc lợi trên';
+  bTatCa.title = 'Thêm cả 6 khoản (bỏ qua khoản đã có cùng tên). Số lần tiền lễ mặc định 4 dịp/năm, sửa lại nếu khác.';
+  bTatCa.addEventListener('click', function(){
+    GOI_Y_NAM.forEach(function(g){ if(!tt.thuNam.some(function(n){ return n.ten === g.ten; })) tt.thuNam.push(Object.assign({}, g)); });
+    luu(); veThuNam(); tinh();
+  });
+  $('dtThuNamGoiY').appendChild(bTatCa);
   function luuBh(){
     tt.bh = {bat: elB.bat.checked, gioi: elB.gioi.value, luong: docSo(elB.luong), luongCu: docSo(elB.luongCu),
              tuNam: Number(elB.tuNam.value) || 0};
@@ -845,7 +959,7 @@ window.KCN_khoiDongDuToan = function(ttBanDau, ghi){
     });
     $('dtGoiY').appendChild(b);
   });
-  veDanhSach(); veThu(); veNguon(); tinh();
+  veDanhSach(); veThu(); veThuNam(); veNguon(); tinh();
 };
 </script>
 
