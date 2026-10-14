@@ -12,6 +12,9 @@
 - id: phan-tich
   ten: Radar danh mục
   link: /phan-tich/
+- id: thoi-su
+  ten: Thời sự
+  link: /thoi-su/
 - id: thi-truong
   ten: Thị trường
   link: /thi-truong/

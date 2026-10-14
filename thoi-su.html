@@ -1,0 +1,129 @@
+---
+layout: default
+title: Thời sự kinh tế - chứng khoán
+description: Tin kinh tế, chứng khoán, tài chính - ngân hàng, vàng - dầu, bất động sản mới nhất từ báo Việt Nam và thế giới, tự cập nhật nhiều lần mỗi ngày.
+nav: thoi-su
+permalink: /thoi-su/
+image: /assets/img/og-etf.png
+---
+<section class="page-head wrap">
+  <p class="eyebrow">Thời sự</p>
+  <h1>Tin kinh tế, chứng khoán mới nhất</h1>
+  <p>Gom tin từ CafeF, Vietstock, VnEconomy, VnExpress, Tuổi Trẻ, Thanh Niên, Dân trí, VietNamNet và CNBC, Bloomberg, Financial Times, MarketWatch, Investing.com, BBC, New York Times, The Guardian. Bấm vào tin để đọc bài gốc trên báo.</p>
+</section>
+
+<div class="wrap" id="tsPage">
+  <div class="toolbar ts-bar">
+    <div class="seg" role="group" aria-label="Phạm vi">
+      <button type="button" data-pv="" aria-pressed="true">Tất cả</button>
+      <button type="button" data-pv="vn" aria-pressed="false">Việt Nam</button>
+      <button type="button" data-pv="tg" aria-pressed="false">Thế giới</button>
+    </div>
+    <label class="ts-tim"><span class="sr-only">Tìm tin</span><input type="search" id="tsTim" placeholder="Tìm: VN-Index, lãi suất, Fed, vàng, mã CK…" autocomplete="off"></label>
+  </div>
+  <div class="chips ts-chips" id="tsChuDe" role="group" aria-label="Chủ đề"></div>
+  <p class="ts-meta" id="tsMeta" role="status">Đang tải tin…</p>
+  <ol class="ts-list" id="tsList"></ol>
+  <p class="ts-more"><button type="button" class="btn btn-ghost" id="tsThem" hidden>Xem thêm tin</button></p>
+  <details class="table-note" id="tsNguon">
+    <summary>Nguồn tin và tình trạng lần cập nhật gần nhất</summary>
+    <ul id="tsNguonDs"></ul>
+    <p>Kim Chỉ Nam chỉ hiển thị tiêu đề, đoạn tóm tắt ngắn và đường dẫn tới bài gốc do các báo công bố qua RSS. Nội dung thuộc bản quyền của từng báo. Đây không phải khuyến nghị đầu tư.</p>
+  </details>
+</div>
+
+<script>
+(function(){
+  var BASE = window.KCN_BASE || '';
+  var MOI_TRANG = 40;
+  var $ = function(id){ return document.getElementById(id); };
+  var st = {pv: '', cd: '', tim: '', hien: MOI_TRANG};
+  var duLieu = null;
+  try { var luu = JSON.parse(localStorage.getItem('kcn-thoi-su') || '{}'); st.pv = luu.pv || ''; st.cd = luu.cd || ''; } catch(e){}
+
+  function luuLoc(){ try { localStorage.setItem('kcn-thoi-su', JSON.stringify({pv: st.pv, cd: st.cd})); } catch(e){} }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function boDau(s){ return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase(); }
+  function luc(iso){
+    var t = new Date(iso), p = Math.round((Date.now() - t) / 60000);
+    if(p < 1) return 'vừa xong';
+    if(p < 60) return p + ' phút trước';
+    if(p < 24 * 60) return Math.floor(p / 60) + ' giờ trước';
+    return t.toLocaleString('vi-VN', {hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit'});
+  }
+
+  function locTin(){
+    var q = boDau(st.tim).trim(), tu = q ? q.split(/\s+/) : [];
+    return duLieu.tin.filter(function(t){
+      if(st.pv && t.pham_vi !== st.pv) return false;
+      if(st.cd && t.chu_de.indexOf(st.cd) < 0) return false;
+      if(tu.length){
+        var nd = t._tim || (t._tim = boDau(t.tieu_de + ' ' + t.mo_ta + ' ' + t.nguon));
+        for(var i = 0; i < tu.length; i++) if(nd.indexOf(tu[i]) < 0) return false;
+      }
+      return true;
+    });
+  }
+
+  function veChuDe(){
+    var dem = {};
+    duLieu.tin.forEach(function(t){ if(!st.pv || t.pham_vi === st.pv) t.chu_de.forEach(function(c){ dem[c] = (dem[c] || 0) + 1; }); });
+    var thu_tu = ['chung-khoan', 'vi-mo', 'tien-te', 'ngan-hang', 'hang-hoa', 'bat-dong-san', 'doanh-nghiep', 'quoc-te', 'kinh-te'];
+    var h = '<button type="button" class="chip" data-cd="" aria-pressed="' + (!st.cd) + '">Tất cả chủ đề</button>';
+    thu_tu.forEach(function(c){
+      if(!dem[c]) return;
+      h += '<button type="button" class="chip" data-cd="' + c + '" aria-pressed="' + (st.cd === c) + '">' + esc(duLieu.chu_de[c] || c) +
+           ' <span class="ts-dem">' + dem[c] + '</span></button>';
+    });
+    $('tsChuDe').innerHTML = h;
+  }
+
+  function ve(){
+    var ds = locTin(), h = '';
+    ds.slice(0, st.hien).forEach(function(t){
+      var nhan = t.chu_de.filter(function(c){ return c !== 'quoc-te' && c !== 'kinh-te'; }).slice(0, 2)
+        .map(function(c){ return '<span class="ts-tag">' + esc(duLieu.chu_de[c] || c) + '</span>'; }).join('');
+      h += '<li class="ts-item' + (t.anh ? '' : ' ts-noimg') + '"><a href="' + esc(t.link) + '" target="_blank" rel="noopener nofollow">' +
+        (t.anh ? '<img src="' + esc(t.anh) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">' : '') +
+        '<div><p class="ts-src"><b>' + esc(t.nguon) + '</b> <span class="ts-flag">' + (t.pham_vi === 'vn' ? 'VN' : 'Thế giới') + '</span> · <time datetime="' + esc(t.thoi_gian) + '">' +
+        luc(t.thoi_gian) + '</time>' + nhan + '</p><h3>' + esc(t.tieu_de) + '</h3>' + (t.mo_ta ? '<p class="ts-sum">' + esc(t.mo_ta) + '</p>' : '') + '</div></a></li>';
+    });
+    $('tsList').innerHTML = h || '<li class="ts-empty">Không có tin phù hợp bộ lọc.</li>';
+    $('tsThem').hidden = ds.length <= st.hien;
+    $('tsMeta').textContent = ds.length + ' tin trong ' + duLieu.giu_gio + ' giờ qua · cập nhật lúc ' +
+      new Date(duLieu.cap_nhat).toLocaleString('vi-VN', {hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'});
+  }
+
+  function veNguon(){
+    $('tsNguonDs').innerHTML = duLieu.nguon.map(function(n){
+      return '<li>' + esc(n.nguon) + ': ' + (n.loi ? '<span class="down">lỗi lần này</span>' : n.so_tin + ' tin') + ' <small class="muted">' + esc(n.url) + '</small></li>';
+    }).join('');
+  }
+
+  document.querySelectorAll('.ts-bar [data-pv]').forEach(function(b){
+    b.setAttribute('aria-pressed', String(b.getAttribute('data-pv') === st.pv));
+    b.addEventListener('click', function(){
+      st.pv = b.getAttribute('data-pv'); st.hien = MOI_TRANG; luuLoc();
+      document.querySelectorAll('.ts-bar [data-pv]').forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+      if(duLieu){ veChuDe(); ve(); }
+    });
+  });
+  $('tsChuDe').addEventListener('click', function(e){
+    var b = e.target.closest('[data-cd]'); if(!b) return;
+    st.cd = b.getAttribute('data-cd'); st.hien = MOI_TRANG; luuLoc(); veChuDe(); ve();
+  });
+  var hen;
+  $('tsTim').addEventListener('input', function(){ clearTimeout(hen); hen = setTimeout(function(){ st.tim = $('tsTim').value; st.hien = MOI_TRANG; ve(); }, 200); });
+  $('tsThem').addEventListener('click', function(){ st.hien += MOI_TRANG; ve(); });
+
+  function tai(){
+    fetch(BASE + '/assets/data/thoi_su.json?t=' + Math.floor(Date.now() / 300000), {cache: 'no-cache'})
+      .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(d){ duLieu = d; if(st.cd && !d.chu_de[st.cd]) st.cd = ''; veChuDe(); ve(); veNguon(); })
+      .catch(function(){ $('tsMeta').textContent = 'Chưa tải được tin, thử tải lại trang sau ít phút.'; });
+  }
+  tai();
+  setInterval(function(){ if(!document.hidden) tai(); }, 10 * 60 * 1000);   // trang để mở lâu thì tự lấy tin mới mỗi 10 phút
+  setInterval(function(){ if(duLieu && !document.hidden) document.querySelectorAll('#tsList time').forEach(function(t){ t.textContent = luc(t.getAttribute('datetime')); }); }, 60000);
+})();
+</script>

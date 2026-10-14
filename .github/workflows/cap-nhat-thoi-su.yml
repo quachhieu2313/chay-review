@@ -1,0 +1,50 @@
+# Gom tin thời sự kinh tế - chứng khoán (trang /thoi-su/) từ RSS báo Việt Nam và thế giới, khoảng 30 phút/lần, cả ngày.
+# Lịch "schedule" của GitHub có thể trễ hoặc bỏ lượt; muốn đều hơn thì cho cron-job.org gọi workflow_dispatch như HUONG_DAN.md.
+# Chạy tay: tab Actions -> "Cập nhật tin thời sự" -> Run workflow.
+name: Cập nhật tin thời sự
+
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cap-nhat-du-lieu   # dùng chung nhóm với các workflow dữ liệu khác để không đẩy đè nhau
+  cancel-in-progress: false
+
+jobs:
+  cap-nhat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: Cài thư viện
+        run: pip install requests
+
+      - name: Gom tin
+        run: python scripts/thoi_su.py
+
+      - name: Lưu thay đổi
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/thoi_su.json
+          if git diff --cached --quiet; then
+            echo "Không có tin mới."
+          else
+            git commit -m "Cập nhật tin thời sự $(TZ=Asia/Ho_Chi_Minh date +%H:%M\ %d/%m/%Y)"
+            for i in 1 2 3; do
+              git pull --rebase -X theirs && git push && break
+              echo "Đẩy lên chưa được, thử lại lần $i"; sleep 5
+            done
+          fi
