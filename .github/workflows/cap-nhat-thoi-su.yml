@@ -11,6 +11,7 @@ on:
     paths:
       - .github/workflows/cap-nhat-thoi-su.yml
       - scripts/thoi_su.py
+      - scripts/nhiet_ke_tin.py
   schedule:
     - cron: "17 */6 * * *"   # dự phòng: nếu chuỗi bị đứt thì lịch này (khi GitHub chịu chạy) nối lại
   workflow_dispatch:
@@ -50,13 +51,14 @@ jobs:
             git fetch -q origin main && git reset -q --hard origin/main
             if python scripts/thoi_su.py; then
               cp assets/data/thoi_su.json /tmp/thoi_su.json
+              cp assets/data/nhiet_ke_tin.json /tmp/nhiet_ke_tin.json 2>/dev/null || true
               for i in 1 2 3; do
-                git add assets/data/thoi_su.json
+                git add assets/data/thoi_su.json assets/data/nhiet_ke_tin.json
                 if git diff --cached --quiet; then echo "Không có tin mới."; break; fi
                 git commit -q -m "Cập nhật tin thời sự $(TZ=Asia/Ho_Chi_Minh date +%H:%M\ %d/%m/%Y)"
                 git push -q origin HEAD:main && break
                 echo "Đẩy lên chưa được, thử lại lần $i"; sleep 5
-                git fetch -q origin main && git reset -q --hard origin/main && cp /tmp/thoi_su.json assets/data/thoi_su.json
+                git fetch -q origin main && git reset -q --hard origin/main && cp /tmp/thoi_su.json assets/data/thoi_su.json && { cp /tmp/nhiet_ke_tin.json assets/data/nhiet_ke_tin.json 2>/dev/null || true; }
               done
             fi
             [ $((SECONDS + CHU_KY_GIAY)) -ge $het ] && break

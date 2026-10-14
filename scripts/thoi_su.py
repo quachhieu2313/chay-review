@@ -283,6 +283,12 @@ def main():
     with open(tam, "w", encoding="utf-8") as f:
         json.dump(du_lieu, f, ensure_ascii=False, separators=(",", ":"))
     os.replace(tam, RA)
+    try:   # chấm điểm nhiệt kế tin tức ngay sau khi có tin (ghi thêm điểm + ngành vào thoi_su.json và nhiet_ke_tin.json)
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import nhiet_ke_tin
+        nhiet_ke_tin.main()
+    except Exception as e:
+        print("Nhiệt kế tin lỗi (vẫn giữ tin):", e, file=sys.stderr)
     loi = sum(1 for x in trang_thai if x["loi"])
     print("Thời sự: %d tin (VN %d, thế giới %d), %d/%d nguồn lỗi, %.1f giây" % (
         len(tin), sum(t["pham_vi"] == "vn" for t in tin), sum(t["pham_vi"] == "tg" for t in tin), loi, len(NGUON), time.time() - bat_dau))

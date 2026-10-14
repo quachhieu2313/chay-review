@@ -13,6 +13,25 @@ image: /assets/img/og-etf.png
 </section>
 
 <div class="wrap" id="tsPage">
+  <section class="nn-box nk" id="nkBox" hidden aria-labelledby="nkTieuDe">
+    <h2 id="nkTieuDe">Nhiệt kế tin tức</h2>
+    <p class="nn-sub">Chấm điểm tích cực / tiêu cực từng bài bằng bộ từ khoá rồi cộng theo thị trường và theo ngành (24 giờ gần nhất). Đây là <b>thước đo tâm lý tin tức, không phải dự báo hay khuyến nghị đầu tư</b>. Chấm theo từ khoá có thể hiểu sai câu phức tạp; bấm một ngành để xem các bài tạo ra điểm.</p>
+    <div class="nk-top">
+      <div class="nk-kpi" id="nkKpi"></div>
+      <div class="nk-acc" id="nkAcc"></div>
+    </div>
+    <div class="nk-grid" id="nkGrid" role="group" aria-label="Điểm tin theo ngành"></div>
+    <div class="nk-lists">
+      <div><h3>Tin tích cực nhất</h3><ol id="nkDuong"></ol></div>
+      <div><h3>Tin tiêu cực nhất</h3><ol id="nkAm"></ol></div>
+    </div>
+    <details class="table-note" id="nkLs">
+      <summary>Đối chiếu từng phiên: điểm tin trước giờ mở cửa và VN-Index thực tế</summary>
+      <div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Phiên</th><th scope="col" class="num">Điểm tin</th><th scope="col" class="num">Số bài</th><th scope="col" class="num">VN-Index</th><th scope="col">Kết quả</th></tr></thead><tbody id="nkLsBody"></tbody></table></div>
+      <p>Điểm của một phiên = các bài đăng từ 15:00 phiên trước tới 09:00 phiên đó (tin trong giờ giao dịch không tính vì diễn ra cùng lúc với giá). "Đúng chiều" = điểm tin dương mà chỉ số tăng, hoặc âm mà chỉ số giảm; điểm gần 0 (trung tính) không tính. Ngành so với bình quân biến động giá các mã VN100 trong ngành, chỉ tính phiên có từ 5 bài.</p>
+    </details>
+  </section>
+
   <div class="toolbar ts-bar">
     <div class="seg" role="group" aria-label="Phạm vi">
       <button type="button" data-pv="" aria-pressed="true">Tất cả</button>
@@ -37,8 +56,8 @@ image: /assets/img/og-etf.png
   var BASE = '{{ site.baseurl }}';   // KCN_BASE của layout khai báo SAU nội dung trang nên chưa có ở đây
   var MOI_TRANG = 40;
   var $ = function(id){ return document.getElementById(id); };
-  var st = {pv: '', cd: '', tim: '', hien: MOI_TRANG};
-  var duLieu = null;
+  var st = {pv: '', cd: '', ng: '', tim: '', hien: MOI_TRANG};
+  var duLieu = null, nhietKe = null;
   try { var luu = JSON.parse(localStorage.getItem('kcn-thoi-su') || '{}'); st.pv = luu.pv || ''; st.cd = luu.cd || ''; } catch(e){}
 
   function luuLoc(){ try { localStorage.setItem('kcn-thoi-su', JSON.stringify({pv: st.pv, cd: st.cd})); } catch(e){} }
@@ -57,6 +76,7 @@ image: /assets/img/og-etf.png
     return duLieu.tin.filter(function(t){
       if(st.pv && t.pham_vi !== st.pv) return false;
       if(st.cd && t.chu_de.indexOf(st.cd) < 0) return false;
+      if(st.ng && !(t.nganh && st.ng in t.nganh)) return false;
       if(tu.length){
         var nd = t._tim || (t._tim = boDau(t.tieu_de + ' ' + (t.tieu_de_goc || '') + ' ' + t.mo_ta + ' ' + t.nguon));
         for(var i = 0; i < tu.length; i++) if(nd.indexOf(tu[i]) < 0) return false;
@@ -69,7 +89,8 @@ image: /assets/img/og-etf.png
     var dem = {};
     duLieu.tin.forEach(function(t){ if(!st.pv || t.pham_vi === st.pv) t.chu_de.forEach(function(c){ dem[c] = (dem[c] || 0) + 1; }); });
     var thu_tu = ['chung-khoan', 'vi-mo', 'tien-te', 'ngan-hang', 'hang-hoa', 'bat-dong-san', 'doanh-nghiep', 'quoc-te', 'kinh-te'];
-    var h = '<button type="button" class="chip" data-cd="" aria-pressed="' + (!st.cd) + '">Tất cả chủ đề</button>';
+    var h = (st.ng ? '<button type="button" class="chip" data-bo-ng aria-pressed="true" title="Bỏ lọc ngành">Ngành: ' + esc(st.ng) + ' ✕</button>' : '') +
+      '<button type="button" class="chip" data-cd="" aria-pressed="' + (!st.cd) + '">Tất cả chủ đề</button>';
     thu_tu.forEach(function(c){
       if(!dem[c]) return;
       h += '<button type="button" class="chip" data-cd="' + c + '" aria-pressed="' + (st.cd === c) + '">' + esc(duLieu.chu_de[c] || c) +
@@ -83,6 +104,8 @@ image: /assets/img/og-etf.png
     ds.slice(0, st.hien).forEach(function(t){
       var nhan = t.chu_de.filter(function(c){ return c !== 'quoc-te' && c !== 'kinh-te'; }).slice(0, 2)
         .map(function(c){ return '<span class="ts-tag">' + esc(duLieu.chu_de[c] || c) + '</span>'; }).join('');
+      var dg = st.ng && t.nganh && st.ng in t.nganh ? t.nganh[st.ng] : t.diem;
+      if(dg != null && Math.abs(dg) >= 0.05) nhan = '<span class="nk-b ' + (dg > 0 ? 'nk-p' : 'nk-m') + '" title="Điểm tin tức (từ khoá)">' + (dg > 0 ? '▲ ' : '▼ ') + diem100(dg) + '</span>' + nhan;
       h += '<li class="ts-item' + (t.anh ? '' : ' ts-noimg') + '"><a href="' + esc(t.link) + '" target="_blank" rel="noopener nofollow">' +
         (t.anh ? '<img src="' + esc(t.anh) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">' : '') +
         '<div><p class="ts-src"><b>' + esc(t.nguon) + '</b> <span class="ts-flag">' + (t.pham_vi === 'vn' ? 'VN' : 'Thế giới') + '</span> · <time datetime="' + esc(t.thoi_gian) + '">' +
@@ -109,7 +132,56 @@ image: /assets/img/og-etf.png
       if(duLieu){ veChuDe(); ve(); }
     });
   });
+  function diem100(d){ var x = Math.round(d * 100); return (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x); }
+  function mau(d, n){
+    if(!n) return 'var(--surface-sunk)';
+    var a = Math.min(1, Math.abs(d) / 0.4) * (n < 3 ? 0.35 : 0.85);
+    return d >= 0 ? 'rgba(47,191,79,' + a.toFixed(2) + ')' : 'rgba(232,96,94,' + a.toFixed(2) + ')';
+  }
+  function nhan(d){ return d >= 0.15 ? 'Tích cực' : d >= 0.05 ? 'Hơi tích cực' : d > -0.05 ? 'Trung tính' : d > -0.15 ? 'Hơi tiêu cực' : 'Tiêu cực'; }
+  function phanTram(a, b){ return b ? Math.round(a / b * 100) + '%' : '–'; }
+
+  function veNhietKe(){
+    var k = nhietKe, tt = k.thi_truong, cx = k.chinh_xac.thi_truong;
+    $('nkBox').hidden = false;
+    $('nkKpi').innerHTML = '<p class="nk-lbl">Thị trường · 24 giờ</p><p class="nk-so ' + (tt.diem >= 0.05 ? 'up' : tt.diem <= -0.05 ? 'down' : '') + '">' + diem100(tt.diem) +
+      ' <small>/ 100</small></p><p class="nk-tt">' + nhan(tt.diem) + '</p><p class="muted">' + tt.n + ' bài · ' + tt.duong + ' tích cực · ' + tt.am + ' tiêu cực</p>';
+    var acc = '<p class="nk-lbl">Độ chính xác đến nay</p>';
+    if(cx.so_phien){
+      acc += '<p><b>' + cx.dung + '/' + cx.so_phien + ' phiên</b> đúng chiều VN-Index (' + phanTram(cx.dung, cx.so_phien) + ')</p>' +
+        '<p class="muted">Để so: ' + (cx.ty_le_phien_tang == null ? '–' : cx.ty_le_phien_tang + '%') + ' số phiên VN-Index tăng trong cùng thời gian. Cần vài chục phiên mới kết luận được; dưới ~60% thì coi như chưa có giá trị.</p>';
+    } else {
+      acc += '<p class="muted">Chưa có phiên nào đủ dữ liệu để đối chiếu. Mỗi phiên đóng cửa sẽ được chấm đúng/sai tự động.</p>';
+    }
+    $('nkAcc').innerHTML = acc;
+    $('nkGrid').innerHTML = k.nganh.map(function(g){
+      var c = k.chinh_xac.nganh[g.ten];
+      return '<button type="button" class="nk-cell" data-ng="' + esc(g.ten) + '" aria-pressed="' + (st.ng === g.ten) + '" style="background:' + mau(g.diem, g.n) + '" title="' +
+        esc(g.ten + ': ' + g.n + ' bài, ' + g.duong + ' tích cực, ' + g.am + ' tiêu cực. Mã: ' + g.ma.join(', ')) + '">' +
+        '<span class="nk-ten">' + esc(g.ten) + '</span><span class="nk-d">' + (g.n ? diem100(g.diem) : '–') + '</span>' +
+        '<span class="nk-n">' + g.n + ' bài' + (g.n && g.n < 3 ? ' · ít tin' : '') + (c ? ' · đúng ' + c.dung + '/' + c.so_phien : '') + '</span></button>';
+    }).join('');
+    function li(x){ return '<li><a href="' + esc(x.l) + '" target="_blank" rel="noopener nofollow">' + esc(x.t) + '</a> <small class="muted">' + esc(x.s) + ' · ' + diem100(x.d) + '</small></li>'; }
+    $('nkDuong').innerHTML = tt.top_duong.map(li).join('') || '<li class="muted">Không có</li>';
+    $('nkAm').innerHTML = tt.top_am.map(li).join('') || '<li class="muted">Không có</li>';
+    $('nkLsBody').innerHTML = k.lich_su.slice().reverse().slice(0, 30).map(function(p){
+      var d = p.thi_truong ? p.thi_truong.diem : null, r = p.thuc_te ? p.thuc_te.vnindex : null, kq;
+      if(!p.xong) kq = '<span class="muted">Đang gom tin</span>';
+      else if(d == null || Math.abs(d) < k.nguong || !r) kq = '<span class="muted">Trung tính, không tính</span>';
+      else kq = (d > 0) === (r > 0) ? '<span class="up">✓ Đúng chiều</span>' : '<span class="down">✗ Ngược chiều</span>';
+      return '<tr><td>' + new Date(p.phien + 'T00:00:00').toLocaleDateString('vi-VN', {weekday: 'short', day: '2-digit', month: '2-digit'}) + '</td><td class="num">' + (d == null ? '–' : diem100(d)) +
+        '</td><td class="num">' + (p.thi_truong ? p.thi_truong.n : 0) + '</td><td class="num ' + (r > 0 ? 'up' : r < 0 ? 'down' : '') + '">' + (r == null ? '–' : (r > 0 ? '+' : '') + r.toFixed(2) + '%') + '</td><td>' + kq + '</td></tr>';
+    }).join('');
+  }
+  $('nkGrid').addEventListener('click', function(e){
+    var b = e.target.closest('[data-ng]'); if(!b) return;
+    st.ng = st.ng === b.getAttribute('data-ng') ? '' : b.getAttribute('data-ng'); st.hien = MOI_TRANG;
+    veNhietKe(); if(duLieu){ veChuDe(); ve(); }
+    if(st.ng) $('tsChuDe').scrollIntoView({behavior: 'smooth', block: 'start'});
+  });
+
   $('tsChuDe').addEventListener('click', function(e){
+    if(e.target.closest('[data-bo-ng]')){ st.ng = ''; st.hien = MOI_TRANG; if(nhietKe) veNhietKe(); veChuDe(); ve(); return; }
     var b = e.target.closest('[data-cd]'); if(!b) return;
     st.cd = b.getAttribute('data-cd'); st.hien = MOI_TRANG; luuLoc(); veChuDe(); ve();
   });
@@ -122,6 +194,10 @@ image: /assets/img/og-etf.png
       .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
       .then(function(d){ duLieu = d; if(st.cd && !d.chu_de[st.cd]) st.cd = ''; veChuDe(); ve(); veNguon(); })
       .catch(function(){ $('tsMeta').textContent = 'Chưa tải được tin, thử tải lại trang sau ít phút.'; });
+    fetch(BASE + '/assets/data/nhiet_ke_tin.json?t=' + Math.floor(Date.now() / 300000), {cache: 'no-cache'})
+      .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(d){ nhietKe = d; veNhietKe(); })
+      .catch(function(){});
   }
   tai();
   setInterval(function(){ if(!document.hidden) tai(); }, 10 * 60 * 1000);   // trang để mở lâu thì tự lấy tin mới mỗi 10 phút
