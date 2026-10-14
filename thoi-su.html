@@ -34,7 +34,7 @@ image: /assets/img/og-etf.png
 
 <script>
 (function(){
-  var BASE = window.KCN_BASE || '';
+  var BASE = '{{ site.baseurl }}';   // KCN_BASE của layout khai báo SAU nội dung trang nên chưa có ở đây
   var MOI_TRANG = 40;
   var $ = function(id){ return document.getElementById(id); };
   var st = {pv: '', cd: '', tim: '', hien: MOI_TRANG};
