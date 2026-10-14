@@ -1,50 +1,70 @@
-# Gom tin thời sự kinh tế - chứng khoán (trang /thoi-su/) từ RSS báo Việt Nam và thế giới, khoảng 30 phút/lần, cả ngày.
-# Lịch "schedule" của GitHub có thể trễ hoặc bỏ lượt; muốn đều hơn thì cho cron-job.org gọi workflow_dispatch như HUONG_DAN.md.
-# Chạy tay: tab Actions -> "Cập nhật tin thời sự" -> Run workflow.
+# Gom tin thời sự kinh tế - chứng khoán (trang /thoi-su/) từ RSS báo Việt Nam và thế giới, 30 phút/lần, cả ngày.
+# Lịch "schedule" của GitHub không tin được với repo này, nên workflow TỰ DUY TRÌ:
+#   mỗi lượt chạy vòng lặp ~5 giờ 20 phút (gom tin 30 phút/lần), hết vòng thì tự gọi lượt kế tiếp (workflow_dispatch bằng GITHUB_TOKEN).
+# Chuỗi được khởi động lại khi: đẩy code sửa file này hoặc scripts/thoi_su.py, lịch dự phòng bên dưới, hoặc chạy tay
+# (tab Actions -> "Cập nhật tin thời sự" -> Run workflow). Nhóm concurrency riêng nên lúc nào cũng chỉ có 1 chuỗi.
 name: Cập nhật tin thời sự
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/cap-nhat-thoi-su.yml
+      - scripts/thoi_su.py
   schedule:
-    - cron: "7,37 * * * *"
+    - cron: "17 */6 * * *"   # dự phòng: nếu chuỗi bị đứt thì lịch này (khi GitHub chịu chạy) nối lại
   workflow_dispatch:
 
 permissions:
   contents: write
+  actions: write   # để tự gọi lượt kế tiếp
 
 concurrency:
-  group: cap-nhat-du-lieu   # dùng chung nhóm với các workflow dữ liệu khác để không đẩy đè nhau
+  group: thoi-su
   cancel-in-progress: false
 
 jobs:
   cap-nhat:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 345
+    env:
+      CHU_KY_GIAY: 1800        # 30 phút gom tin một lần
+      THOI_LUONG_GIAY: 19200   # mỗi lượt chạy 5 giờ 20 phút rồi nhường cho lượt mới (giới hạn job của GitHub là 6 giờ)
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: pip
-          cache-dependency-path: scripts/requirements.txt
 
       - name: Cài thư viện
         run: pip install requests
 
-      - name: Gom tin
-        run: python scripts/thoi_su.py
-
-      - name: Lưu thay đổi
+      - name: Gom tin 30 phút/lần
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/data/thoi_su.json
-          if git diff --cached --quiet; then
-            echo "Không có tin mới."
-          else
-            git commit -m "Cập nhật tin thời sự $(TZ=Asia/Ho_Chi_Minh date +%H:%M\ %d/%m/%Y)"
-            for i in 1 2 3; do
-              git pull --rebase -X theirs && git push && break
-              echo "Đẩy lên chưa được, thử lại lần $i"; sleep 5
-            done
-          fi
+          het=$((SECONDS + THOI_LUONG_GIAY))
+          while true; do
+            # luôn lấy bản mới nhất (các workflow dữ liệu khác cũng đẩy vào main) rồi mới gom tin
+            git fetch -q origin main && git reset -q --hard origin/main
+            if python scripts/thoi_su.py; then
+              cp assets/data/thoi_su.json /tmp/thoi_su.json
+              for i in 1 2 3; do
+                git add assets/data/thoi_su.json
+                if git diff --cached --quiet; then echo "Không có tin mới."; break; fi
+                git commit -q -m "Cập nhật tin thời sự $(TZ=Asia/Ho_Chi_Minh date +%H:%M\ %d/%m/%Y)"
+                git push -q origin HEAD:main && break
+                echo "Đẩy lên chưa được, thử lại lần $i"; sleep 5
+                git fetch -q origin main && git reset -q --hard origin/main && cp /tmp/thoi_su.json assets/data/thoi_su.json
+              done
+            fi
+            [ $((SECONDS + CHU_KY_GIAY)) -ge $het ] && break
+            sleep $CHU_KY_GIAY
+          done
+
+      - name: Gọi lượt kế tiếp
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run cap-nhat-thoi-su.yml --repo "$GITHUB_REPOSITORY" --ref main
