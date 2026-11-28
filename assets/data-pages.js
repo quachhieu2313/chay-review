@@ -141,6 +141,7 @@
       });
       var all = [];
       lines.forEach(function(l){ l.v.forEach(function(v){ if(v !== null) all.push(v); }); });
+      if(typeof opts.refLine === 'number') all.push(opts.refLine); // luôn thấy đường mốc (vd 0%)
       var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
       var pad = (mx - mn) * 0.08 || 1; mn -= pad; mx += pad;
       if(opts.minZero && mn < 0) mn = 0;
@@ -154,6 +155,9 @@
       }
       if(normalize){
         html += '<line x1="0" x2="' + PW + '" y1="' + Y(100).toFixed(1) + '" y2="' + Y(100).toFixed(1) + '" stroke="var(--muted)" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" opacity=".6"/>';
+      }
+      if(typeof opts.refLine === 'number'){
+        html += '<line x1="0" x2="' + PW + '" y1="' + Y(opts.refLine).toFixed(1) + '" y2="' + Y(opts.refLine).toFixed(1) + '" stroke="var(--muted)" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" opacity=".8"/>';
       }
       lines.slice().reverse().forEach(function(l, idx){
         var d = '', pen = false;
@@ -2061,8 +2065,182 @@
         returnsTable($('#dReturns'), rows);
         dca(h);
         danhMucQuy(q);
+        diemMua(q, lucCapNhat);
       });
     }).catch(function(){ fail(etfDetail); });
+  }
+
+  // ---- Điểm mua: NAV, iNAV và chênh lệch giá/NAV do Dragon Capital công bố (dữ liệu từ scripts/etf_nav.py)
+  // Chỉ có cho quỹ có file etf_nav/<MÃ>.json; quỹ khác thì khung này giữ ẩn.
+  var INAV_API = 'https://api.dragoncapital.com.vn/iindex/getLatestIIndex.php?index=';
+  function giaDatMua(x){ return Math.floor(x / 10) * 10; } // bước giá chứng chỉ quỹ ETF trên HOSE là 10 đồng
+  function dangPhienVN(){
+    var n = bayGioVN(), thu = n.getDay(), phut = n.getHours() * 60 + n.getMinutes();
+    return thu !== 0 && thu !== 6 && phut >= 9 * 60 && phut <= 15 * 60 + 5;
+  }
+  function mucChenh(cl){
+    if(cl <= 0) return {k:'tot', ten:'Thấp hơn NAV'};
+    if(cl <= 0.3) return {k:'duoc', ten:'Sát NAV'};
+    if(cl <= 1) return {k:'cao', ten:'Cao hơn NAV'};
+    return {k:'dat', ten:'Cao hơn NAV nhiều'};
+  }
+  // vùng này có thật sự tốt hơn mua bất kỳ lúc nào không (theo lịch sử của chính quỹ)
+  function vungTotHon(z, nen){
+    if(!z || (z.so_phien_do || 0) < 40 || (z.so_dot || 0) < 2) return null; // chưa đủ dữ liệu
+    return z.f12m >= nen.f12m + 5 && z.f12m_duong >= nen.f12m_duong + 10;
+  }
+  function diemMua(q, lucGia){
+    var box = $('#dBuy');
+    if(!box) return;
+    load('etf_nav/' + q.ma + '.json').then(function(n){
+      var tk = n.thong_ke, p = n.phien, nen = tk.nen;
+      var zNay = tk.vung.filter(function(z){ return z.ma === p.vung; })[0];
+      box.hidden = false;
+      $('#dBuyTitle').textContent = 'Hôm nay mua ' + q.ma + ' có hợp lý không?';
+      $('#dBuyNguon').href = n.nguon;
+
+      // thêm vài dòng vào bảng thông tin nhanh
+      var f = $('#dFacts');
+      var them = [['NAV/ccq phiên ' + ngayVN(p.ngay).slice(0, 5), fmt(p.nav, 2) + ' đ']];
+      if(n.nav_moi && n.nav_moi.tong) them.push(['Tổng tài sản ròng của quỹ', tien(n.nav_moi.tong)]);
+      if(n.bam_duoi || n.chi_phi){
+        them.push(['Sai số bám đuổi · chi phí', (n.bam_duoi ? fmt(n.bam_duoi.sai_so, 2) + '%' : '–') + ' · ' + (n.chi_phi ? fmt(n.chi_phi.ty_le, 2) + '%/năm' : '–')]);
+      }
+      f.insertAdjacentHTML('beforeend', them.map(function(x){ return '<div><dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd></div>'; }).join(''));
+
+      var live = null;
+      function ve(){
+        // chọn mốc so sánh: NAV chính thức nếu đã có cho phiên của giá; nếu chưa thì iNAV trong phiên
+        var ref, refTen, cl, giaTT = q.gia, ngayGia = q.ngay;
+        if(p.ngay >= ngayGia){
+          ref = p.nav; cl = p.ngay === ngayGia ? (giaTT / ref - 1) * 100 : p.cl;
+          refTen = 'NAV chính thức phiên ' + ngayVN(p.ngay);
+          if(p.ngay > ngayGia){ giaTT = p.gia; ngayGia = p.ngay; }
+        } else if(live && live.luc.slice(0, 10) === ngayGia){
+          ref = live.inav; cl = (giaTT / ref - 1) * 100;
+          refTen = 'iNAV lúc ' + live.luc.slice(11, 16) + ' ' + ngayVN(ngayGia).slice(0, 5);
+        } else {
+          ref = p.nav; cl = p.cl; giaTT = p.gia; ngayGia = p.ngay;
+          refTen = 'NAV chính thức phiên ' + ngayVN(p.ngay);
+        }
+        var m = mucChenh(cl), tran = giaDatMua(ref);
+        var trongPhien = lucGia && lucGia >= '09:00' && lucGia < '15:00'; // giờ cập nhật đêm không phải giờ khớp lệnh
+        $('#dBuySub').textContent = 'So giá ' + fmt(giaTT) + ' đ (' + (ngayGia === q.ngay && trongPhien ? 'lúc ' + lucGia + ' ' + ngayVN(ngayGia) : 'đóng cửa ' + ngayVN(ngayGia)) + ') với ' + refTen +
+          ' = ' + fmt(ref, 2) + ' đ. Dữ liệu NAV lấy lúc ' + n.lay_luc.slice(11) + ' ' + ngayVN(n.lay_luc.slice(0, 10)) + (live ? '; iNAV tự làm mới mỗi phút trong giờ giao dịch.' : '.');
+
+        // ---- kết luận
+        var dong1 = {
+          tot: 'Điểm mua tốt: giá trên sàn đang thấp hơn giá trị thật của rổ cổ phiếu ' + fmt(Math.abs(cl), 2) + '%.',
+          duoc: 'Mua được: giá trên sàn sát NAV (chênh ' + pct(cl) + ').',
+          cao: 'Nên đặt giá thấp hơn: giá trên sàn đang cao hơn NAV ' + fmt(cl, 2) + '%.',
+          dat: 'Nên chờ: giá trên sàn đang cao hơn NAV ' + fmt(cl, 2) + '%. Mức chênh này thường bị kéo về gần 0 trong vài phiên.'
+        }[m.k];
+        var dong2 = m.k === 'tot'
+          ? 'Có thể mua ngay ở giá thị trường. Giá đặt mua tối đa nên là <b>' + fmt(tran) + ' đ</b> (không cao hơn ' + (refTen.indexOf('iNAV') === 0 ? 'iNAV' : 'NAV') + ').'
+          : 'Giá đặt mua gợi ý: <b>tối đa ' + fmt(tran) + ' đ</b>, tức không cao hơn ' + (refTen.indexOf('iNAV') === 0 ? 'iNAV hiện tại' : 'NAV phiên gần nhất') + '. Lệnh chưa khớp thì để đến phiên sau hoặc sửa theo iNAV mới.';
+        var tot = vungTotHon(zNay, nen), dong3;
+        if(!zNay){ dong3 = ''; }
+        else if(tot === null){
+          dong3 = 'Thị trường đang ở vùng <b>' + esc(zNay.ten.toLowerCase()) + '</b> (cách đỉnh 52 tuần ' + pct(p.dd52, 1) + '). Quỹ này chưa có đủ lịch sử ở vùng này để kết luận, cứ mua đều theo kế hoạch.';
+        } else if(tot){
+          dong3 = 'Thị trường đang ở vùng <b>' + esc(zNay.ten.toLowerCase()) + '</b> (cách đỉnh 52 tuần ' + pct(p.dd52, 1) + '). Lịch sử quỹ này: mua ở vùng này, 12 tháng sau trung bình <b>' + pct(zNay.f12m, 1) +
+            '</b>, ' + fmt(zNay.f12m_duong) + '% số lần có lãi (mua bất kỳ lúc nào: ' + pct(nen.f12m, 1) + ', ' + fmt(nen.f12m_duong) + '%). <b>Nếu có tiền dư, đây là lúc đáng mua thêm ngoài kế hoạch.</b>';
+        } else {
+          dong3 = 'Thị trường đang ở vùng <b>' + esc(zNay.ten.toLowerCase()) + '</b> (cách đỉnh 52 tuần ' + pct(p.dd52, 1) + '). Lịch sử quỹ này không cho thấy mua ở vùng này tốt hơn hẳn mua bất kỳ lúc nào (12 tháng sau trung bình ' +
+            pct(zNay.f12m, 1) + ' so với ' + pct(nen.f12m, 1) + '), nên cứ mua đều theo kế hoạch.';
+        }
+        var canh = '';
+        var tc = (n.tai_co_cau || [])[0];
+        if(tc){
+          var cach = (new Date(ngayGia) - new Date(tc.ngay)) / 864e5;
+          if(cach <= 5) canh = '<p class="buy-warn">Lưu ý: ' + esc(tc.ghi_chu) + ' Trong thời gian này không hoán đổi được nên chênh lệch giá/NAV có thể lớn hơn bình thường.</p>';
+        }
+        var v = $('#dBuyVerdict');
+        v.className = 'buy-verdict buy-' + m.k;
+        v.innerHTML = '<b class="buy-h">' + dong1 + '</b><p>' + dong2 + '</p>' + (dong3 ? '<p>' + dong3 + '</p>' : '') + canh;
+
+        // ---- thẻ 1: giá so với NAV
+        var c1 = tk.cl_1n;
+        var luong = '';
+        if(n.ccq && n.ccq.v.length > 21){
+          var vv = n.ccq.v, dccq = vv[vv.length - 1] - vv[vv.length - 21];
+          luong = '<li>Chứng chỉ quỹ lưu hành 20 phiên: <b class="' + cls(dccq) + '">' + (dccq > 0 ? '+' : dccq < 0 ? '−' : '') + fmt(Math.abs(dccq) / 1e6, 1) + ' triệu ccq</b> (≈ ' + (dccq >= 0 ? 'tiền vào quỹ ' : 'tiền rút ra ') + tien(Math.abs(dccq) * p.nav) + ')</li>';
+        }
+        $('#dBuyPrem').innerHTML = '<h3>Giá so với NAV</h3><p class="buy-big ' + cls(-cl) + '">' + pct(cl) + '</p><p class="buy-tag buy-' + m.k + '">' + m.ten + '</p><ul>' +
+          '<li>Giá trên sàn: <b>' + fmt(giaTT) + ' đ</b></li>' +
+          '<li>' + esc(refTen.indexOf('iNAV') === 0 ? 'iNAV' : 'NAV/ccq') + ': <b>' + fmt(ref, 2) + ' đ</b></li>' +
+          '<li>12 tháng qua: trung vị ' + pct(c1.p50) + '; 10% số phiên thấp hơn ' + pct(c1.p10) + '; ' + fmt(c1.ty_le_duoi_nav) + '% số phiên giá ≤ NAV</li>' + luong + '</ul>';
+
+        // ---- thẻ 2: vùng thị trường
+        $('#dBuyZone').innerHTML = '<h3>Vùng thị trường (theo NAV)</h3><p class="buy-big">' + esc(zNay ? zNay.ten : '–') + '</p><ul>' +
+          '<li>Cách đỉnh 52 tuần: <b class="' + cls(p.dd52) + '">' + pct(p.dd52, 1) + '</b> (đỉnh ' + fmt(p.dinh_52t) + ' đ)</li>' +
+          '<li>So với trung bình 200 phiên: <b class="' + cls(p.ma200) + '">' + pct(p.ma200, 1) + '</b> (TB ' + fmt(p.tb_200) + ' đ)</li>' +
+          (zNay && zNay.so_phien_do ? '<li>Lịch sử vùng này: 12 tháng sau TB <b>' + pct(zNay.f12m, 1) + '</b>, ' + fmt(zNay.f12m_duong) + '% số lần có lãi (' + zNay.so_dot + ' đợt)</li>' : '') +
+          '<li>Mọi lúc: 12 tháng sau TB ' + pct(nen.f12m, 1) + ', ' + fmt(nen.f12m_duong) + '% có lãi</li></ul>';
+      }
+
+      // ---- thẻ 3: định giá danh mục (Dragon Capital công bố hằng tháng)
+      var dg = n.dinh_gia;
+      if(dg && dg.pe){
+        var ls = n.dinh_gia_ls || [], lsTxt;
+        if(ls.length >= 6){
+          var pes = ls.map(function(x){ return x.pe; }).filter(function(x){ return x; });
+          var thap = pes.filter(function(x){ return x < dg.pe; }).length;
+          lsTxt = '<li>P/E hiện tại cao hơn ' + fmt(thap / pes.length * 100) + '% số tháng đã lưu (' + pes.length + ' tháng, thấp nhất ' + fmt(Math.min.apply(null, pes), 2) + ', cao nhất ' + fmt(Math.max.apply(null, pes), 2) + ')</li>';
+        } else {
+          lsTxt = '<li class="muted-text">Dragon Capital chỉ đưa P/E tháng mới nhất; trang bắt đầu lưu từ ' + ngayVN(ls.length ? ls[0].ngay : dg.ngay).slice(3) + ' để sau này so với lịch sử.</li>';
+        }
+        $('#dBuyVal').innerHTML = '<h3>Định giá danh mục quỹ (' + ngayVN(dg.ngay) + ')</h3><p class="buy-big">P/E ' + fmt(dg.pe, 2) + '</p><ul>' +
+          '<li>VN-Index: P/E ' + fmt(dg.pe_vni, 2) + (dg.pe_vni ? ' → quỹ ' + (dg.pe < dg.pe_vni ? 'rẻ hơn ' : 'đắt hơn ') + fmt(Math.abs(dg.pe / dg.pe_vni - 1) * 100, 0) + '%' : '') + '</li>' +
+          '<li>P/B ' + fmt(dg.pb, 2) + ' (VN-Index ' + fmt(dg.pb_vni, 2) + ') · ROE ' + fmt(dg.roe, 1) + '% (VN-Index ' + fmt(dg.roe_vni, 1) + '%)</li>' +
+          '<li>Tỷ suất cổ tức ' + fmt(dg.co_tuc, 2) + '% · lợi suất lợi nhuận (1 ÷ P/E) ' + fmt(100 / dg.pe, 1) + '%</li>' + lsTxt + '</ul>';
+      } else {
+        $('#dBuyVal').hidden = true;
+      }
+
+      ve();
+      function docInav(){
+        fetch(INAV_API + encodeURIComponent(q.ma), {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(j){
+          var x = j && j[q.ma];
+          if(x && Number(x.value) > 0) live = {inav:Number(x.value), luc:String(x.trade_date || '')};
+          ve();
+        }).catch(function(){});
+      }
+      docInav();
+      setInterval(function(){ if(!document.hidden && dangPhienVN()) docInav(); }, 60000);
+
+      // ---- biểu đồ chênh lệch 12 tháng
+      var ch = LineChart($('#dBuyChart'), {label:'Chênh lệch giá trên sàn so với NAV, %', yFmt:function(v){ return pct(v, 1); }, refLine:0, noChange:true});
+      ch.render([{name:'Chênh lệch giá/NAV (%)', color:css('--s2'), d:n.d, c:n.cl}], 12, false);
+      $('#dBuyChartNote').textContent = 'Đường đứt nét là 0%: phía trên là giá trên sàn cao hơn NAV (mua đắt), phía dưới là thấp hơn NAV (mua rẻ). Trung bình 12 tháng ' + pct(tk.cl_1n.tb) + '.';
+
+      // ---- bảng kiểm chứng
+      $('#dBuyClTbl').innerHTML = '<table class="data-table"><thead><tr><th scope="col">Chênh lệch lúc mua</th><th scope="col" class="num">Số phiên</th><th scope="col" class="num">Chênh TB</th>' +
+        '<th scope="col" class="num">5 phiên sau còn</th><th scope="col" class="num">Lãi 1 tháng sau</th><th scope="col" class="num">Lãi 3 tháng sau</th></tr></thead><tbody>' +
+        tk.chenh_lech.map(function(x){
+          return '<tr><td>' + esc(x.ten) + '</td><td class="num">' + fmt(x.so_phien) + '</td><td class="num">' + pct(x.cl_tb) + '</td><td class="num">' + pct(x.cl_5) + '</td>' +
+            '<td class="num ' + cls(x.f1m) + '">' + pct(x.f1m) + '</td><td class="num ' + cls(x.f3m) + '">' + pct(x.f3m, 1) + '</td></tr>';
+        }).join('') + '</tbody></table><p class="table-note">Lãi tính theo giá trên sàn, ' + fmt(tk.so_phien) + ' phiên từ ' + ngayVN(tk.tu_ngay) + '. Mọi lúc: lãi 1 tháng sau trung bình ' + pct(nen.f1m) + '.</p>';
+      $('#dBuyZoneTbl').innerHTML = '<table class="data-table"><thead><tr><th scope="col">Vùng lúc mua</th><th scope="col" class="num">Số phiên (đợt)</th><th scope="col" class="num">3 tháng sau</th>' +
+        '<th scope="col" class="num">6 tháng sau</th><th scope="col" class="num">12 tháng sau</th><th scope="col" class="num">% lần lãi sau 12 tháng</th><th scope="col" class="num">10% xấu nhất</th></tr></thead><tbody>' +
+        tk.vung.concat([{ten:'Mọi lúc', so_phien:nen.so_phien, f3m:nen.f3m, f6m:nen.f6m, f12m:nen.f12m, f12m_duong:nen.f12m_duong, f12m_xau:nen.f12m_xau, nen:1}]).map(function(z){
+          return '<tr' + (z.ma === p.vung ? ' class="buy-now"' : z.nen ? ' class="muted-row"' : '') + '><td>' + esc(z.ten) + (z.ma === p.vung ? ' <span class="val-flag">hiện tại</span>' : '') + '</td>' +
+            '<td class="num">' + fmt(z.so_phien) + (z.so_dot ? ' (' + z.so_dot + ')' : '') + '</td><td class="num ' + cls(z.f3m) + '">' + pct(z.f3m, 1) + '</td><td class="num ' + cls(z.f6m) + '">' + pct(z.f6m, 1) + '</td>' +
+            '<td class="num ' + cls(z.f12m) + '">' + pct(z.f12m, 1) + '</td><td class="num">' + (z.f12m_duong === undefined || z.f12m_duong === null ? '–' : fmt(z.f12m_duong) + '%') + '</td>' +
+            '<td class="num ' + cls(z.f12m_xau) + '">' + pct(z.f12m_xau, 1) + '</td></tr>';
+        }).join('') + '</tbody></table><p class="table-note">Vùng có ít đợt (dưới 2) hoặc ít phiên đã đủ 12 tháng thì chưa đủ để kết luận.</p>';
+      var bt = tk.backtest;
+      $('#dBuyBt').innerHTML = '<table class="data-table"><thead><tr><th scope="col">Bắt đầu từ</th><th scope="col" class="num">Tổng góp</th><th scope="col" class="num">Giá vốn: mua đầu tháng</th>' +
+        '<th scope="col" class="num">Giá vốn: chờ ≤ NAV</th><th scope="col" class="num">Rẻ hơn</th><th scope="col" class="num">Lãi: đầu tháng</th><th scope="col" class="num">Lãi: chờ ≤ NAV</th></tr></thead><tbody>' +
+        bt.map(function(x){
+          return '<tr><td>' + x.tu_nam + '</td><td class="num">' + tien(x.gop) + '</td><td class="num">' + fmt(x.gia_von_thuong) + '</td><td class="num">' + fmt(x.gia_von_cho) + '</td>' +
+            '<td class="num ' + cls(x.re_hon) + '">' + pct(x.re_hon) + '</td><td class="num ' + cls(x.lai_thuong) + '">' + pct(x.lai_thuong, 1) + '</td><td class="num ' + cls(x.lai_cho) + '">' + pct(x.lai_cho, 1) + '</td></tr>';
+        }).join('') + '</tbody></table>';
+      var re = bt.map(function(x){ return x.re_hon; });
+      $('#dBuyKetLuan').textContent = 'Kết luận: chờ giá ≤ NAV giúp giá vốn rẻ hơn ' + fmt(Math.min.apply(null, re), 2) + '% đến ' + fmt(Math.max.apply(null, re), 2) +
+        '% tuỳ năm bắt đầu. Lợi ích nhỏ nhưng gần như không tốn gì, chỉ cần đặt lệnh giới hạn thay vì mua giá thị trường. ' +
+        'Ngược lại, giữ lại tiền mua định kỳ để chờ vùng giảm sâu không thắng được mua đều khi kiểm chứng trên E1VFVN30 từ 2015, nên vùng giảm sâu chỉ nên dùng cho tiền dư ngoài kế hoạch.';
+    }).catch(function(){});
   }
 
   // danh sách mã trong rổ chỉ số mà quỹ bám theo (ước tính, xem cảnh báo trên trang)

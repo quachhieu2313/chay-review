@@ -25,6 +25,49 @@ image: /assets/img/og-etf.png
 
   <dl class="facts" id="dFacts"></dl>
 
+  <section class="card panel" id="dBuy" hidden>
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Điểm mua</p>
+        <h2 id="dBuyTitle">Hôm nay mua có hợp lý không?</h2>
+        <p class="panel-sub" id="dBuySub"></p>
+      </div>
+    </div>
+    <div class="buy-verdict" id="dBuyVerdict" aria-live="polite"></div>
+    <div class="buy-grid">
+      <div class="buy-card" id="dBuyPrem"></div>
+      <div class="buy-card" id="dBuyZone"></div>
+      <div class="buy-card" id="dBuyVal"></div>
+    </div>
+    <h3 class="val-h3">Giá trên sàn cao hay thấp hơn NAV, 12 tháng qua</h3>
+    <div id="dBuyChart"></div>
+    <p class="table-note" id="dBuyChartNote"></p>
+    <details class="dp-more" id="dBuyHow">
+      <summary>Cách tính và kiểm chứng trên dữ liệu lịch sử</summary>
+      <div class="buy-how">
+        <p><b>1. Chênh lệch giá/NAV.</b> Dragon Capital công bố mỗi phiên giá đóng cửa và mức chênh của giá so với NAV/ccq. Từ đó:</p>
+        <ul>
+          <li><b>NAV/ccq</b> = giá đóng cửa − mức chênh công bố. NAV là giá trị thật của rổ cổ phiếu và tiền mặt quỹ đang giữ, chia cho số chứng chỉ quỹ.</li>
+          <li><b>Chênh lệch %</b> = (giá trên sàn ÷ NAV − 1) × 100. Số dương nghĩa là bạn đang trả cao hơn giá trị thật.</li>
+          <li><b>iNAV</b> là NAV ước tính trong phiên, Dragon Capital tính liên tục theo giá 30 cổ phiếu, trang này đọc trực tiếp từ API của họ mỗi phút.</li>
+          <li>Chênh lệch luôn bị kéo về gần 0 vì các thành viên lập quỹ được đổi rổ cổ phiếu lấy chứng chỉ quỹ và ngược lại, nên mua lúc giá thấp hơn NAV là được "giảm giá" ngay.</li>
+        </ul>
+        <div class="table-scroll" id="dBuyClTbl"></div>
+        <p><b>2. Vùng thị trường</b> (tính trên NAV, không bị nhiễu bởi chênh lệch):</p>
+        <ul>
+          <li><b>% cách đỉnh 52 tuần</b> = NAV hôm nay ÷ NAV cao nhất 252 phiên gần nhất − 1.</li>
+          <li><b>% cách trung bình 200 phiên</b> = NAV hôm nay ÷ trung bình NAV 200 phiên − 1.</li>
+          <li>Giảm sâu: cách đỉnh từ −30% trở xuống hoặc dưới trung bình 200 phiên từ 15% trở lên. Điều chỉnh mạnh: cách đỉnh −20% đến −30%. Điều chỉnh: −10% đến −20%. Còn lại là gần đỉnh.</li>
+        </ul>
+        <div class="table-scroll" id="dBuyZoneTbl"></div>
+        <p><b>3. Mô phỏng mua định kỳ.</b> Mỗi tháng mua 1 triệu đồng. Cách thường: mua phiên đầu tháng. Cách chờ NAV: từ đầu tháng, mua ở phiên đầu tiên có giá đóng cửa ≤ NAV; quá 10 phiên chưa có thì mua phiên thứ 10. Không tính phí, thuế, cổ tức.</p>
+        <div class="table-scroll" id="dBuyBt"></div>
+        <p class="muted-text" id="dBuyKetLuan"></p>
+      </div>
+    </details>
+    <p class="table-note">Số liệu lấy từ trang sản phẩm của Dragon Capital (<a id="dBuyNguon" href="#" target="_blank" rel="noopener">xem nguồn</a>). Lợi nhuận quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải khuyến nghị đầu tư.</p>
+  </section>
+
   <section class="card panel">
     <div class="panel-head">
       <div>
@@ -113,6 +156,6 @@ image: /assets/img/og-etf.png
 
   <section class="note-card">
     <h2>Danh mục chính thức và NAV</h2>
-    <p>Danh mục nắm giữ chính thức, NAV và bản cáo bạch được công ty quản lý quỹ công bố trên website của họ và trên trang của Sở Giao dịch Chứng khoán TP.HCM (HOSE). Trang này chỉ dùng giá giao dịch trên sàn để phân tích.</p>
+    <p>Danh mục nắm giữ chính thức, NAV và bản cáo bạch được công ty quản lý quỹ công bố trên website của họ và trên trang của Sở Giao dịch Chứng khoán TP.HCM (HOSE). Hiệu suất và mô phỏng ở trang này dùng giá giao dịch trên sàn; riêng các quỹ của Dragon Capital (E1VFVN30, FUEVFVND, FUEDCMID), phần Điểm mua dùng NAV và iNAV do Dragon Capital công bố.</p>
   </section>
 </div>
