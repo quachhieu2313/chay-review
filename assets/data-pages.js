@@ -394,7 +394,8 @@
           var v = s.v[i];
           if(v !== null && v !== undefined){
             var y = Y(Math.max(v, 0)), h = Math.max(1, Math.abs(Y(v) - Y(0)));
-            o += '<rect x="' + (x0 + k * bw).toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (bw - 2).toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2" style="fill:' + s.color + '"><title>' + esc(s.name + ' ' + lb + ': ' + fmt(v, 1) + ' tỷ') + '</title></rect>';
+            // cột dự phóng (nhãn kết thúc bằng " F", tab Dự phóng BCTC) tô nhạt để phân biệt với số thực tế
+            o += '<rect x="' + (x0 + k * bw).toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (bw - 2).toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2" style="fill:' + s.color + (/ F$/.test(lb) ? ';opacity:.5' : '') + '"><title>' + esc(s.name + ' ' + lb + ': ' + fmt(v, 1) + ' tỷ') + '</title></rect>';
           }
         });
         o += '<text x="' + (pl + i * gw + gw / 2).toFixed(1) + '" y="' + (H - 9) + '" text-anchor="middle">' + esc(lb) + '</text>';
@@ -506,9 +507,12 @@
       });
     }
 
-    var TAB = {recPaneRank: 'recTabRank', recPaneFs: 'recTabFs', recPaneVal: 'recTabVal'};
+    var TAB = {recPaneRank: 'recTabRank', recPaneFs: 'recTabFs', recPaneVal: 'recTabVal', recPaneDp: 'recTabDp'};
     function chonTab(pane){
       Object.keys(TAB).forEach(function(p){ var on = p === pane; $('#' + p).hidden = !on; $('#' + TAB[p]).setAttribute('aria-selected', on ? 'true' : 'false'); });
+      // điện thoại: dải tab cuộn ngang, kéo tab đang chọn vào tầm nhìn (chỉ cuộn ngang trong dải tab)
+      var tb = $('#' + TAB[pane]), bar = tb.parentNode;
+      if(bar.scrollWidth > bar.clientWidth) bar.scrollLeft = Math.max(0, tb.offsetLeft - (bar.clientWidth - tb.offsetWidth) / 2);
     }
     function fsMo(ma){
       chonTab('recPaneFs');
@@ -536,10 +540,10 @@
     $('#recTabRank').parentNode.addEventListener('keydown', function(e){
       if(e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
       e.preventDefault();
-      var thu = ['recTabRank', 'recTabFs', 'recTabVal'], i = thu.indexOf(document.activeElement.id);
+      var thu = ['recTabRank', 'recTabFs', 'recTabVal', 'recTabDp'], i = thu.indexOf(document.activeElement.id);
       if(i < 0) return;
-      var j2 = Math.max(0, Math.min(2, i + (e.key === 'ArrowRight' ? 1 : -1)));
-      [fsDong, function(){ fsMo(); }, valMo][j2](); $('#' + thu[j2]).focus();
+      var j2 = Math.max(0, Math.min(3, i + (e.key === 'ArrowRight' ? 1 : -1)));
+      [fsDong, function(){ fsMo(); }, valMo, function(){ dpMo(); }][j2](); $('#' + thu[j2]).focus();
     });
     $('#fsGo').addEventListener('click', function(){ fsXem($('#fsMa').value); });
     $('#fsMa').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); fsXem(this.value); } });
@@ -583,7 +587,7 @@
       });
       $('#cpMa').addEventListener('change', function(){ if(cp.ve) cp.ve(); });
       $('#cpVol').addEventListener('change', function(){ if(cp.ve) cp.ve(); });
-      $('#cpLinks').addEventListener('click', function(e){ if(e.target.closest('a[data-bctc]')) cpDong(); });
+      $('#cpLinks').addEventListener('click', function(e){ if(e.target.closest('a[data-bctc], a[data-duphong]')) cpDong(); });
       document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !m.hidden) cpDong(); });
       return m;
     }
@@ -614,6 +618,7 @@
         $('#cpStats').innerHTML = st;
         var thi = $('[data-market-url]');
         $('#cpLinks').innerHTML = '<a href="#bctc=' + esc(ma) + '" data-bctc="' + esc(ma) + '">Báo cáo tài chính →</a>' +
+          '<a href="#du-phong=' + esc(ma) + '" data-duphong="' + esc(ma) + '">Dự phóng BCTC →</a>' +
           (thi ? '<a href="' + esc(thi.getAttribute('data-market-url')) + '#ma=' + encodeURIComponent(ma) + '">Phân tích kỹ thuật đầy đủ →</a>' : '');
         cp.n = n;
         cp.ve = function(){
@@ -720,16 +725,223 @@
         '<p class="table-note">“Có tác dụng” = IC dương ở cả hai nửa giai đoạn và t từ 2,7 trở lên (ngưỡng đã nâng lên vì thử 8 yếu tố cùng lúc nên dễ có kết quả đẹp do may rủi); “Có dấu hiệu” = t từ 2 đến dưới 2,7. ' +
         'Mô hình giữ hai yếu tố định giá vì E/P đạt mức cao nhất, còn B/P là yếu tố định giá kinh điển có cơ sở lý luận từ trước. Tăng tốc lợi nhuận có dấu hiệu nhưng IC nhỏ nên chưa đưa vào điểm. Tăng trưởng lợi nhuận, doanh thu, ROE và dòng tiền chưa chứng minh được tác dụng.</p>';
     }
-    // liên kết trực tiếp: …/co-phieu-khuyen-nghi/#bctc=FPT mở thẳng tab báo cáo tài chính
-    var hm = /^#bctc(?:=([A-Za-z0-9]{1,12}))?$/.exec(location.hash);
+    // ---- tab Dự phóng BCTC: assets/data/du_phong/<MÃ>.json do scripts/du_phong.py chạy mô hình ACBS Quick Model L1
+    var dp = {ky: 'nam', bc: 'IS', ma: null, data: null, ds: [], daMo: false, sap: 'ln1', nguoc: true};
+    var DP_CO = {funding_gap: 'thiếu vốn trong kỳ dự phóng', not_balanced: 'bảng cân đối dự phóng lệch', negative_earnings: 'lợi nhuận sau thuế âm ở kỳ dự phóng'};
+    var DP_HO = {nonfinancial: 'Phi tài chính', bank: 'Ngân hàng'};
+    function dpTy(v){ return v === null || v === undefined ? '–' : fmt(v / 1e9, 0) + ' tỷ'; }
+    function dpG(a, b){ return a === null || a === undefined || b === null || b === undefined || !a || (a > 0) !== (b > 0) ? null : (b / a - 1) * 100; }
+    function dpSo(v, dv){
+      if(v === null || v === undefined) return '–';
+      return dv === '%' ? fmt(v, 2) : fmt(v, Math.abs(v) >= 100 ? 0 : 1);
+    }
+    function dpDatHash(ma){ try{ history.replaceState(null, '', location.pathname + location.search + '#du-phong' + (ma ? '=' + encodeURIComponent(ma) : '')); }catch(e){} }
+    function dpLine(d, ids){
+      var rows = d.nam.dong;
+      for(var i = 0; i < ids.length; i++){ for(var j = 0; j < rows.length; j++){ if(rows[j].id === ids[i]) return rows[j]; } }
+      return null;
+    }
+    function dpKpis(){
+      var d = dp.data, m = d.meta, cot = d.nam.cot, goc = m.origin_year + ' A', f = m.forecast_years.map(function(y){ return y + ' F'; });
+      var defs = d.family === 'bank'
+        ? [['Tổng thu nhập hoạt động', ['toi']], ['LNST cổ đông công ty mẹ', ['npat_parent']], ['Cho vay khách hàng', ['gross_loans']], ['Tiền gửi khách hàng', ['customer_deposits']]]
+        : [['Doanh thu thuần', ['net_revenue']], ['LNST cổ đông công ty mẹ', ['npat_parent']], ['Tổng tài sản', ['total_assets']], ['Vốn chủ công ty mẹ', ['equity_parent']]];
+      $('#dpKpis').innerHTML = defs.map(function(x){
+        var r = dpLine(d, x[1]);
+        if(!r) return '';
+        var v0 = r.v[cot.indexOf(goc)], v1 = r.v[cot.indexOf(f[0])], v2 = r.v[cot.indexOf(f[1])];
+        var g1 = dpG(v0, v1), g2 = dpG(v1, v2);
+        return '<article class="fs-kpi"><h3>' + esc(x[0]) + ' <span>· ' + esc(f[0]) + '</span></h3><p class="fs-kpi-v' + (v1 < 0 ? ' neg' : '') + '">' + fmt(v1, 0) + ' <small>tỷ</small></p>' +
+          '<p class="fs-kpi-s ' + cls(g1) + '">' + (g1 === null ? 'Chưa so được' : pct(g1, 1)) + ' <span class="muted-text">so ' + esc(m.origin_year) + ' (' + fmt(v0, 0) + ')</span></p>' +
+          '<p class="fs-kpi-s"><span class="muted-text">' + esc(f[1]) + ':</span> ' + fmt(v2, 0) + ' tỷ <span class="' + cls(g2) + '">' + (g2 === null ? '' : pct(g2, 1)) + '</span></p></article>';
+      }).join('');
+      var gt = d.giai_thich || {}, ds = [];
+      ['npat_parent', 'net_revenue', 'nii'].forEach(function(k){ Object.keys(gt[k] || {}).forEach(function(y){ if(gt[k][y]) ds.push(gt[k][y]); }); });
+      $('#dpGiai').innerHTML = ds.length ? '<h3 class="val-h3">Mô hình giải thích</h3><ul>' + ds.map(function(s){ return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '';
+    }
+    function dpBang(){
+      var d = dp.data, t = dp.bc === 'TL' ? d.ty_le[dp.ky] : d[dp.ky];
+      return {cot: t.cot, dong: dp.bc === 'TL' ? t.dong : t.dong.filter(function(r){ return r.bc === dp.bc; })};
+    }
+    function dpChart(){
+      var d = dp.data, t = d[dp.ky], dt = null, ln = null;
+      t.dong.forEach(function(r){ if(r.id === 'net_revenue' || r.id === 'toi') dt = dt || r; if(r.id === 'npat_parent') ln = r; });
+      var idx = []; t.cot.forEach(function(c, i){ if(!/^\d+T/.test(c)) idx.push(i); });   // bỏ cột lũy kế năm đang chạy (chưa đủ năm)
+      var series = [];
+      if(dt) series.push({name: dt.ten, color: css('--accent'), v: idx.map(function(i){ return dt.v[i]; })});
+      if(ln) series.push({name: 'LNST công ty mẹ', color: css('--good'), v: idx.map(function(i){ return ln.v[i]; })});
+      $('#dpChart').innerHTML = series.length ? fsBarSvg(idx.map(function(i){ return t.cot[i].replace('Q', ' Q'); }), series) : '';
+    }
+    function dpTable(){
+      var b = dpBang(), F = b.cot.map(function(c){ return / F$/.test(c); });
+      var h = '<table class="data-table fs-table dp-table"><thead><tr><th scope="col" class="fs-sticky">Chỉ tiêu</th>' +
+        b.cot.map(function(c, i){ return '<th scope="col" class="num' + (F[i] ? ' dp-f' : '') + '">' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>';
+      b.dong.forEach(function(r){
+        var tong = /^(gross_profit|operating_profit|pbt|npat|npat_parent|nii|toi|ppop|total_assets|total_resources|cfo|cfi|cff|net_cash_flow)$/.test(r.id);
+        h += '<tr class="' + (tong ? 'fs-l1' : 'fs-l2') + '"><th scope="row" class="fs-sticky">' + esc(r.ten) + (r.dv && r.dv !== 'tỷ đồng' && r.dv !== '%' ? ' <small class="muted-text">(' + esc(r.dv) + ')</small>' : '') + '</th>';
+        r.v.forEach(function(v, i){ h += '<td class="num' + (F[i] ? ' dp-f' : '') + (v < 0 ? ' neg' : '') + '">' + dpSo(v, r.dv) + '</td>'; });
+        h += '</tr>';
+      });
+      $('#dpTable').innerHTML = b.dong.length ? h + '</tbody></table>' : '<div class="empty-state">Không có dòng nào cho bảng này.</div>';
+      $('#dpNote').textContent = 'Đơn vị: tỷ đồng' + (dp.bc === 'TL' ? '; bảng tỷ lệ tính bằng % hoặc số ngày' : '') + '. Cột tô nền có chữ F là dự phóng; A là số thực tế' +
+        (dp.ky === 'nam' ? '; cột “…T” là lũy kế các quý đã công bố của năm đang chạy' : '') + '. Chạy lúc ' + (dp.data.chay_luc || '').replace('T', ' ') + ' · ' + dp.data.meta.model_version + '.';
+    }
+    function dpGiaDinh(){
+      var d = dp.data, ys = d.meta.forecast_years, gd = d.gia_dinh || [];
+      function gt(v, u){
+        if(v === null || v === undefined) return '–';
+        if(/^ratio/.test(u)) return fmt(v * 100, 2) + '%';
+        if(u === 'VND' || u === 'VND_per_year') return fmt(v / 1e9, 0) + ' tỷ';
+        return fmt(v, 1) + (u === 'days' ? ' ngày' : '');
+      }
+      $('#dpGd').innerHTML = gd.length ? '<table class="data-table dp-gd"><thead><tr><th scope="col">Giả định</th>' + ys.map(function(y){ return '<th scope="col" class="num">' + esc(y) + '</th>'; }).join('') + '<th scope="col">Cách tính</th></tr></thead><tbody>' +
+        gd.map(function(a){ return '<tr><td>' + esc(a.label) + (a.source === 'analyst' ? ' <span class="val-flag">đặt tay</span>' : '') + '</td>' + ys.map(function(y){ return '<td class="num">' + gt(a[y], a.unit) + '</td>'; }).join('') + '<td class="dp-note">' + esc(a.note || '') + '</td></tr>'; }).join('') + '</tbody></table>' : '<p class="muted-text">Không có.</p>';
+      var bt = d.bat_thuong || [];
+      $('#dpBt').innerHTML = bt.length ? '<ul>' + bt.map(function(o){ return '<li>' + esc(o.description || (o.line + ' ' + o.quarter)) + '</li>'; }).join('') + '</ul>' : '<p class="muted-text">Không có khoản nào.</p>';
+      $('#dpBtBox').querySelector('summary').textContent = 'Khoản bất thường đã tự loại khỏi lịch sử (' + bt.length + ')';
+    }
+    function dpCanhBao(){
+      var is = dp.data.issues || [], loi = is.filter(function(i){ return i.severity === 'error'; }), cb = is.filter(function(i){ return i.severity === 'warning'; });
+      var li = function(i){ return '<li><b>' + esc(i.severity === 'error' ? 'Lỗi' : 'Lưu ý') + '</b>' + (i.period ? ' · ' + esc(i.period) : '') + ': ' + esc(i.message || i.code) + '</li>'; };
+      $('#dpIs').innerHTML = is.length ? '<ul class="dp-issues">' + loi.concat(cb).map(li).join('') + '</ul>' : '<p class="muted-text">Không có cảnh báo.</p>';
+      $('#dpIsBox').querySelector('summary').textContent = 'Cảnh báo của mô hình (' + (loi.length ? loi.length + ' lỗi, ' : '') + cb.length + ' lưu ý)';
+    }
+    function dpTrangThai(){
+      var d = dp.data, st = d.status || {}, co = (st.flags || []).map(function(f){ return DP_CO[f] || f; });
+      var el = $('#dpStatus'), coSo = !!d.nam;
+      if(coSo){
+        el.innerHTML = '<div class="fs-kt-ok dp-st">✓ Mô hình đánh dấu đủ điều kiện công bố: bảng cân đối cân, đủ vốn, không có lỗi chặn.' + (co.length ? ' Lưu ý: ' + esc(co.join('; ')) + '.' : '') + '</div>';
+      }else if(st.usable){
+        var gap = st.funding_gap_max ? ' Thiếu vốn lớn nhất khoảng ' + dpTy(st.funding_gap_max) + (st.first_gap_period ? ', bắt đầu từ ' + esc(st.first_gap_period) : '') + '.' : '';
+        el.innerHTML = '<div class="fs-kt-warn" role="note"><b>Chưa công bố số dự phóng của mã này.</b> Mô hình chạy được nhưng đánh dấu chưa đủ điều kiện đưa ra ngoài' + (co.length ? ' vì ' + esc(co.join('; ')) : '') + '.' + gap +
+          ' Theo hướng dẫn của mô hình, trường hợp này cần chuyên viên phân tích xem lại nên trang không hiện số.</div>';
+      }else{
+        el.innerHTML = '<div class="fs-kt-warn" role="note"><b>Mô hình không chạy được cho mã này.</b> Xem mục “Cảnh báo của mô hình” bên dưới.</div>';
+      }
+      $('#dpMain').hidden = !coSo;
+      return coSo;
+    }
+    function dpVe(){
+      var d = dp.data, m = d.meta;
+      $('#dpTitle').textContent = d.ma + ' · ' + (d.ten || '');
+      $('#dpMeta').textContent = [d.nganh, DP_HO[d.family] || d.family, 'năm gốc ' + m.origin_year, 'quý công bố mới nhất ' + m.last_reported_quarter, 'dự phóng ' + m.forecast_years.join(', '), m.model_version].filter(Boolean).join(' · ');
+      $('#dpBody').hidden = false;
+      $$('#dpBc button[data-bc="CF"]').forEach(function(b){ b.hidden = d.family === 'bank'; });
+      if(d.family === 'bank' && dp.bc === 'CF') dpChonBc('IS');
+      if(dpTrangThai()){ dpKpis(); dpChart(); dpTable(); dpGiaDinh(); }
+      dpCanhBao();
+    }
+    function dpChonBc(bc){ dp.bc = bc; $$('#dpBc button').forEach(function(x){ x.setAttribute('aria-pressed', x.getAttribute('data-bc') === bc ? 'true' : 'false'); }); }
+    function dpXem(ma, giu){
+      ma = String(ma || '').trim().toUpperCase();
+      if(!ma) return;
+      if(dp.ds.length && !dp.ds.some(function(x){ return x.ma === ma; })){
+        $('#dpMeta').textContent = 'Chưa có dự phóng cho mã “' + ma + '”. Mô hình chỉ chạy cho doanh nghiệp phi tài chính (trừ bất động sản) và ngân hàng trong danh sách VN100.';
+        return;
+      }
+      $('#dpMeta').textContent = 'Đang tải dự phóng của ' + ma + '…';
+      load('du_phong/' + ma + '.json').then(function(d){
+        dp.ma = ma; dp.data = d; $('#dpMa').value = ma;
+        try{ localStorage.setItem('kcn_dp_ma', ma); }catch(e){}
+        if(!giu) dpDatHash(ma);
+        dpVe();
+      }).catch(function(){ $('#dpMeta').textContent = 'Chưa tải được dự phóng của ' + ma + '. Hãy thử lại sau.'; $('#dpBody').hidden = true; });
+    }
+    function dpTongQuan(){
+      var rows = dp.ds.map(function(x){
+        var t = x.tom_tat, ln = t ? t.ln : [null, null, null];
+        return {x: x, ln0: ln[0], ln1: ln[1], ln2: ln[2], g1: dpG(ln[0], ln[1]), g2: dpG(ln[1], ln[2]), ky: t ? t.ky : null};
+      });
+      var k = dp.sap, s = dp.nguoc ? -1 : 1;
+      rows.sort(function(a, b){
+        var va = k === 'ma' ? a.x.ma : a[k], vb = k === 'ma' ? b.x.ma : b[k];
+        if(va === null || va === undefined) return 1; if(vb === null || vb === undefined) return -1;
+        return (va > vb ? 1 : va < vb ? -1 : 0) * s;
+      });
+      var ky = (rows.filter(function(r){ return r.ky; })[0] || {}).ky || ['Năm gốc', 'F1', 'F2'];
+      var th = function(key, nhan){ return '<th scope="col" class="' + (key === 'ma' ? '' : 'num ') + 'dp-sort" data-k="' + key + '" aria-sort="' + (dp.sap === key ? (dp.nguoc ? 'descending' : 'ascending') : 'none') + '">' + nhan + (dp.sap === key ? (dp.nguoc ? ' ▼' : ' ▲') : '') + '</th>'; };
+      var h = '<table class="data-table rec-table"><thead><tr>' + th('ma', 'Mã / doanh nghiệp') + '<th scope="col">Trạng thái</th>' +
+        th('ln0', 'LNST ' + esc(ky[0])) + th('ln1', 'LNST ' + esc(ky[1])) + th('g1', 'Tăng trưởng') + th('ln2', 'LNST ' + esc(ky[2])) + th('g2', 'Tăng trưởng') + '</tr></thead><tbody>';
+      rows.forEach(function(r){
+        var x = r.x, co = (x.flags || []).map(function(f){ return DP_CO[f] || f; }).join('; ');
+        h += '<tr><td class="rec-company"><button type="button" class="rec-code" data-dpma="' + esc(x.ma) + '">' + esc(x.ma) + '</button><span>' + esc(x.ten || '') + '</span></td>' +
+          '<td>' + (x.publishable ? '<span class="up">Công bố</span>' : '<span class="muted-text" title="' + esc(co) + '">Chưa công bố</span>') + '</td>' +
+          '<td class="num">' + (r.ln0 === null || r.ln0 === undefined ? '–' : fmt(r.ln0, 0)) + '</td><td class="num">' + (r.ln1 === null || r.ln1 === undefined ? '–' : fmt(r.ln1, 0)) + '</td>' +
+          '<td class="num ' + cls(r.g1) + '">' + (r.g1 === null ? '–' : pct(r.g1, 1)) + '</td><td class="num">' + (r.ln2 === null || r.ln2 === undefined ? '–' : fmt(r.ln2, 0)) + '</td>' +
+          '<td class="num ' + cls(r.g2) + '">' + (r.g2 === null ? '–' : pct(r.g2, 1)) + '</td></tr>';
+      });
+      $('#dpAll').innerHTML = h + '</tbody></table>';
+      var cb = dp.ds.filter(function(x){ return x.publishable; }).length;
+      $('#dpAllMeta').textContent = dp.ds.length + ' mã đã chạy, ' + cb + ' mã đủ điều kiện công bố. LNST cổ đông công ty mẹ, tỷ đồng. Cập nhật ' + ngayVN(dp.ml.cap_nhat) + ' · ' + (dp.ml.phien_ban || '') + '.';
+    }
+    function dpMo(ma){
+      chonTab('recPaneDp');
+      if(!dp.daMo){
+        dp.daMo = true;
+        load('du_phong/muc_luc.json').then(function(m){
+          dp.ml = m; dp.ds = m.ds || [];
+          $('#dpList').innerHTML = dp.ds.map(function(x){ return '<option value="' + esc(x.ma) + '">' + esc((x.ten || '') + ' · ' + (x.nganh || '')) + '</option>'; }).join('');
+          dpTongQuan();
+          var luu = ''; try{ luu = localStorage.getItem('kcn_dp_ma') || ''; }catch(e){}
+          var co = function(z){ return dp.ds.some(function(x){ return x.ma === z; }); };
+          var dau = (ma && co(ma) ? ma : '') || (co(luu) ? luu : '') || (co('FPT') ? 'FPT' : (dp.ds[0] || {}).ma);
+          $('#dpMeta').textContent = dp.ds.length + ' mã có dự phóng. Gõ mã hoặc chọn từ gợi ý.';
+          if(ma && !co(ma)) dpXem(ma); else if(dau) dpXem(dau);
+        }).catch(function(){ $('#dpMeta').textContent = 'Chưa tải được danh sách dự phóng.'; fail($('#dpAll'), 'Chưa tải được danh sách dự phóng.'); });
+      }else if(ma){ dpXem(ma); }
+      else dpDatHash(dp.ma);
+    }
+    function dpCsv(){
+      var d = dp.data, b = dpBang(), q = function(s){ return '"' + String(s).replace(/"/g, '""') + '"'; };
+      var lines = [[q('Chỉ tiêu'), q('Đơn vị')].concat(b.cot.map(q)).join(',')];
+      b.dong.forEach(function(r){ lines.push([q(r.ten), q(r.dv || '')].concat(r.v.map(function(v){ return v === null || v === undefined ? '' : v; })).join(',')); });
+      lines.push(q(d.meta.model_version + ' · ' + d.meta.disclaimer));
+      var blob = new Blob(['﻿' + lines.join('\r\n')], {type: 'text/csv;charset=utf-8'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'du_phong_' + d.ma + '_' + dp.bc + '_' + dp.ky + '.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    }
+    $('#recTabDp').addEventListener('click', function(){ dpMo(); });
+    $('#dpGo').addEventListener('click', function(){ dpXem($('#dpMa').value); });
+    $('#dpMa').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); dpXem(this.value); } });
+    $('#dpMa').addEventListener('change', function(){ var v = this.value.trim().toUpperCase(); if(dp.ds.some(function(x){ return x.ma === v; })) dpXem(v); });
+    $('#dpKy').addEventListener('click', function(e){
+      var b = e.target.closest('button[data-ky]'); if(!b) return;
+      dp.ky = b.getAttribute('data-ky');
+      $$('#dpKy button').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      if(dp.data && dp.data.nam){ dpChart(); dpTable(); }
+    });
+    $('#dpBc').addEventListener('click', function(e){
+      var b = e.target.closest('button[data-bc]'); if(!b) return;
+      dpChonBc(b.getAttribute('data-bc'));
+      if(dp.data && dp.data.nam) dpTable();
+    });
+    $('#dpCsv').addEventListener('click', function(){ if(dp.data && dp.data.nam) dpCsv(); });
+    $('#dpAll').addEventListener('click', function(e){
+      var s = e.target.closest('th[data-k]');
+      if(s){ var k = s.getAttribute('data-k'); dp.nguoc = dp.sap === k ? !dp.nguoc : k !== 'ma'; dp.sap = k; dpTongQuan(); return; }
+      var b = e.target.closest('button[data-dpma]');
+      if(b){ dpXem(b.getAttribute('data-dpma')); window.scrollTo({top: $('#recTabDp').getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth'}); }
+    });
+
+    // liên kết trực tiếp: …/co-phieu-khuyen-nghi/#bctc=FPT mở thẳng tab báo cáo tài chính, #du-phong=FPT mở tab dự phóng
+    var RE_DP = /^#du-phong(?:=([A-Za-z0-9]{1,12}))?$/;
+    var hm = /^#bctc(?:=([A-Za-z0-9]{1,12}))?$/.exec(location.hash), hd = RE_DP.exec(location.hash);
     if(hm) fsMo(hm[1] ? hm[1].toUpperCase() : '');
+    else if(hd) dpMo(hd[1] ? hd[1].toUpperCase() : '');
     else if(location.hash === '#dinh-gia') valMo();
     // đổi #bctc=… trên thanh địa chỉ (dán liên kết, nút Quay lại) thì cập nhật theo
     window.addEventListener('hashchange', function(){
-      var h = /^#bctc(?:=([A-Za-z0-9]{1,12}))?$/.exec(location.hash);
+      var h = /^#bctc(?:=([A-Za-z0-9]{1,12}))?$/.exec(location.hash), h2 = RE_DP.exec(location.hash);
       if(h){ var m = h[1] ? h[1].toUpperCase() : ''; if($('#recPaneFs').hidden || (m && m !== fs.ma)) fsMo(m); }
+      else if(h2){ var m2 = h2[1] ? h2[1].toUpperCase() : ''; if($('#recPaneDp').hidden || (m2 && m2 !== dp.ma)) dpMo(m2); }
       else if(location.hash === '#dinh-gia'){ if($('#recPaneVal').hidden) valMo(); }
-      else if(!$('#recPaneFs').hidden || !$('#recPaneVal').hidden) fsDong();
+      else if(!$('#recPaneFs').hidden || !$('#recPaneVal').hidden || !$('#recPaneDp').hidden) fsDong();
+    });
+    document.addEventListener('click', function(e){
+      var b = e.target.closest('[data-duphong]'); if(!b) return;
+      e.preventDefault(); dpMo(b.getAttribute('data-duphong')); window.scrollTo({top: $('#recTabDp').getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth'});
     });
     // bấm nút “Xem báo cáo tài chính” (data-bctc) ở bất kỳ đâu trên trang
     document.addEventListener('click', function(e){

@@ -44,6 +44,15 @@ jobs:
         continue-on-error: true
         run: python scripts/diem_tai_chinh.py
 
+      # Dự phóng BCTC (tab "Dự phóng BCTC"): mô hình ACBS Quick Model L1 cài thẳng từ repo gốc của tác giả, khóa đúng commit
+      # đã kiểm tra (v2.6.8). Lên phiên bản mới: đổi mã commit bên dưới, mọi mã sẽ được chạy lại.
+      # Lượt thường chỉ chạy mã vừa có kỳ báo cáo mới nên mất vài giây; chạy lại tất cả (~70 mã) khoảng 6 phút.
+      - name: Dự phóng BCTC
+        continue-on-error: true
+        run: |
+          pip install "pandas>=2.2,<3" "acbs-quick-model @ git+https://github.com/phucdh-acbs/acbs_quick_model@b3d857a73d83001f8899861fe84570f690bf994a"
+          python scripts/du_phong.py
+
       - name: Lưu thay đổi
         run: |
           git config user.name "github-actions[bot]"

@@ -1396,6 +1396,26 @@ body.modal-open{overflow:hidden;}
 .fs-kt-warn{border:1px solid var(--critical); border-left-width:4px; border-radius:10px; padding:10px 14px; font-size:13px; color:var(--ink-soft); background:var(--surface);}
 .fs-kt-warn b{color:var(--critical);}
 
+/* ---------- tab Dự phóng BCTC */
+.dp-st{margin:0 0 14px;}
+#dpStatus .fs-kt-warn{margin:0 0 14px;}
+.fs-table th.dp-f, .fs-table td.dp-f{background:color-mix(in srgb, var(--accent-tint) 45%, var(--surface));}
+.fs-table thead th.dp-f{background:var(--accent-tint); color:var(--accent-ink);}
+.dp-giai{margin:-4px 0 14px;}
+.dp-giai .val-h3{margin:0 0 6px;}
+.dp-giai ul{margin:0; padding-left:20px; font-size:13.5px; color:var(--ink-soft); line-height:1.55;}
+.dp-more{margin:12px 0 0; border:1px solid var(--border); border-radius:12px; padding:10px 14px; background:var(--surface);}
+.dp-more summary{cursor:pointer; font-weight:650; font-size:14px;}
+.dp-more[open] summary{margin-bottom:8px;}
+.dp-more ul{margin:0; padding-left:20px; font-size:13px; color:var(--ink-soft); line-height:1.55;}
+.dp-gd td{font-size:13px; vertical-align:top;}
+.dp-gd .dp-note{white-space:normal; min-width:280px; max-width:520px; color:var(--muted); font-size:12.5px;}
+.dp-issues li{margin:0 0 3px;}
+.dp-sort{cursor:pointer; user-select:none; white-space:nowrap;}
+.dp-sort:hover{color:var(--accent-strong);}
+.fs-kpi .fs-kpi-s .muted-text{font-weight:500;}
+@media (max-width:640px){ .rec-tabs{overflow-x:auto;} .rec-tabs button{white-space:nowrap;} }
+
 /* ---------- tab Định giá theo BCTC */
 .val-h3{margin:18px 0 8px; font-size:15px;}
 .val-bar{display:grid; grid-template-columns:96px 1fr 62px; align-items:center; gap:8px; margin:0 0 5px; font-size:12.5px;}
