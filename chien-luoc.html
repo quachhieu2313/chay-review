@@ -1,0 +1,81 @@
+---
+layout: default
+title: Chiến lược lô lẻ
+description: Hai chiến lược mua bằng lô lẻ chạy mô phỏng mỗi 10 phút trên dữ liệu thật - E1VFVN30 chỉ mua khi giá ≤ iNAV và rổ VN30 điểm tài chính cao - so với đối chứng, kèm sổ lệnh và rổ tháng.
+nav: chien-luoc
+permalink: /chien-luoc/
+---
+<section class="page-head wrap">
+  <p class="eyebrow">Chiến lược · Mô phỏng trên dữ liệu thật</p>
+  <h1>Chiến lược lô lẻ</h1>
+  <p>Hai cách mua đã kiểm chứng trên dữ liệu lịch sử, chạy mô phỏng mỗi 10 phút trong giờ giao dịch trên sổ lệnh lô lẻ thật. Mỗi chiến lược luôn được so với một cách mua đơn giản để thấy nó có thật sự hơn không.</p>
+</section>
+
+<div class="wrap" id="clPage">
+  <div class="hold-warn" role="note">
+    <b>Đây là sổ mô phỏng, không phải tài khoản thật.</b> Lệnh "khớp" khi sổ lệnh lô lẻ (SSI) lúc quét có người chào đúng giá và đủ khối lượng; đã trừ phí 0,15%/chiều và thuế bán 0,1%. Quét 10 phút/lần nên có thể lỡ những mức giá chỉ xuất hiện vài phút.
+    Kết quả quá khứ không bảo đảm cho tương lai. Không phải khuyến nghị đầu tư.
+    <span id="clCapNhat"></span>
+  </div>
+
+  <section class="card panel" id="clA">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Chiến lược A</p>
+        <h2>E1VFVN30: chỉ mua khi giá lô lẻ ≤ iNAV</h2>
+        <p class="panel-sub">Mỗi tuần <b id="clATien">600.000 đ</b>. Chỉ mua các mức chào bán không cao hơn iNAV của Dragon Capital; từ 14:00 thứ Sáu chấp nhận cao hơn tối đa <b id="clAHanChot">0,3%</b>. Tiền chưa tiêu dồn sang tuần sau. Đối chứng: mua ngay ở lượt quét đầu tuần.</p>
+      </div>
+    </div>
+    <div class="buy-verdict" id="clAVerdict"></div>
+    <div class="buy-grid">
+      <div class="buy-card" id="clANow"></div>
+      <div class="buy-card" id="clAWeek"></div>
+      <div class="buy-card" id="clAKq"></div>
+    </div>
+  </section>
+
+  <section class="card panel" id="clB">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Chiến lược B</p>
+        <h2 id="clBTitle">Rổ VN30 điểm tài chính cao nhất</h2>
+        <p class="panel-sub">Mỗi tháng <b id="clBTien">2.400.000 đ</b>. Đầu tháng chọn <span id="clBSoMa">5</span> mã VN30 có điểm tài chính cao nhất (50% lợi suất lợi nhuận E/P + 50% giá trị sổ sách/vốn hóa), mỗi ngành tối đa <span id="clBNganh">2</span> mã; mua đều tiền bằng lô lẻ trong <span id="clBNgay">5</span> ngày giao dịch đầu tháng, không trả giá lô lẻ cao hơn bảng chính quá <span id="clBLe">0,5%</span>; bán mã rớt khỏi rổ. Đối chứng: cùng số tiền mua E1VFVN30.</p>
+      </div>
+    </div>
+    <div class="buy-verdict" id="clBVerdict"></div>
+    <h3 class="val-h3" id="clBRoTitle">Rổ tháng này</h3>
+    <div class="table-scroll" id="clBRo"></div>
+    <h3 class="val-h3">Đang giữ (mô phỏng)</h3>
+    <div class="table-scroll" id="clBGiu"></div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Sổ lệnh mô phỏng</p>
+        <h2>Mọi lệnh đã "khớp"</h2>
+        <p class="panel-sub" id="clLenhSub"></p>
+      </div>
+      <button class="btn btn-ghost" type="button" id="clCsv">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+        Tải sổ lệnh (CSV)
+      </button>
+    </div>
+    <div class="table-scroll" id="clLenh"></div>
+  </section>
+
+  <section class="note-card">
+    <h2>Mã robot "mua gấp đôi" đang bỏ qua</h2>
+    <p>Hai chiến lược này cũng chạy bằng lệnh thật trong app DNSE của chủ trang. Để robot "lỗ 16% mua gấp đôi" không đụng vào các mã của chiến lược, app máy tính và app điện thoại đọc danh sách dưới đây (E1VFVN30, rổ tháng này kể cả rổ dự kiến, và rổ 3 tháng gần nhất) rồi bỏ qua các mã đó:</p>
+    <p id="clLoaiTru" class="cl-chips">…</p>
+  </section>
+
+  <section class="note-card">
+    <h2>Vì sao chọn hai chiến lược này</h2>
+    <ul>
+      <li><b>A:</b> kiểm chứng 3.038 phiên từ 2014: mua E1VFVN30 khi giá thấp hơn NAV trên 1% thì 1 tháng sau trung bình +3,5%, khi cao hơn NAV trên 1% thì −0,8%; mức chênh tự kéo về gần 0 sau khoảng 5 phiên. Mua định kỳ mà chờ giá ≤ NAV giúp giá vốn rẻ hơn 0,2–1,2%/năm. Lợi thế nhỏ nhưng có cơ chế rõ (thành viên lập quỹ hoán đổi rổ cổ phiếu). Xem <a href="{{ '/etf/chi-tiet/' | relative_url }}?ma=E1VFVN30">khung Điểm mua của E1VFVN30</a>.</li>
+      <li><b>B:</b> điểm tài chính trên khoảng 100 mã: nhóm điểm cao thắng nhóm điểm thấp khoảng 60% số tháng, chênh khoảng +2%/tháng (xem tab Định giá theo BCTC ở <a href="{{ '/co-phieu-khuyen-nghi/' | relative_url }}">Cổ Phiếu Khuyến Nghị</a>). Lợi thế yếu, cần ít nhất 6–12 tháng mới kết luận được; vì vậy B luôn được so với việc mua E1VFVN30 cùng lúc, cùng số tiền.</li>
+      <li><b>Lô lẻ:</b> bảng lô lẻ thanh khoản mỏng, có lúc đắt hơn bảng chính (ví dụ E1VFVN30 ngày 27/11 chào bán lô lẻ 31.650 trong khi bảng chính 31.550). Sổ mô phỏng này đo đúng chi phí đó.</li>
+    </ul>
+  </section>
+</div>

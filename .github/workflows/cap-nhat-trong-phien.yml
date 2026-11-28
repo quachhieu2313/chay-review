@@ -33,6 +33,11 @@ jobs:
       - name: Lấy bảng giá
         run: python scripts/cap_nhat_du_lieu.py --trong-phien
 
+      # Trang /chien-luoc/: mô phỏng 2 chiến lược lô lẻ, chốt rổ tháng, đăng danh sách mã robot DNSE phải bỏ qua
+      - name: Chiến lược lô lẻ
+        continue-on-error: true
+        run: python scripts/chien_luoc.py
+
       - name: Lưu thay đổi
         run: |
           git config user.name "github-actions[bot]"

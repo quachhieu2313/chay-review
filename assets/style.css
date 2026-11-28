@@ -1439,6 +1439,11 @@ body.modal-open{overflow:hidden;}
 .buy-how .table-scroll{margin:0 0 12px;}
 .data-table tr.buy-now td{background:var(--accent-tint);}
 @media (max-width:820px){ .buy-grid{grid-template-columns:1fr;} }
+/* trang Chiến lược lô lẻ */
+#clPage .card{margin-top:18px;}
+.cl-book{font-size:12.5px; margin-top:6px;}
+.cl-book th, .cl-book td{padding:4px 6px;}
+.cl-chips .val-flag{font-size:13px; padding:2px 10px; margin:0 4px 6px 0;}
 
 /* ---------- tab Định giá theo BCTC */
 .val-h3{margin:18px 0 8px; font-size:15px;}

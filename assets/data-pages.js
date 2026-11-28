@@ -3012,9 +3012,108 @@
   }
 
   // =====================================================================
+  // TRANG CHIẾN LƯỢC LÔ LẺ (dữ liệu: scripts/chien_luoc.py, 10 phút/lần trong phiên)
+  // =====================================================================
+  var clPage = $('#clPage');
+  if(clPage){
+    Promise.all([load('chien_luoc/tin_hieu.json'), load('chien_luoc/so.json')]).then(function(r){
+      var t = r[0], so = r[1], bc = t.bao_cao, ts = t.tham_so, A = t.A, a = bc.A, B = t.B, b = bc.B;
+      $('#clCapNhat').textContent = ' Cập nhật lúc ' + t.cap_nhat.slice(11) + ' ' + ngayVN(t.cap_nhat.slice(0, 10)) +
+        (t.trong_phien ? ' (đang trong phiên lô lẻ)' : '') + '; bắt đầu mô phỏng từ ' + ngayVN(so.bat_dau) + '.';
+      $('#clATien').textContent = fmt(ts.tien_tuan_etf) + ' đ';
+      $('#clAHanChot').textContent = fmt(ts.chenh_han_chot_pct, 1) + '%';
+      $('#clBTien').textContent = fmt(ts.tien_thang_ro) + ' đ';
+      $('#clBSoMa').textContent = ts.so_ma;
+      $('#clBNganh').textContent = ts.toi_da_moi_nganh;
+      $('#clBNgay').textContent = ts.so_ngay_mua;
+      $('#clBLe').textContent = fmt(ts.chenh_le_toi_da_pct, 1) + '%';
+
+      // ---- A
+      var inav = A.inav ? A.inav.inav : null, ban = A.so_le && A.so_le.ban.length ? A.so_le.ban[0] : null;
+      var v = $('#clAVerdict');
+      if(inav && ban){
+        v.className = 'buy-verdict ' + (A.mua_duoc ? 'buy-tot' : A.chenh_ban_pct > 0.3 ? 'buy-cao' : 'buy-duoc');
+        v.innerHTML = '<b class="buy-h">' + (A.mua_duoc
+            ? 'Mua được: lô lẻ đang chào bán ' + fmt(ban[0]) + ' đ, không cao hơn iNAV.'
+            : 'Đang chờ: lô lẻ chào bán ' + fmt(ban[0]) + ' đ, cao hơn iNAV ' + fmt(A.chenh_ban_pct, 2) + '%.') + '</b>' +
+          '<p>Giá đặt mua tối đa <b>' + fmt(A.gia_tran) + ' đ</b> (iNAV ' + fmt(inav, 2) + ' lúc ' + A.inav.luc.slice(11, 16) + ' ' + ngayVN(A.inav.luc.slice(0, 10)) +
+          '). Bảng chính khớp ' + fmt(A.so_chan ? A.so_chan.khop : null) + ' đ.' + (t.trong_phien ? '' : ' Ngoài giờ giao dịch: số liệu của phiên gần nhất.') + '</p>';
+      } else {
+        v.className = 'buy-verdict';
+        v.innerHTML = '<b class="buy-h">Chưa lấy được iNAV hoặc sổ lệnh lô lẻ của E1VFVN30.</b>';
+      }
+      function soLenh(s){
+        if(!s) return '<p class="muted-text">Chưa có sổ lệnh.</p>';
+        var n = Math.max(s.mua.length, s.ban.length), h = '<table class="data-table cl-book"><thead><tr><th class="num">KL mua</th><th class="num">Giá mua</th><th class="num">Giá bán</th><th class="num">KL bán</th></tr></thead><tbody>';
+        for(var i = 0; i < n; i++){
+          var m = s.mua[i], x = s.ban[i];
+          h += '<tr><td class="num">' + (m ? fmt(m[1]) : '') + '</td><td class="num up">' + (m ? fmt(m[0]) : '') + '</td><td class="num down">' + (x ? fmt(x[0]) : '') + '</td><td class="num">' + (x ? fmt(x[1]) : '') + '</td></tr>';
+        }
+        return h + '</tbody></table>';
+      }
+      $('#clANow').innerHTML = '<h3>Sổ lệnh lô lẻ E1VFVN30' + (A.so_le ? ' (' + ngayVN(A.so_le.ngay) + ')' : '') + '</h3>' + soLenh(A.so_le);
+      var w = A.tuan;
+      $('#clAWeek').innerHTML = '<h3>Tuần này (' + (w ? w.id : '–') + ')</h3>' + (w
+        ? '<p class="buy-big">' + fmt(w.kl) + ' ccq</p><ul><li>Ngân sách tuần: ' + fmt(w.ngan_sach) + ' đ</li><li>Đã chi (gồm phí): ' + fmt(w.da_chi) + ' đ</li><li>Còn: ' + fmt(w.ngan_sach - w.da_chi) + ' đ</li></ul>'
+        : '<p class="buy-big">–</p><ul><li>Tuần này chưa có lượt quét trong phiên.</li></ul>');
+      $('#clAKq').innerHTML = '<h3>Kết quả từ đầu</h3>' + (a.kl
+        ? '<p class="buy-big ' + cls(a.re_hon_pct) + '">' + (a.re_hon_pct >= 0 ? 'Rẻ hơn ' : 'Đắt hơn ') + fmt(Math.abs(a.re_hon_pct), 2) + '%</p><ul>' +
+          '<li>Giá vốn ' + fmt(a.gia_von) + ' đ so với đối chứng mua đầu tuần ' + fmt(a.gia_von_doi_chung) + ' đ</li>' +
+          '<li>' + fmt(a.kl) + ' ccq, vốn ' + tien(a.von) + ', lãi/lỗ nếu bán <b class="' + cls(a.lai) + '">' + (a.lai > 0 ? '+' : '') + tien(a.lai) + '</b></li>' +
+          '<li>' + a.so_tuan + ' tuần, ' + a.tuan_chua_mua + ' tuần chưa mua được</li></ul>'
+        : '<p class="buy-big">Chưa có lệnh</p><ul><li>Theo dõi ' + a.so_tuan + ' tuần. Lô lẻ chưa có lúc nào chào bán ≤ iNAV khi quét.</li></ul>');
+
+      // ---- B
+      var thang = B.thang.slice(5) + '/' + B.thang.slice(0, 4);
+      $('#clBRoTitle').textContent = 'Rổ tháng ' + thang + (B.trang_thai === 'da_chot' ? ' (đã chốt ngày ' + ngayVN(B.ngay_diem) + ')' : ' (dự kiến theo điểm ngày ' + ngayVN(B.ngay_diem) + ')');
+      var vb = $('#clBVerdict'), coThang = Object.keys(so.ro.thang || {}).length > 0;
+      if(!coThang){
+        vb.className = 'buy-verdict';
+        vb.innerHTML = '<b class="buy-h">Rổ B bắt đầu từ phiên lô lẻ đầu tiên của tháng sau.</b><p>Rổ dự kiến bên dưới tính theo điểm tài chính hiện tại; rổ thật được chốt ở lượt quét đầu tháng và có thể khác nếu điểm thay đổi.</p>';
+      } else if(b.lai_pct !== null && b.ss_lai_pct !== null){
+        var thang_ = b.lai_pct > b.ss_lai_pct;
+        vb.className = 'buy-verdict ' + (thang_ ? 'buy-tot' : 'buy-cao');
+        vb.innerHTML = '<b class="buy-h">Rổ ' + pct(b.lai_pct) + ' so với mua E1VFVN30 cùng lúc ' + pct(b.ss_lai_pct) + ': rổ đang ' + (thang_ ? 'thắng' : 'thua') + '.</b>' +
+          '<p>Giá trị nếu bán hết ' + tien(b.gia_tri) + ', tiền mặt chờ mua ' + tien(b.tien_mat) + ', lãi/lỗ (gồm phần đã bán) <b class="' + cls(b.lai) + '">' + (b.lai > 0 ? '+' : '') + tien(b.lai) + '</b>. Vài tháng đầu kết quả chủ yếu là may rủi.</p>';
+      } else {
+        vb.className = 'buy-verdict';
+        vb.innerHTML = '<b class="buy-h">Đang mua rổ tháng ' + thang + '.</b>';
+      }
+      $('#clBRo').innerHTML = '<table class="data-table"><thead><tr><th>Mã</th><th>Ngành</th><th class="num">Điểm</th><th class="num">Lô lẻ chào bán</th><th class="num">Bảng chính chào bán</th><th class="num">Lô lẻ so với bảng chính</th></tr></thead><tbody>' +
+        B.chi_tiet.map(function(x){
+          return '<tr><td><b>' + esc(x.ma) + '</b></td><td>' + esc(x.nganh || '') + '</td><td class="num">' + fmt(x.diem, 1) + '</td><td class="num">' + (x.gia_le ? fmt(x.gia_le) : '–') + '</td>' +
+            '<td class="num">' + (x.gia_chan ? fmt(x.gia_chan) : '–') + '</td><td class="num ' + cls(-(x.chenh_le || 0)) + '">' + (x.chenh_le === null ? 'không có người bán lẻ' : pct(x.chenh_le)) + '</td></tr>';
+        }).join('') + '</tbody></table>';
+      $('#clBGiu').innerHTML = b.ds.length ? '<table class="data-table"><thead><tr><th>Mã</th><th class="num">Số CP</th><th class="num">Vốn (gồm phí)</th><th class="num">Giá hiện tại</th><th class="num">Giá trị nếu bán</th><th class="num">Lãi/lỗ</th></tr></thead><tbody>' +
+        b.ds.map(function(x){
+          return '<tr><td><b>' + esc(x.ma) + '</b></td><td class="num">' + fmt(x.kl) + '</td><td class="num">' + fmt(x.von) + '</td><td class="num">' + fmt(x.gia) + '</td><td class="num">' + fmt(x.gia_tri) + '</td><td class="num ' + cls(x.lai) + '">' + (x.lai > 0 ? '+' : '') + fmt(x.lai) + '</td></tr>';
+        }).join('') + '</tbody></table>' : '<p class="muted-text">Chưa giữ mã nào.</p>';
+
+      // ---- sổ lệnh
+      var ds = (so.lenh || []).slice().reverse();
+      $('#clLenhSub').textContent = ds.length ? ds.length + ' lệnh, mới nhất ở trên.' : 'Chưa có lệnh nào.';
+      $('#clLenh').innerHTML = ds.length ? '<table class="data-table"><thead><tr><th>Lúc</th><th>CL</th><th>Mã</th><th>Bên</th><th class="num">KL</th><th class="num">Giá TB</th><th class="num">Tiền</th><th class="num">Phí, thuế</th><th>Lý do</th></tr></thead><tbody>' +
+        ds.slice(0, 200).map(function(l){
+          return '<tr><td>' + esc(l.luc.slice(11, 16) + ' ' + ngayVN(l.luc.slice(0, 10))) + '</td><td>' + l.cl + '</td><td><b>' + esc(l.ma) + '</b></td><td class="' + (l.ben === 'MUA' ? 'up' : 'down') + '">' + esc(l.ben) + '</td>' +
+            '<td class="num">' + fmt(l.kl) + '</td><td class="num">' + fmt(l.gia) + '</td><td class="num">' + fmt(l.tien) + '</td><td class="num">' + fmt(l.phi) + '</td><td class="muted-text">' + esc(l.ly_do) + '</td></tr>';
+        }).join('') + '</tbody></table>' : '';
+      $('#clCsv').hidden = !ds.length;
+      $('#clCsv').onclick = function(){
+        var dong = ['Luc,Chien luoc,Ma,Ben,KL,Gia TB,Tien,Phi thue,Ly do'];
+        (so.lenh || []).forEach(function(l){ dong.push([l.luc, l.cl, l.ma, l.ben, l.kl, l.gia, l.tien, l.phi, '"' + String(l.ly_do).replace(/"/g, '""') + '"'].join(',')); });
+        var el = document.createElement('a');
+        el.href = URL.createObjectURL(new Blob(['﻿' + dong.join('\n')], {type:'text/csv;charset=utf-8'}));
+        el.download = 'chien_luoc_lo_le_' + t.cap_nhat.slice(0, 10) + '.csv';
+        document.body.appendChild(el); el.click(); el.remove();
+      };
+      $('#clLoaiTru').innerHTML = t.loai_tru.map(function(m){ return '<span class="val-flag">' + esc(m) + '</span>'; }).join(' ');
+    }).catch(function(){ fail(clPage, 'Chưa tải được dữ liệu chiến lược. Vui lòng thử lại sau.'); });
+  }
+
+  // =====================================================================
   // TỰ TẢI LẠI KHI CÓ DỮ LIỆU MỚI (2 phút kiểm tra một lần, chỉ khi tab đang được xem)
   // =====================================================================
-  var dungDuLieu = document.querySelector('#mktChart, #etfTable, #etfDetail, #homeEtf, #holdPage, #ptPage, #dlPage, #recPage');
+  var dungDuLieu = document.querySelector('#mktChart, #etfTable, #etfDetail, #homeEtf, #holdPage, #ptPage, #dlPage, #recPage, #clPage');
   if(dungDuLieu){
     var toast = null;
     function banDangThaoTac(){

@@ -44,6 +44,11 @@ jobs:
         continue-on-error: true
         run: python scripts/diem_tai_chinh.py
 
+      # Trang /chien-luoc/: cập nhật rổ dự kiến theo điểm tài chính mới + danh sách mã robot DNSE phải bỏ qua
+      - name: Chiến lược lô lẻ
+        continue-on-error: true
+        run: python scripts/chien_luoc.py
+
       # Dự phóng BCTC (tab "Dự phóng BCTC"): mô hình ACBS Quick Model L1 cài thẳng từ repo gốc của tác giả, khóa đúng commit
       # đã kiểm tra (v2.6.8). Lên phiên bản mới: đổi mã commit bên dưới, mọi mã sẽ được chạy lại.
       # Lượt thường chỉ chạy mã vừa có kỳ báo cáo mới nên mất vài giây; chạy lại tất cả (~70 mã) khoảng 6 phút.

@@ -9,6 +9,9 @@
 - id: co-phieu-khuyen-nghi
   ten: Cổ Phiếu Khuyến Nghị
   link: /co-phieu-khuyen-nghi/
+- id: chien-luoc
+  ten: Chiến lược
+  link: /chien-luoc/
 - id: phan-tich
   ten: Radar danh mục
   link: /phan-tich/
