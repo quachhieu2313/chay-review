@@ -2073,6 +2073,22 @@
   // ---- Điểm mua: NAV, iNAV và chênh lệch giá/NAV do Dragon Capital công bố (dữ liệu từ scripts/etf_nav.py)
   // Chỉ có cho quỹ có file etf_nav/<MÃ>.json; quỹ khác thì khung này giữ ẩn.
   var INAV_API = 'https://api.dragoncapital.com.vn/iindex/getLatestIIndex.php?index=';
+  // bảng giá VPS (cho phép gọi từ trình duyệt): giá khớp gần nhất + 3 bước dư mua/dư bán, giá tính theo nghìn đồng, khối lượng theo lô 10
+  var VPS_API = 'https://bgapidatafeed.vps.com.vn/getliststockdata/';
+  function homNayVN(){
+    var n = bayGioVN();
+    return n.getFullYear() + '-' + ('0' + (n.getMonth() + 1)).slice(-2) + '-' + ('0' + n.getDate()).slice(-2);
+  }
+  function docVps(ma){
+    return fetch(VPS_API + encodeURIComponent(ma), {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(ds){
+      var x = (ds || []).filter(function(y){ return y.sym === ma; })[0];
+      if(!x || !(Number(x.lastPrice) > 0)) return null;
+      function buoc(s){ var a = String(s || '').split('|'); var g = Math.round(Number(a[0]) * 1000); return g > 0 ? {gia:g, kl:Number(a[1]) * 10} : null; }
+      var n = bayGioVN();
+      return {gia:Math.round(Number(x.lastPrice) * 1000), mua:buoc(x.g1), ban:buoc(x.g4),
+        luc:('0' + n.getHours()).slice(-2) + ':' + ('0' + n.getMinutes()).slice(-2) + ':' + ('0' + n.getSeconds()).slice(-2)};
+    });
+  }
   function giaDatMua(x){ return Math.floor(x / 10) * 10; } // bước giá chứng chỉ quỹ ETF trên HOSE là 10 đồng
   function dangPhienVN(){
     var n = bayGioVN(), thu = n.getDay(), phut = n.getHours() * 60 + n.getMinutes();
@@ -2108,11 +2124,15 @@
       }
       f.insertAdjacentHTML('beforeend', them.map(function(x){ return '<div><dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd></div>'; }).join(''));
 
-      var live = null;
+      var live = null, so = null; // live: iNAV Dragon Capital; so: bảng giá VPS
       function ve(){
-        // chọn mốc so sánh: NAV chính thức nếu đã có cho phiên của giá; nếu chưa thì iNAV trong phiên
+        // chọn mốc so sánh: trong phiên thì giá VPS so với iNAV cùng lúc; ngoài phiên thì NAV chính thức nếu đã có cho phiên của giá, chưa có thì iNAV cuối phiên
         var ref, refTen, cl, giaTT = q.gia, ngayGia = q.ngay;
-        if(p.ngay >= ngayGia){
+        var thucThoi = dangPhienVN() && so && live && live.luc.slice(0, 10) === homNayVN();
+        if(thucThoi){
+          giaTT = so.gia; ngayGia = homNayVN(); ref = live.inav; cl = (giaTT / ref - 1) * 100;
+          refTen = 'iNAV lúc ' + live.luc.slice(11, 16) + ' ' + ngayVN(ngayGia).slice(0, 5);
+        } else if(p.ngay >= ngayGia){
           ref = p.nav; cl = p.ngay === ngayGia ? (giaTT / ref - 1) * 100 : p.cl;
           refTen = 'NAV chính thức phiên ' + ngayVN(p.ngay);
           if(p.ngay > ngayGia){ giaTT = p.gia; ngayGia = p.ngay; }
@@ -2125,8 +2145,12 @@
         }
         var m = mucChenh(cl), tran = giaDatMua(ref);
         var trongPhien = lucGia && lucGia >= '09:00' && lucGia < '15:00'; // giờ cập nhật đêm không phải giờ khớp lệnh
-        $('#dBuySub').textContent = 'So giá ' + fmt(giaTT) + ' đ (' + (ngayGia === q.ngay && trongPhien ? 'lúc ' + lucGia + ' ' + ngayVN(ngayGia) : 'đóng cửa ' + ngayVN(ngayGia)) + ') với ' + refTen +
-          ' = ' + fmt(ref, 2) + ' đ. Dữ liệu NAV lấy lúc ' + n.lay_luc.slice(11) + ' ' + ngayVN(n.lay_luc.slice(0, 10)) + (live ? '; iNAV tự làm mới mỗi phút trong giờ giao dịch.' : '.');
+        $('#dBuySub').textContent = thucThoi
+          ? 'Thời gian thực: giá khớp ' + fmt(giaTT) + ' đ (bảng giá VPS, lấy lúc ' + so.luc + ') so với ' + refTen + ' = ' + fmt(ref, 2) + ' đ (Dragon Capital). Tự làm mới mỗi 30 giây.'
+          : 'So giá ' + fmt(giaTT) + ' đ (' + (ngayGia === q.ngay && trongPhien ? 'lúc ' + lucGia + ' ' + ngayVN(ngayGia) : 'đóng cửa ' + ngayVN(ngayGia)) + ') với ' + refTen +
+            ' = ' + fmt(ref, 2) + ' đ. Dữ liệu NAV lấy lúc ' + n.lay_luc.slice(11) + ' ' + ngayVN(n.lay_luc.slice(0, 10)) + '. Trong giờ giao dịch, giá và iNAV tự làm mới mỗi 30 giây.';
+        // giá phải trả nếu mua ngay = giá dư bán tốt nhất
+        var ban = thucThoi && so.ban ? so.ban : null, clBan = ban ? (ban.gia / ref - 1) * 100 : null;
 
         // ---- kết luận
         var dong1 = {
@@ -2138,6 +2162,11 @@
         var dong2 = m.k === 'tot'
           ? 'Có thể mua ngay ở giá thị trường. Giá đặt mua tối đa nên là <b>' + fmt(tran) + ' đ</b> (không cao hơn ' + (refTen.indexOf('iNAV') === 0 ? 'iNAV' : 'NAV') + ').'
           : 'Giá đặt mua gợi ý: <b>tối đa ' + fmt(tran) + ' đ</b>, tức không cao hơn ' + (refTen.indexOf('iNAV') === 0 ? 'iNAV hiện tại' : 'NAV phiên gần nhất') + '. Lệnh chưa khớp thì để đến phiên sau hoặc sửa theo iNAV mới.';
+        if(ban){
+          dong2 += ban.gia <= tran
+            ? ' Hiện có người bán ở <b>' + fmt(ban.gia) + ' đ</b> (' + pct(clBan) + ' so với iNAV), mua ngay được.'
+            : ' Muốn mua ngay phải trả giá dư bán <b>' + fmt(ban.gia) + ' đ</b>, cao hơn iNAV ' + fmt(clBan, 2) + '%; đặt lệnh chờ ở ' + fmt(tran) + ' đ sẽ có lợi hơn.';
+        }
         var tot = vungTotHon(zNay, nen), dong3;
         if(!zNay){ dong3 = ''; }
         else if(tot === null){
@@ -2167,7 +2196,9 @@
           luong = '<li>Chứng chỉ quỹ lưu hành 20 phiên: <b class="' + cls(dccq) + '">' + (dccq > 0 ? '+' : dccq < 0 ? '−' : '') + fmt(Math.abs(dccq) / 1e6, 1) + ' triệu ccq</b> (≈ ' + (dccq >= 0 ? 'tiền vào quỹ ' : 'tiền rút ra ') + tien(Math.abs(dccq) * p.nav) + ')</li>';
         }
         $('#dBuyPrem').innerHTML = '<h3>Giá so với NAV</h3><p class="buy-big ' + cls(-cl) + '">' + pct(cl) + '</p><p class="buy-tag buy-' + m.k + '">' + m.ten + '</p><ul>' +
-          '<li>Giá trên sàn: <b>' + fmt(giaTT) + ' đ</b></li>' +
+          '<li>Giá trên sàn: <b>' + fmt(giaTT) + ' đ</b>' + (thucThoi ? ' (khớp gần nhất)' : '') + '</li>' +
+          (thucThoi && (so.mua || so.ban) ? '<li>Dư mua tốt nhất ' + (so.mua ? fmt(so.mua.gia) + ' đ (' + fmt(so.mua.kl) + ' ccq)' : '–') +
+            ' · dư bán tốt nhất ' + (so.ban ? fmt(so.ban.gia) + ' đ (' + fmt(so.ban.kl) + ' ccq)' : '–') + '</li>' : '') +
           '<li>' + esc(refTen.indexOf('iNAV') === 0 ? 'iNAV' : 'NAV/ccq') + ': <b>' + fmt(ref, 2) + ' đ</b></li>' +
           '<li>12 tháng qua: trung vị ' + pct(c1.p50) + '; 10% số phiên thấp hơn ' + pct(c1.p10) + '; ' + fmt(c1.ty_le_duoi_nav) + '% số phiên giá ≤ NAV</li>' + luong + '</ul>';
 
@@ -2199,15 +2230,17 @@
       }
 
       ve();
+      // iNAV (Dragon Capital) và giá khớp (VPS) lấy cùng lúc để hai số cùng thời điểm
       function docInav(){
-        fetch(INAV_API + encodeURIComponent(q.ma), {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(j){
+        var a = fetch(INAV_API + encodeURIComponent(q.ma), {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(j){
           var x = j && j[q.ma];
           if(x && Number(x.value) > 0) live = {inav:Number(x.value), luc:String(x.trade_date || '')};
-          ve();
         }).catch(function(){});
+        var b = docVps(q.ma).then(function(x){ if(x) so = x; }).catch(function(){});
+        Promise.all([a, b]).then(ve);
       }
       docInav();
-      setInterval(function(){ if(!document.hidden && dangPhienVN()) docInav(); }, 60000);
+      setInterval(function(){ if(!document.hidden && dangPhienVN()) docInav(); }, 30000);
 
       // ---- biểu đồ chênh lệch 12 tháng
       var ch = LineChart($('#dBuyChart'), {label:'Chênh lệch giá trên sàn so với NAV, %', yFmt:function(v){ return pct(v, 1); }, refLine:0, noChange:true});
